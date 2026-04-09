@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cmixed | Systems Online</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS 变量定义 - 深色模式（默认） */
+        :root {
+            --primary: #00d4aa;
+            --primary-dim: #00d4aa40;
+            --primary-glow: rgba(0, 212, 170, 0.3);
+            --bg: #0a0f0d;
+            --bg-secondary: #111916;
+            --bg-card: #111916;
+            --text: #e0f2f1;
+            --text-dim: #80cbc4;
+            --text-muted: #4a6b66;
+            --border: rgba(0, 212, 170, 0.2);
+            --alert: #ff6b6b;
+            --warning: #ffd93d;
+            --scan-line: rgba(0, 212, 170, 0.03);
+            --grid-line: rgba(0, 212, 170, 0.1);
+            --matrix-color: #00d4aa;
+            --shadow: rgba(0, 212, 170, 0.1);
+            --radar-bg: conic-gradient(from 0deg, transparent 0deg, var(--primary-dim) 360deg);
+            --transition-speed: 0.5s;
+        }
+
+        /* 浅色模式变量 - 沙漠战术风格 */
+        [data-theme="light"] {
+            --primary: #d35400;
+            --primary-dim: rgba(211, 84, 0, 0.2);
+            --primary-glow: rgba(211, 84, 0, 0.2);
+            --bg: #f4f1ea;
+            --bg-secondary: #e8e4d9;
+            --bg-card: #ffffff;
+            --text: #2c241b;
+            --text-dim: #5d4e3e;
+            --text-muted: #9e8b7a;
+            --border: rgba(211, 84, 0, 0.2);
+            --alert: #c0392b;
+            --warning: #f39c12;
+            --scan-line: rgba(211, 84, 0, 0.02);
+            --grid-line: rgba(44, 36, 27, 0.08);
+            --matrix-color: #d35400;
+            --shadow: rgba(44, 36, 27, 0.1);
+            --radar-bg: conic-gradient(from 0deg, transparent 0deg, var(--primary-dim) 360deg);
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            transition: background var(--transition-speed), color var(--transition-speed);
+        }
+
+        /* 扫描线效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                var(--scan-line) 2px,
+                var(--scan-line) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            transition: background var(--transition-speed);
+        }
+
+        /* 背景网格 */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            z-index: -2;
+            transition: background-image var(--transition-speed);
+        }
+
+        /* 代码雨 Canvas */
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            background: rgba(var(--bg-rgb, 10, 15, 13), 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        [data-theme="light"] nav {
+            background: rgba(244, 241, 234, 0.9);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+        }
+
+        .logo::after {
+            content: '_';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::before {
+            content: '[ ';
+            color: var(--primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a::after {
+            content: ' ]';
+            color: var(--primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::before,
+        .nav-links a:hover::after {
+            opacity: 1;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all var(--transition-speed);
+        }
+
+        .theme-toggle:hover {
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .theme-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            border-radius: 50%;
+            transition: transform var(--transition-speed), background var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        [data-theme="light"] .theme-toggle-slider {
+            transform: translateX(30px);
+        }
+
+        .theme-icon {
+            font-size: 12px;
+            color: var(--bg);
+            transition: opacity 0.3s;
+        }
+
+        .theme-toggle .sun-icon {
+            position: absolute;
+            opacity: 0;
+        }
+
+        [data-theme="light"] .theme-toggle .moon-icon {
+            opacity: 0;
+        }
+
+        [data-theme="light"] .theme-toggle .sun-icon {
+            opacity: 1;
+            position: relative;
+        }
+
+        .theme-label {
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .theme-toggle:hover .theme-label {
+            opacity: 1;
+        }
+
+        /* 主要内容区 */
+        main {
+            padding-top: 100px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+        }
+
+        .status-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 2rem;
+            color: var(--text-dim);
+            transition: all var(--transition-speed);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--text) 50%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            transition: all var(--transition-speed);
+        }
+
+        .hero h1::after {
+            content: 'CMIXED';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, transparent 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.3;
+            filter: blur(10px);
+            z-index: -1;
+        }
+
+        .typewriter {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            min-height: 1.5em;
+        }
+
+        .typewriter .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2em;
+            background: var(--primary);
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--bg);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .btn-primary::before {
+            background: var(--bg);
+        }
+
+        .btn-primary:hover {
+            color: var(--primary);
+        }
+
+        /* 雷达装饰 */
+        .radar {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            opacity: 0.3;
+            pointer-events: none;
+            transition: border-color var(--transition-speed);
+        }
+
+        .radar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            height: 50%;
+            background: var(--radar-bg);
+            border-radius: 50%;
+            transform-origin: 0 0;
+            animation: radar-sweep 4s linear infinite;
+        }
+
+        @keyframes radar-sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 内容区块 */
+        section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text);
+        }
+
+        .section-header::before {
+            content: '//';
+            color: var(--primary);
+        }
+
+        .section-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        /* 关于我 */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-text {
+            line-height: 1.8;
+            color: var(--text-dim);
+        }
+
+        .about-text p {
+            margin-bottom: 1rem;
+        }
+
+        .stats-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: all var(--transition-speed);
+        }
+
+        .stats-box::before {
+            content: 'SYSTEM.INFO';
+            position: absolute;
+            top: -10px;
+            left: 1rem;
+            background: var(--bg);
+            padding: 0 0.5rem;
+            color: var(--primary);
+            font-size: 0.8rem;
+            transition: all var(--transition-speed);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* 技能标签 */
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .skill-tag {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            font-size: 0.9rem;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .skill-tag::before {
+            content: '>';
+            margin-right: 0.5rem;
+            color: var(--text-dim);
+        }
+
+        .skill-tag:hover {
+            background: var(--primary-dim);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px var(--primary-glow);
+        }
+
+        /* 项目卡片 */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .project-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--primary-glow);
+        }
+
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--primary-dim);
+            color: var(--primary);
+            border-radius: 3px;
+        }
+
+        .project-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-tech {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tech-tag {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            padding: 0.2rem 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        /* 联系区域 */
+        .contact-container {
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 4rem 2rem;
+            position: relative;
+            box-shadow: 0 4px 30px var(--shadow);
+        }
+
+        .contact-container::before,
+        .contact-container::after {
+            content: '+';
+            position: absolute;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .contact-container::before {
+            top: 1rem;
+            left: 1rem;
+        }
+
+        .contact-container::after {
+            bottom: 1rem;
+            right: 1rem;
+        }
+
+        .email-display {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin: 1.5rem 0;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            background: var(--bg);
+        }
+
+        .social-link:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translateY(-3px);
+        }
+
+        .social-link svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            transition: all var(--transition-speed);
+        }
+
+        .footer-line {
+            margin-bottom: 1rem;
+        }
+
+        .build-info {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .radar {
+                width: 200px;
+                height: 200px;
+            }
+
+            .theme-label {
+                display: none;
+            }
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* 主题切换动画类 */
+        .theme-transitioning {
+            pointer-events: none;
+        }
+
+        .theme-transitioning * {
+            transition-duration: 0.5s !important;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <canvas id="matrix"></canvas>
+
+    <nav>
+        <div class="logo">Cmixed</div>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#about">关于</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#projects">项目</a></li>
+                <li><a href="#contact">联系</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <div class="theme-toggle-slider">
+                    <span class="theme-icon moon-icon">◐</span>
+                    <span class="theme-icon sun-icon">◑</span>
+                </div>
+                <span class="theme-label">MODE</span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="radar" style="top: 10%; left: 10%;"></div>
+            <div class="radar" style="bottom: 10%; right: 10%; animation-delay: -2s;"></div>
+
+            <div class="hero-content">
+                <div class="status-bar">
+                    <span class="status-indicator"></span>
+                    <span id="statusText">SYSTEM ONLINE // 战术系统已激活</span>
+                </div>
+
+                <h1>Cmixed</h1>
+
+                <div class="typewriter" id="typewriter">
+                    <span id="type-text"></span><span class="cursor"></span>
+                </div>
+
+                <div class="cta-buttons">
+                    <a href="https://github.com/Cmixed" class="btn btn-primary" target="_blank">
+                        查看 GitHub
+                    </a>
+                    <a href="#contact" class="btn">建立连接</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="about">
+            <div class="section-header">指挥官档案</div>
+            <div class="about-grid">
+                <div class="about-text">
+                    <p>// 身份识别：独立开发者</p>
+                    <p>// 作战领域：系统级编程、高性能计算、逆向工程</p>
+                    <p>专注于 Modern C++ 与 Python 的深度开发，探索底层系统架构与性能优化。热衷于 Command & Conquer 系列所代表的战术思维，将军事策略的严谨性融入代码工程。</p>
+                    <p>正在深入 Assembly 语言与计算机体系结构，构建对硬件的精确掌控能力。</p>
+                </div>
+                <div class="stats-box">
+                    <div class="stat-item">
+                        <span class="stat-label">主武器</span>
+                        <span class="stat-value">Modern C++</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">副武器</span>
+                        <span class="stat-value">Python</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">战术装备</span>
+                        <span class="stat-value">Assembly</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">指挥风格</span>
+                        <span class="stat-value">Command & Conquer</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">状态</span>
+                        <span class="stat-value" style="color: var(--warning);">持续学习中</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills">
+            <div class="section-header">装备库</div>
+            <div class="skills-container">
+                <div class="skill-tag">Modern C++</div>
+                <div class="skill-tag">Python 3</div>
+                <div class="skill-tag">x86 Assembly</div>
+                <div class="skill-tag">System Programming</div>
+                <div class="skill-tag">Performance Optimization</div>
+                <div class="skill-tag">Reverse Engineering</div>
+                <div class="skill-tag">Low-level Architecture</div>
+                <div class="skill-tag">Git</div>
+                <div class="skill-tag">CMake</div>
+                <div class="skill-tag">Linux</div>
+            </div>
+        </section>
+
+        <section id="projects">
+            <div class="section-header">作战记录</div>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">TACTICAL SYSTEM</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">高性能计算框架</div>
+                        </div>
+                        <span class="project-status">WIP</span>
+                    </div>
+                    <div class="project-desc">
+                        基于 Modern C++20 构建的高性能并发计算系统，采用无锁数据结构与内存池优化技术。
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-tag">C++20</span>
+                        <span class="tech-tag">并发编程</span>
+                        <span class="tech-tag">内存管理</span>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">RADAR SCANNER</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">网络分析工具</div>
+                        </div>
+                        <span class="project-status">PLANNING</span>
+                    </div>
+                    <div class="project-desc">
+                        Python 驱动的网络流量分析与可视化平台，实时监控系统状态与异常检测。
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Asyncio</span>
+                        <span class="tech-tag">数据分析</span>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">BINARY INTEL</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">逆向工程工具集</div>
+                        </div>
+                        <span class="project-status">RESEARCH</span>
+                    </div>
+                    <div class="project-desc">
+                        Assembly 与 C 混编的二进制分析工具，用于深入理解程序执行流程与漏洞研究。
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-tag">Assembly</span>
+                        <span class="tech-tag">C</span>
+                        <span class="tech-tag">ELF/PE</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <div class="section-header">通讯频道</div>
+            <div class="contact-container">
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">// 等待指令输入...</p>
+                <div class="email-display">cmixed@foxmail.com</div>
+                <p style="color: var(--text-dim); font-size: 0.9rem;">
+                    寻求 C++ / Python 项目合作，或讨论 Command & Conquer 战术心得
+                </p>
+                <div class="social-links">
+                    <a href="https://github.com/Cmixed" class="social-link" target="_blank" title="GitHub">
+                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="mailto:cmixed@foxmail.com" class="social-link" title="Email">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-line">
+            <span style="color: var(--primary);">⚡</span> 
+            <span id="footerStatus">战术系统运行正常</span>
+            <span style="color: var(--primary);">⚡</span>
+        </div>
+        <div class="build-info">
+            // BUILD: 2026.04.09 | SYSTEM: GITHUB_PAGES | STATUS: ONLINE
+        </div>
+    </footer>
+
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        const statusText = document.getElementById('statusText');
+        const footerStatus = document.getElementById('footerStatus');
+
+        // 检查本地存储或系统偏好
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme) {
+            html.setAttribute('data-theme', savedTheme);
+            updateThemeText(savedTheme);
+        } else if (!systemPrefersDark) {
+            html.setAttribute('data-theme', 'light');
+            updateThemeText('light');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            // 添加过渡动画类
+            document.body.classList.add('theme-transitioning');
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeText(newTheme);
+
+            // 更新 Matrix 颜色
+            matrixColor = getComputedStyle(html).getPropertyValue('--matrix-color').trim();
+
+            // 移除过渡类
+            setTimeout(() => {
+                document.body.classList.remove('theme-transitioning');
+            }, 500);
+        });
+
+        function updateThemeText(theme) {
+            if (theme === 'light') {
+                statusText.textContent = 'SYSTEM ONLINE // 日间作战模式';
+                footerStatus.textContent = '日间战术系统运行正常';
+            } else {
+                statusText.textContent = 'SYSTEM ONLINE // 夜间作战模式';
+                footerStatus.textContent = '夜间战术系统运行正常';
+            }
+        }
+
+        // 监听系统主题变化
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                html.setAttribute('data-theme', newTheme);
+                updateThemeText(newTheme);
+            }
+        });
+
+        // 打字机效果
+        const texts = [
+            'Modern C++ 开发者',
+            'Python 工程师',
+            'Command & Conquer 指挥官',
+            '系统级编程爱好者'
+        ];
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typeElement = document.getElementById('type-text');
+
+        function type() {
+            const currentText = texts[textIndex];
+
+            if (isDeleting) {
+                typeElement.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typeElement.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 50 : 100;
+
+            if (!isDeleting && charIndex === currentText.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        type();
+
+        // 代码雨背景
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.random() * -100;
+        }
+
+        let matrixColor = getComputedStyle(html).getPropertyValue('--matrix-color').trim();
+
+        function drawMatrix() {
+            ctx.fillStyle = getComputedStyle(html).getPropertyValue('--bg').trim() + '0D';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = matrixColor;
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 35);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 滚动显示动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.project-card, .skill-tag').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s, transform 0.6s';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
