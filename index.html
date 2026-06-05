@@ -660,6 +660,10 @@
             transition: all 0.3s;
             overflow: hidden;
             box-shadow: 0 4px 20px var(--shadow);
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
         }
 
         .project-card::before {
@@ -967,59 +971,59 @@
         <section id="projects">
             <div class="section-header">作战记录</div>
             <div class="projects-grid">
-                <div class="project-card">
+                <a href="https://github.com/cmixed/pac_man" class="project-card" target="_blank" rel="noopener noreferrer">
                     <div class="project-header">
                         <div>
-                            <div class="project-title">TACTICAL SYSTEM</div>
-                            <div style="font-size: 0.8rem; color: var(--text-dim);">高性能计算框架</div>
+                            <div class="project-title">pac_man</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">经典吃豆人游戏</div>
                         </div>
-                        <span class="project-status">WIP</span>
+                        <span class="project-status">C++</span>
                     </div>
                     <div class="project-desc">
-                        基于 Modern C++20 构建的高性能并发计算系统，采用无锁数据结构与内存池优化技术。
+                        使用 C++ 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑与 AI 寻路算法。
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-tag">C++</span>
+                        <span class="tech-tag">AI</span>
+                        <span class="tech-tag">Game Dev</span>
+                    </div>
+                </a>
+
+                <a href="https://github.com/cmixed/route" class="project-card" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">route</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">图算法最短路径</div>
+                        </div>
+                        <span class="project-status">C++20</span>
+                    </div>
+                    <div class="project-desc">
+                        基于 C++20 的图数据结构与最短路径算法实现，支持多线程并行计算与自定义线程池。
                     </div>
                     <div class="project-tech">
                         <span class="tech-tag">C++20</span>
-                        <span class="tech-tag">并发编程</span>
-                        <span class="tech-tag">内存管理</span>
+                        <span class="tech-tag">Graph</span>
+                        <span class="tech-tag">Thread Pool</span>
                     </div>
-                </div>
+                </a>
 
-                <div class="project-card">
+                <a href="https://github.com/cmixed/fk-deltaforce" class="project-card" target="_blank" rel="noopener noreferrer">
                     <div class="project-header">
                         <div>
-                            <div class="project-title">RADAR SCANNER</div>
-                            <div style="font-size: 0.8rem; color: var(--text-dim);">网络分析工具</div>
+                            <div class="project-title">fk-deltaforce</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">三角洲 ACE 日志分析</div>
                         </div>
-                        <span class="project-status">PLANNING</span>
+                        <span class="project-status">Rust</span>
                     </div>
                     <div class="project-desc">
-                        Python 驱动的网络流量分析与可视化平台，实时监控系统状态与异常检测。
+                        Rust 实现的三角洲行动 ACE 反作弊扫描日志分析工具，自动解析日志并生成统计报告与高危目标 CSV。
                     </div>
                     <div class="project-tech">
-                        <span class="tech-tag">Python</span>
-                        <span class="tech-tag">Asyncio</span>
-                        <span class="tech-tag">数据分析</span>
+                        <span class="tech-tag">Rust</span>
+                        <span class="tech-tag">Log Parsing</span>
+                        <span class="tech-tag">CLI</span>
                     </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div>
-                            <div class="project-title">BINARY INTEL</div>
-                            <div style="font-size: 0.8rem; color: var(--text-dim);">逆向工程工具集</div>
-                        </div>
-                        <span class="project-status">RESEARCH</span>
-                    </div>
-                    <div class="project-desc">
-                        Assembly 与 C 混编的二进制分析工具，用于深入理解程序执行流程与漏洞研究。
-                    </div>
-                    <div class="project-tech">
-                        <span class="tech-tag">Assembly</span>
-                        <span class="tech-tag">C</span>
-                        <span class="tech-tag">ELF/PE</span>
-                    </div>
-                </div>
+                </a>
             </div>
         </section>
 
