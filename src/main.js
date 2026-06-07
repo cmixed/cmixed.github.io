@@ -24,21 +24,14 @@ themeToggle.addEventListener('click', () => {
     localStorage.setItem('theme', newTheme);
     updateThemeText(newTheme);
 
-    updateMatrixColors();
-
     setTimeout(() => {
         document.body.classList.remove('theme-transitioning');
-    }, 500);
+    }, 300);
 });
 
 function updateThemeText(theme) {
-    if (theme === 'light') {
-        statusText.textContent = 'SYSTEM ONLINE // 日间作战模式';
-        footerStatus.textContent = '日间战术系统运行正常';
-    } else {
-        statusText.textContent = 'SYSTEM ONLINE // 夜间作战模式';
-        footerStatus.textContent = '夜间战术系统运行正常';
-    }
+    statusText.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
+    footerStatus.textContent = theme === 'light' ? '© 2026 Cmixed · Light' : '© 2026 Cmixed · Dark';
 }
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -50,10 +43,10 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 });
 
 const texts = [
-    'Modern C++ 开发者',
-    'Python 工程师',
-    'Command & Conquer 指挥官',
-    '系统级编程爱好者'
+    'Modern C++ Developer',
+    'Python Engineer',
+    'System Programmer',
+    'Performance Optimizer'
 ];
 let textIndex = 0;
 let charIndex = 0;
@@ -86,70 +79,6 @@ function type() {
 }
 
 type();
-
-const canvas = document.getElementById('matrix');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-const fontSize = 14;
-const columns = canvas.width / fontSize;
-const drops = [];
-
-for (let i = 0; i < columns; i++) {
-    drops[i] = Math.random() * -100;
-}
-
-let matrixColor = '#00d4aa';
-let bgColor = '#0a0f0d';
-
-function updateMatrixColors() {
-    const style = getComputedStyle(html);
-    matrixColor = style.getPropertyValue('--matrix-color').trim();
-    bgColor = style.getPropertyValue('--bg').trim();
-}
-updateMatrixColors();
-
-function drawMatrix() {
-    ctx.fillStyle = bgColor + '0D';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = matrixColor;
-    ctx.font = fontSize + 'px monospace';
-
-    for (let i = 0; i < drops.length; i++) {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-            drops[i] = 0;
-        }
-        drops[i]++;
-    }
-}
-
-let lastMatrixTime = 0;
-let matrixActive = true;
-
-document.addEventListener('visibilitychange', () => {
-    matrixActive = !document.hidden;
-});
-
-function matrixLoop(time) {
-    if (matrixActive && time - lastMatrixTime >= 35) {
-        drawMatrix();
-        lastMatrixTime = time;
-    }
-    requestAnimationFrame(matrixLoop);
-}
-requestAnimationFrame(matrixLoop);
-
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
 
 const hamburger = document.getElementById('hamburger');
 const navLinks = document.querySelector('.nav-links');
