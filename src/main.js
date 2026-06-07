@@ -226,6 +226,19 @@ function renderProjects() {
 }
 renderProjects();
 
+const skills = [
+    'Modern C++', 'Python 3', 'x86 Assembly',
+    'System Programming', 'Performance Optimization',
+    'Reverse Engineering', 'Low-level Architecture',
+    'Git', 'CMake', 'Linux'
+];
+
+function renderSkills() {
+    const container = document.getElementById('skillsContainer');
+    container.innerHTML = skills.map(s => `<div class="skill-tag">${s}</div>`).join('');
+}
+renderSkills();
+
 const observerOptions = {
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px'
