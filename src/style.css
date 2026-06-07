@@ -26,15 +26,15 @@
     --primary: #2563eb;
     --primary-dim: rgba(37, 99, 235, 0.08);
     --primary-glow: rgba(37, 99, 235, 0.15);
-    --bg: #ffffff;
-    --bg-rgb: 255, 255, 255;
-    --bg-secondary: #f8fafc;
-    --bg-card: #ffffff;
-    --text: #0f172a;
-    --text-dim: #475569;
-    --text-muted: #64748b;
-    --border: rgba(100, 116, 139, 0.18);
-    --shadow: rgba(0, 0, 0, 0.06);
+    --bg: #f2f2ee;
+    --bg-rgb: 242, 242, 238;
+    --bg-secondary: #eaeae6;
+    --bg-card: #f7f7f4;
+    --text: #1a1a18;
+    --text-dim: #5c5c54;
+    --text-muted: #8a8a80;
+    --border: rgba(100, 100, 90, 0.15);
+    --shadow: rgba(0, 0, 0, 0.05);
 }
 
 body {
