@@ -6,15 +6,15 @@
     <meta name="description" content="Cmixed - Modern C++ 开发者 | 系统级编程 | 逆向工程 | 高性能计算">
     <meta name="keywords" content="C++, Python, Assembly, 逆向工程, 系统编程, 高性能计算">
     <meta name="author" content="Cmixed">
-    <meta property="og:title" content="Cmixed | Systems Online">
+    <meta property="og:title" content="Cmixed · 技术博客">
     <meta property="og:description" content="Modern C++ 开发者 · 系统级编程 · 逆向工程">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cmixed.github.io">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <meta property="og:image" content="https://cmixed.github.io/og-image.svg">
-    <title>Cmixed | Systems Online</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <title>Cmixed · 技术博客</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="src/style.css">
     <base target="_blank">
     <script type="application/ld+json">
@@ -31,9 +31,6 @@
     </script>
 </head>
 <body>
-    <div class="grid-bg"></div>
-    <canvas id="matrix"></canvas>
-
     <nav>
         <div class="logo">Cmixed</div>
         <div class="nav-right">
@@ -53,20 +50,16 @@
                     <span class="theme-icon moon-icon">◐</span>
                     <span class="theme-icon sun-icon">◑</span>
                 </div>
-                <span class="theme-label">MODE</span>
             </button>
         </div>
     </nav>
 
     <main>
         <section class="hero">
-            <div class="radar" style="top: 10%; left: 10%;"></div>
-            <div class="radar" style="bottom: 10%; right: 10%; animation-delay: -2s;"></div>
-
             <div class="hero-content">
                 <div class="status-bar">
                     <span class="status-indicator"></span>
-                    <span id="statusText">SYSTEM ONLINE // 战术系统已激活</span>
+                    <span id="statusText">Available for opportunities</span>
                 </div>
 
                 <h1>Cmixed</h1>
@@ -77,38 +70,37 @@
 
                 <div class="cta-buttons">
                     <a href="https://github.com/Cmixed" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
-                        查看 GitHub
+                        GitHub
                     </a>
-                    <a href="#contact" class="btn">建立连接</a>
+                    <a href="#projects" class="btn">项目</a>
                 </div>
             </div>
         </section>
 
         <section id="about">
-            <div class="section-header">指挥官档案</div>
+            <div class="section-header">关于</div>
             <div class="about-grid">
                 <div class="about-text">
-                    <p>// 身份识别：独立开发者</p>
-                    <p>// 作战领域：系统级编程、高性能计算、逆向工程</p>
-                    <p>专注于 Modern C++ 与 Python 的深度开发，探索底层系统架构与性能优化。热衷于 Command & Conquer 系列所代表的战术思维，将军事策略的严谨性融入代码工程。</p>
+                    <p>独立开发者，专注于 Modern C++ 与 Python 的深度开发，探索底层系统架构与性能优化。</p>
                     <p>正在深入 Assembly 语言与计算机体系结构，构建对硬件的精确掌控能力。</p>
+                    <p>关注系统级编程、高性能计算与逆向工程。</p>
                 </div>
                 <div class="stats-box">
                     <div class="stat-item">
-                        <span class="stat-label">主武器</span>
+                        <span class="stat-label">主语言</span>
                         <span class="stat-value">Modern C++</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">副武器</span>
+                        <span class="stat-label">副语言</span>
                         <span class="stat-value">Python</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">战术装备</span>
+                        <span class="stat-label">底层</span>
                         <span class="stat-value">Assembly</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">指挥风格</span>
-                        <span class="stat-value">Command & Conquer</span>
+                        <span class="stat-label">领域</span>
+                        <span class="stat-value">系统编程 · 高性能计算</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">状态</span>
@@ -119,23 +111,20 @@
         </section>
 
         <section id="skills">
-            <div class="section-header">装备库</div>
+            <div class="section-header">技能</div>
             <div class="skills-container" id="skillsContainer"></div>
         </section>
 
         <section id="projects">
-            <div class="section-header">作战记录</div>
+            <div class="section-header">项目</div>
             <div class="projects-grid" id="projectsGrid"></div>
         </section>
 
         <section id="contact">
-            <div class="section-header">通讯频道</div>
+            <div class="section-header">联系</div>
             <div class="contact-container">
-                <p style="color: var(--text-dim); margin-bottom: 1rem;">// 等待指令输入...</p>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">欢迎交流技术话题与合作</p>
                 <div class="email-display">cmixed@foxmail.com</div>
-                <p style="color: var(--text-dim); font-size: 0.9rem;">
-                    寻求 C++ / Python 项目合作，或讨论 Command & Conquer 战术心得
-                </p>
                 <div class="social-links">
                     <a href="https://github.com/Cmixed" class="social-link" target="_blank" rel="noopener noreferrer" title="GitHub">
                         <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
@@ -150,12 +139,7 @@
 
     <footer>
         <div class="footer-line">
-            <span style="color: var(--primary);">⚡</span> 
-            <span id="footerStatus">战术系统运行正常</span>
-            <span style="color: var(--primary);">⚡</span>
-        </div>
-        <div class="build-info">
-            // BUILD: 2026.04.09 | SYSTEM: GITHUB_PAGES | STATUS: ONLINE
+            <span id="footerStatus">© 2026 Cmixed</span>
         </div>
     </footer>
 
