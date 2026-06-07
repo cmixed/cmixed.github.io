@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Cmixed | 404</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4aa;
+            --bg: #0a0f0d;
+            --text: #e0f2f1;
+            --text-dim: #80cbc4;
+            --text-muted: #4a6b66;
+            --border: rgba(0, 212, 170, 0.2);
+        }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        .code {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(5rem, 15vw, 10rem);
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 0 0 40px rgba(0, 212, 170, 0.3);
+            line-height: 1;
+        }
+        .msg {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin: 1.5rem 0 2rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: var(--primary);
+            color: var(--bg);
+        }
+        .status {
+            position: fixed;
+            bottom: 2rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="code">404</div>
+        <div class="msg">// 目标不存在，信号丢失</div>
+        <a href="https://cmixed.github.io" class="btn">返回基地</a>
+        <div class="status">SYSTEM: PAGE_NOT_FOUND | STATUS: LOST_SIGNAL</div>
+    </div>
+</body>
+</html>
