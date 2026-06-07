@@ -168,6 +168,8 @@ function renderSkills() {
 }
 renderSkills();
 
+document.querySelectorAll('section').forEach(el => el.classList.add('section-reveal'));
+
 const observerOptions = {
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px'
@@ -176,15 +178,16 @@ const observerOptions = {
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+            entry.target.classList.add('visible');
         }
     });
 }, observerOptions);
 
-document.querySelectorAll('.project-card, .skill-tag').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s, transform 0.6s';
+document.querySelectorAll('.section-reveal, .project-card, .skill-tag').forEach(el => {
+    if (!el.classList.contains('section-reveal')) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s, transform 0.6s';
+    }
     observer.observe(el);
 });
