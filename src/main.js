@@ -111,6 +111,22 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 const projects = [
     {
+        title: 'srs',
+        subtitle: '异构模型集成级联系统',
+        desc: 'Python 实现的 AI 心理健康咨询系统，集成多种异构大语言模型，支持 RAG 增强检索、多通道通讯与用户管理。',
+        url: 'https://github.com/cmixed/srs',
+        status: 'Python',
+        tags: ['Python', 'LLM', 'RAG', 'AI']
+    },
+    {
+        title: 'zcol',
+        subtitle: '单头文件 C++23 终端颜色库',
+        desc: 'C++23 实现的 Header-Only 终端彩色输出与日志库，支持 RAII 作用域颜色守卫、源位置日志、UDL 语法糖。',
+        url: 'https://github.com/cmixed/zcol',
+        status: 'C++23',
+        tags: ['C++23', 'Header-Only', 'Terminal', 'Library']
+    },
+    {
         title: 'pac_man',
         subtitle: '经典吃豆人游戏',
         desc: '使用 C++23 + EasyX 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑、AI 幽灵寻路与碰撞检测。',
@@ -161,6 +177,7 @@ const skills = [
     'System Programming', 'Performance Optimization',
     'Reverse Engineering', 'Low-level Architecture',
     'Game Development', 'Graph Algorithms',
+    'LLM & RAG', 'AI Application',
     'Multithreading', 'Git', 'CMake', 'Linux'
 ];
 
