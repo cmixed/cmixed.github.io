@@ -175,7 +175,6 @@ function renderProjects() {
     `).join('');
 }
 renderProjects();
-renderAbout();
 
 const skills = [
     'Modern C++', 'Rust', 'Python 3', 'x86 Assembly',
@@ -188,37 +187,6 @@ const skills = [
     'Algorithm Design', 'CLI Tool Development',
     'Multithreading', 'Git', 'CMake', 'Linux'
 ];
-
-function renderAbout() {
-    const langs = skills.filter(s =>
-        ['Modern C++', 'Rust', 'Python 3', 'x86 Assembly', 'Java'].includes(s)
-    );
-    const domains = skills.filter(s =>
-        !['Modern C++', 'Rust', 'Python 3', 'x86 Assembly', 'Java', 'C++23 Library Design',
-          'Header-Only Library', 'Git', 'CMake', 'Linux', 'Multithreading'].includes(s)
-    );
-
-    const latestProjects = projects.slice(0, 3);
-    const learning = skills.filter(s => ['Rust', 'LLM & RAG', 'AI Application'].includes(s));
-
-    const langList = langs.join('、');
-    const domainList = domains.slice(0, 4).join('、');
-    const projectList = latestProjects.map(p => `${p.title}（${p.subtitle}）`).join('、');
-
-    const p1 = `独立开发者，专注于 ${langList} 的深度开发，探索底层系统架构与性能优化。`;
-    const p2 = `正在学习 ${learning.join('、')}，持续拓展技术边界，构建从硬件到 AI 的全栈掌控能力。`;
-    const p3 = `近期项目：${projectList}。关注 ${domainList} 等领域。`;
-
-    document.getElementById('aboutText').innerHTML =
-        `<p>${p1}</p><p>${p2}</p><p>${p3}</p>`;
-
-    const hasAssembly = langs.includes('x86 Assembly');
-    const hasPython = langs.includes('Python 3');
-    document.getElementById('statLang1').textContent = 'Modern C++';
-    document.getElementById('statLang2').textContent = hasPython ? 'Python' : (langs[1] || 'Rust');
-    document.getElementById('statLang3').textContent = hasAssembly ? 'x86 Assembly' : (langs[2] || 'Low-level');
-    document.getElementById('statDomains').textContent = domains.slice(0, 3).join(' · ');
-}
 
 function renderSkills() {
     const container = document.getElementById('skillsContainer');
