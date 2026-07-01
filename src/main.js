@@ -31,7 +31,7 @@ themeToggle.addEventListener('click', () => {
 
 function updateThemeText(theme) {
     statusText.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
-    footerStatus.textContent = theme === 'light' ? '© 2026 Cmixed · Light' : '© 2026 Cmixed · Dark';
+    footerStatus.textContent = theme === 'light' ? '© 2026 cmixed · Light' : '© 2026 cmixed · Dark';
 }
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
