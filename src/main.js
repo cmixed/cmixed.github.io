@@ -44,8 +44,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 
 const texts = [
     'Modern C++ Developer',
-    'Python Engineer',
+    'Rust Engineer',
     'System Programmer',
+    'Game Developer',
     'Performance Optimizer'
 ];
 let textIndex = 0;
@@ -112,26 +113,26 @@ const projects = [
     {
         title: 'pac_man',
         subtitle: '经典吃豆人游戏',
-        desc: '使用 C++ 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑与 AI 寻路算法。',
+        desc: '使用 C++23 + EasyX 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑、AI 幽灵寻路与碰撞检测。',
         url: 'https://github.com/cmixed/pac_man',
-        status: 'C++',
-        tags: ['C++', 'AI', 'Game Dev']
+        status: 'C++23',
+        tags: ['C++23', 'AI', 'Game Dev', 'EasyX']
     },
     {
         title: 'route',
-        subtitle: '图算法最短路径',
-        desc: '基于 C++20 的图数据结构与最短路径算法实现，支持多线程并行计算与自定义线程池。',
+        subtitle: '图算法与并行计算框架',
+        desc: '基于 C++20 的图数据结构与最短路径算法实现，支持 Dijkstra、A*、Bellman-Ford 等多线程并行计算。',
         url: 'https://github.com/cmixed/route',
         status: 'C++20',
-        tags: ['C++20', 'Graph', 'Thread Pool']
+        tags: ['C++20', 'Graph', 'Thread Pool', 'Algorithm']
     },
     {
         title: 'fk-deltaforce',
         subtitle: '三角洲 ACE 日志分析',
-        desc: 'Rust 实现的三角洲行动 ACE 反作弊扫描日志分析工具，自动解析日志并生成统计报告与高危目标 CSV。',
+        desc: 'Rust 实现的三角洲行动反作弊日志分析工具，自动解析扫描日志、统计风险指标并导出高危目标 CSV 报告。',
         url: 'https://github.com/cmixed/fk-deltaforce',
         status: 'Rust',
-        tags: ['Rust', 'Log Parsing', 'CLI']
+        tags: ['Rust', 'Log Parsing', 'CLI', 'Analysis']
     }
 ];
 
@@ -156,10 +157,11 @@ function renderProjects() {
 renderProjects();
 
 const skills = [
-    'Modern C++', 'Python 3', 'x86 Assembly',
+    'Modern C++', 'Rust', 'Python 3', 'x86 Assembly',
     'System Programming', 'Performance Optimization',
     'Reverse Engineering', 'Low-level Architecture',
-    'Git', 'CMake', 'Linux'
+    'Game Development', 'Graph Algorithms',
+    'Multithreading', 'Git', 'CMake', 'Linux'
 ];
 
 function renderSkills() {
