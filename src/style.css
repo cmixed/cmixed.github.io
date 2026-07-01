@@ -254,6 +254,23 @@ body.nav-open::before {
     .theme-toggle-slider { width: 16px; height: 16px; }
 }
 
+/* ===== Large screen: wider layout for multi-column grids ===== */
+@media (min-width: 1200px) {
+    section {
+        max-width: 1100px;
+    }
+}
+
+@media (min-width: 1600px) {
+    section {
+        max-width: 1200px;
+    }
+
+    .projects-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+}
+
 .logo {
     font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
     font-size: 1.25rem;
