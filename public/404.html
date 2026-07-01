@@ -5,9 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <title>Cmixed | 404</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
     <style>
+        @font-face {
+            font-family: 'SarasaMonoSC';
+            src: url('../font/SarasaMonoSC-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'SarasaTermSC';
+            src: url('../font/SarasaTermSC-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #00d4aa;
@@ -18,7 +31,7 @@
             --border: rgba(0, 212, 170, 0.2);
         }
         body {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'SarasaMonoSC', 'JetBrains Mono', monospace;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
@@ -29,7 +42,7 @@
             padding: 2rem;
         }
         .code {
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'SarasaTermSC', 'Orbitron', sans-serif;
             font-size: clamp(5rem, 15vw, 10rem);
             font-weight: 900;
             color: var(--primary);
