@@ -45,8 +45,10 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 const texts = [
     'Modern C++ Developer',
     'Rust Engineer',
-    'System Programmer',
+    'Python & AI Developer',
     'Game Developer',
+    'System Programmer',
+    'Library Designer',
     'Performance Optimizer'
 ];
 let textIndex = 0;
@@ -174,10 +176,13 @@ renderProjects();
 
 const skills = [
     'Modern C++', 'Rust', 'Python 3', 'x86 Assembly',
+    'C++23 Library Design', 'Header-Only Library',
     'System Programming', 'Performance Optimization',
     'Reverse Engineering', 'Low-level Architecture',
-    'Game Development', 'Graph Algorithms',
+    'Game Development', 'Game AI & Pathfinding',
+    'Graph Algorithms', 'Parallel Computing',
     'LLM & RAG', 'AI Application',
+    'Algorithm Design', 'CLI Tool Development',
     'Multithreading', 'Git', 'CMake', 'Linux'
 ];
 
