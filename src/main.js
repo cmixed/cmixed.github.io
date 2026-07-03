@@ -42,6 +42,19 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
     }
 });
 
+const a11yToggle = document.getElementById('a11yToggle');
+const savedA11y = localStorage.getItem('a11y-reduced-motion');
+if (savedA11y === 'on') {
+    html.classList.add('reduce-motion');
+    a11yToggle.classList.add('active');
+}
+
+a11yToggle.addEventListener('click', () => {
+    const isActive = html.classList.toggle('reduce-motion');
+    a11yToggle.classList.toggle('active', isActive);
+    localStorage.setItem('a11y-reduced-motion', isActive ? 'on' : 'off');
+});
+
 const texts = [
     'Modern C++ Developer',
     'Rust Engineer',
