@@ -13,7 +13,7 @@
       <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <text x="600" y="290" font-family="Inter, sans-serif" font-size="88" font-weight="800" fill="#f1f5f9" text-anchor="middle" letter-spacing="-3">CMIXED</text>
+  <text x="600" y="290" font-family="Inter, sans-serif" font-size="88" font-weight="800" fill="#f1f5f9" text-anchor="middle" letter-spacing="-3">cmixed</text>
   <text x="600" y="370" font-family="JetBrains Mono, monospace" font-size="22" fill="#94a3b8" text-anchor="middle" letter-spacing="2">Modern C++ Developer · System Programmer</text>
   <line x1="400" y1="420" x2="800" y2="420" stroke="#3b82f6" stroke-width="1.5" opacity="0.3"/>
 </svg>
