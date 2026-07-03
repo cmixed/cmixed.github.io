@@ -292,6 +292,25 @@ main {
     z-index: 1;
 }
 
+.hero-avatar {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+}
+
+.hero-avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.hero-avatar img:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 30px var(--primary-glow);
+}
+
 .status-bar {
     display: inline-flex;
     align-items: center;
@@ -434,6 +453,22 @@ section {
 
 .about-text p {
     margin-bottom: 1rem;
+}
+
+.about-signature {
+    text-align: center;
+    margin-top: 2rem;
+    opacity: 0.6;
+    transition: opacity var(--transition-speed);
+}
+
+.about-signature:hover {
+    opacity: 1;
+}
+
+.about-signature img {
+    height: 40px;
+    width: auto;
 }
 
 .stats-box {
@@ -794,6 +829,7 @@ footer {
     }
     .hero h1 { font-size: clamp(2rem, 10vw, 3rem); }
     .hero::before { width: 300px; height: 300px; }
+    .hero-avatar img { width: 100px; height: 100px; }
 
     .typewriter { font-size: 1rem; }
     .status-bar { font-size: 0.75rem; }
