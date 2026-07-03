@@ -31,7 +31,7 @@ themeToggle.addEventListener('click', () => {
 
 function updateThemeText(theme) {
     statusText.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
-    footerStatus.textContent = theme === 'light' ? '© 2026 Cmixed · Light' : '© 2026 Cmixed · Dark';
+    footerStatus.textContent = theme === 'light' ? '© 2026 cmixed · Light' : '© 2026 cmixed · Dark';
 }
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -44,8 +44,11 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 
 const texts = [
     'Modern C++ Developer',
-    'Python Engineer',
+    'Rust Engineer',
+    'Python & AI Developer',
+    'Game Developer',
     'System Programmer',
+    'Library Designer',
     'Performance Optimizer'
 ];
 let textIndex = 0;
@@ -86,12 +89,14 @@ const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('active');
     navLinks.classList.toggle('active');
+    document.body.classList.toggle('nav-open');
 });
 
 document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', () => {
         hamburger.classList.remove('active');
         navLinks.classList.remove('active');
+        document.body.classList.remove('nav-open');
     });
 });
 
@@ -110,28 +115,44 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 const projects = [
     {
+        title: 'srs',
+        subtitle: '异构模型集成级联系统',
+        desc: 'Python 实现的 AI 心理健康咨询系统，集成多种异构大语言模型，支持 RAG 增强检索、多通道通讯与用户管理。',
+        url: 'https://github.com/cmixed/srs',
+        status: 'Python',
+        tags: ['Python', 'LLM', 'RAG', 'AI']
+    },
+    {
+        title: 'zcol',
+        subtitle: '单头文件 C++23 终端颜色库',
+        desc: 'C++23 实现的 Header-Only 终端彩色输出与日志库，支持 RAII 作用域颜色守卫、源位置日志、UDL 语法糖。',
+        url: 'https://github.com/cmixed/zcol',
+        status: 'C++23',
+        tags: ['C++23', 'Header-Only', 'Terminal', 'Library']
+    },
+    {
         title: 'pac_man',
         subtitle: '经典吃豆人游戏',
-        desc: '使用 C++ 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑与 AI 寻路算法。',
+        desc: '使用 C++23 + EasyX 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑、AI 幽灵寻路与碰撞检测。',
         url: 'https://github.com/cmixed/pac_man',
-        status: 'C++',
-        tags: ['C++', 'AI', 'Game Dev']
+        status: 'C++23',
+        tags: ['C++23', 'AI', 'Game Dev', 'EasyX']
     },
     {
         title: 'route',
-        subtitle: '图算法最短路径',
-        desc: '基于 C++20 的图数据结构与最短路径算法实现，支持多线程并行计算与自定义线程池。',
+        subtitle: '图算法与并行计算框架',
+        desc: '基于 C++20 的图数据结构与最短路径算法实现，支持 Dijkstra、A*、Bellman-Ford 等多线程并行计算。',
         url: 'https://github.com/cmixed/route',
         status: 'C++20',
-        tags: ['C++20', 'Graph', 'Thread Pool']
+        tags: ['C++20', 'Graph', 'Thread Pool', 'Algorithm']
     },
     {
         title: 'fk-deltaforce',
         subtitle: '三角洲 ACE 日志分析',
-        desc: 'Rust 实现的三角洲行动 ACE 反作弊扫描日志分析工具，自动解析日志并生成统计报告与高危目标 CSV。',
+        desc: 'Rust 实现的三角洲行动反作弊日志分析工具，自动解析扫描日志、统计风险指标并导出高危目标 CSV 报告。',
         url: 'https://github.com/cmixed/fk-deltaforce',
         status: 'Rust',
-        tags: ['Rust', 'Log Parsing', 'CLI']
+        tags: ['Rust', 'Log Parsing', 'CLI', 'Analysis']
     }
 ];
 
@@ -156,10 +177,15 @@ function renderProjects() {
 renderProjects();
 
 const skills = [
-    'Modern C++', 'Python 3', 'x86 Assembly',
+    'Modern C++', 'Rust', 'Python 3', 'x86 Assembly',
+    'C++23 Library Design', 'Header-Only Library',
     'System Programming', 'Performance Optimization',
     'Reverse Engineering', 'Low-level Architecture',
-    'Git', 'CMake', 'Linux'
+    'Game Development', 'Game AI & Pathfinding',
+    'Graph Algorithms', 'Parallel Computing',
+    'LLM & RAG', 'AI Application',
+    'Algorithm Design', 'CLI Tool Development',
+    'Multithreading', 'Git', 'CMake', 'Linux'
 ];
 
 function renderSkills() {
