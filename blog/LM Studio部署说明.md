@@ -1,0 +1,245 @@
+### 一、软件下载
+
+LM Studio 下载（**本地大语言模型（LLM）运行和管理软件**）
+
+网址：[LM Studio - Local AI on your computer](https://lmstudio.ai/)
+
+![SS-20260209_211613](C:\Users\cmixe\Desktop\SS-20260209_211613.jpg)
+
+### 二、安装流程
+
+下载的 LM-Studio 软件安装包：
+
+![image-20260209212122641](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209212122641.png)
+
+双击打开安装：
+
+出现界面如图：
+
+![image-20260209212219172](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209212219172.png)
+
+第一步：点击==我同意==
+
+![image-20260209212403981](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209212403981.png)
+
+第二步：默认选择==仅为我安装==即可，点击==下一步==。
+
+![image-20260209212442627](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209212442627.png)
+
+第三步：选择**目标文件夹**，默认为 C盘，推荐安装在空间足够的其它盘中。选择好后，点击==安装==。等待安装完成即可。
+
+![image-20260209212715316](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209212715316.png)
+
+![image-20260209213317553](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209213317553.png)
+
+第四步：默认勾选安装程序结束后**运行 LM Studio**，点击==完成==，退出安装程序，LM Studio开始运行。
+
+### 三、初始设置
+
+LM 初始运行界面如图：
+![image-20260209214246325](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209214246325.png)
+
+第一步：点击==红色箭头指向的按钮==（**Get Started**：开始）。
+
+![image-20260209214641321](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209214641321.png)
+
+第二步：默认 LM Studio 会推荐一个本机适用的模型，直接选择紫色按钮下面红框中==的横线跳过选项==（**Skip for now**：现在跳过）即可。（中文处理适合选用国内出品的模型）
+
+![image-20260209215112196](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209215112196.png)
+
+翻译如下：
+
+![image-20260209215131776](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209215131776.png)
+
+一共两个设置，按需选择是否开启第二个（**Start local LLM service on login**：登录时启动本地LLM服务）即开机自启动，一般不需要。
+选择好后，点击==紫色按钮==（**Continue to LM Studio →**：继续前往LM工作室）。
+
+![image-20260209220333067](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209220333067.png)
+
+翻译如下：
+![image-20260209220442579](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209220442579.png)
+
+第三步：进入主界面，关闭 1 处 的欢迎标语。点击 2 处，左下角 的 齿轮按钮，进入设置界面，更改界面语言设置。
+
+![image-20260209220538593](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209220538593.png)
+
+第四步：点击右侧箭头指向的矩形区域，在弹出的列表中下拉，找到简体中文。（后面带有 beta 的字样，因为语言翻译功能并不完善，有的地方仍然是英文）其他部分保持默认设置即可。 
+
+![image-20260209220641203](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209220641203.png)
+
+Appearance（**外观**） 中，包含一些列自定义外观设置，可根据实际需要调整。
+
+![image-20260209220955305](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209220955305.png)
+
+翻译如下：
+
+![image-20260209221202085](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209221202085.png)
+
+### 四、模型部署
+
+作为一个自带图形界面的本地大语言模型（LLM）运行和管理软件，部署模型十分方便。
+
+![image-20260209221348852](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209221348852.png)
+
+第一步：选择机器人图标，进行模型搜索（Model Search）。
+
+国内访问可能会慢一点，需要等待一下。
+
+![image-20260209221617320](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209221617320.png)
+
+出现红色方框中的下载，即代表加载完成，可以下载此模型。
+
+（==下载的模型，默认存储于C盘的 LM Studio 的数据文件夹下，最好进行更改，详细参考 **七、模型管理**==）
+
+![image-20260209221749954](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209221749954.png)
+
+不同模型，所需要的硬件要求不同，通常看模型参数是多少B（即 Billion：十亿 的缩写 ），此信息通常在模型名后面，比如下图，Qwen3 VL 4B 即代表 四十亿参数，而==红色方框中的绿色横条==则是 LM 软件评价此模型在此电脑上运行情况如何（最好是绿色，表示能够比较流畅运行）。
+![image-20260209222022632](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209222022632.png)
+
+第二步，选择好相应模型后，点击下载。
+
+![image-20260209222534200](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209222534200.png)
+
+下载状况在主界面，右上角下载中可以看到。
+![image-20260209222609024](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209222609024.png)
+
+### 五、模型选择
+
+模型的选择需要根据电脑的相应硬件进行选择。目前市面上的模型复杂多样，一般来说各个模型各有各的长处，根据不同应用场景，选择不同模型。推荐使用 ai，让 ai 根据需求 与 本地计算机硬件情况，推荐模型。
+
+第一步：获取电脑硬件数据：
+
+打开任务管理器（右键任务栏选择 或 使用 Ctrl 键 + Shift 键 + Esc 键 ）
+![image-20260209222954988](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209222954988.png)
+
+点击性能：主要获取以下三部分参数（CPU 型号、内存大小、GPU型号 与 显存大小）
+
+![image-20260209223126127](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209223126127.png)
+
+以 GPU 为例，型号在右上方，显存（即 专用GPU 内存）在下方。GPU 只需要提供 NVIDIA 的显卡，如果 GPU0 是集成显卡（即 Intel 或 AMD 的集成显卡），则填写 GPU1 的信息即可。
+
+![image-20260209223248474](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209223248474.png)
+
+根据获取的信息，结合需求发送给 ai，让 ai 帮忙挑选即可。
+填写的一种方式如下：
+
+```
+根据我的硬件配置与使用需求，推荐一款 在LM-Studio 中能够部署的模型。
+硬件配置：CPU：  ，内存：  ， 显卡： ， 显存：
+使用需求：中文文档内容提炼
+```
+
+ai 推荐如下：
+
+![image-20260209224051250](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209224051250.png)
+
+### 六、模型使用
+
+下载好模型后，即可进行使用（模型通常较大，同时服务器的网速与链接状态在国内一般，需要等待一定时间，如果下载出错点击相应刷新按钮，重试即可）。如果有时无法连接，需等待网络较好的情况。
+
+第一步：下载好模型后，点击 红色方框中的 New chat 按钮，即可创建新的 对话。
+
+![image-20260209224620482](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209224620482.png)
+
+第二步：点击 ==Pick a model==：**选择一个模型**，在弹出的列表框里，选择需要使用的模型，如图中选择了 Qwen3 VL 4B 模型。
+
+![image-20260209224743902](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209224743902.png)
+
+也可点击 ==下方按钮==
+![image-20260209224939579](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209224939579.png)
+
+![image-20260209225007746](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209225007746.png)
+
+使用功能更多的 模块加载界面（一般来说不需要）。
+
+第三步：如果需要调整模型运行参数，可以点击模型旁边的齿轮按钮进一步设置（默认即可，一般不需要，也不不建议调整）。
+
+![image-20260209225124875](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209225124875.png)
+
+第四步：模型配置完成，可以进行对话。
+![image-20260209225407292](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209225407292.png)
+
+像商业大模型软件一样，在文本框内输入文字，然后发送即可。
+
+示例如下：
+
+![image-20260209225454356](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209225454356.png)
+
+同样，点击加号按键可以附件图片与文档。
+![image-20260209225544469](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209225544469.png)
+
+不同模型，对于文档解析 与 图片理解 的支持度与能力不同，推荐使用擅长相应功能的模型。
+
+右边的锤子图标则是一些进阶用法：
+
+![image-20260209225730390](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209225730390.png)
+
+**js-code-sandbox**：JavaScript 代码沙盒插件，允许模型在隔离环境中执行 JS 代码。==一般不需要==。
+
+**rag-v1**：RAG（检索增强生成）插件，让模型可以基于本地知识库回答。看需求，如果==需要根据上传的文件内容回答，打开此选项==。
+
+第五步：卸载模型。一般不需要手动卸载模型，LM  Studio 会自行管理，因为：
+
+1. **切换模型时** - 加载新模型会自动释放之前模型的显存/内存
+2. **关闭 LM Studio** - 程序退出时会自动清理已加载的模型资源
+
+但也可以选择点击==红色方框部分按钮==，手动卸载模型。
+
+![image-20260209231600142](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209231600142.png)
+
+### 七、模型管理
+
+![image-20260209232547457](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209232547457.png)
+
+点击左侧栏第三个图标，可以对所有模型进行管理等一系列操作（模型分为 LLMs 与 Text Embedding 两大类，默认是 View ALL：查看全部模型）（此部分一般用到的功能汉化较为完全，可自行根据需求操作：删除等）。
+![image-20260209232651444](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209232651444.png)
+
+点击右下角部分，即可更改模型存储位置。
+
+![image-20260210003135898](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260210003135898.png)
+
+![image-20260210003211508](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260210003211508.png)
+
+可以选择合适的，足够空间的文件夹，来存储大模型的模型文件夹位置。
+![image-20260210003329101](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260210003329101.png)
+
+### 八、聊天列表管理
+
+![image-20260209230136403](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230136403.png)
+
+省略号中的更多操作翻译如下：
+
+![image-20260209230229641](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230229641.png)
+
+![image-20260209230321687](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230321687.png)
+
+![image-20260209230336658](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230336658.png)
+
+Export 是导出，即将当前对话到处成相应格式的文件（导出为 Markdown 效果如下）。
+
+![image-20260209230404161](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230404161.png)
+
+也可以创建相应文件夹，将对话拖入进行整理归类：
+![image-20260209230536867](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230536867.png)
+
+同时，也可以更改聊天列表排列方式：
+![image-20260209230652380](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230652380.png)
+
+翻译如下：
+
+![image-20260209230709652](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209230709652.png)导出成功
+
+token 翻译有问腾，**Token** 是大模型处理文本的**最小单位**，是模型"阅读"和"生成"的基本单元。可以简单理解为一个字或词，比如 创建日期 可能分为 两个 token ： 创建 和 日期。（也有可能是 三个 ：创、建和日期 等等，根据模型不同可能不同）
+
+### 九、托盘使用
+
+软件主页面关闭后，软件实际上是最小化为托盘，这样增加下次启动速度，保留状态。如果要彻底关闭，可在托盘中退出。
+
+![image-20260209231158826](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209231158826.png)
+
+选择 Quit LM Studio：退出 LM  Studio。
+
+同样，托盘右键的菜单栏也包含一些可以快速选择使用的功能，翻译如下：
+
+![image-20260209231329082](C:\Users\cmixe\AppData\Roaming\Typora\typora-user-images\image-20260209231329082.png)
+
