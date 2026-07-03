@@ -246,3 +246,91 @@ window.addEventListener('scroll', () => {
     const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
     scrollProgress.style.width = progress + '%';
 }, { passive: true });
+
+// ===== BLOG =====
+const blogList = document.getElementById('blogList');
+const blogTags = document.getElementById('blogTags');
+const blogDetail = document.getElementById('blogDetail');
+const blogDetailContent = document.getElementById('blogDetailContent');
+const blogBack = document.getElementById('blogBack');
+let blogData = null;
+let activeBlogTag = null;
+
+async function loadBlog() {
+    try {
+        const base = import.meta.env.MODE === 'production' ? './' : '/';
+        const res = await fetch(base + 'blog/data.json');
+        blogData = await res.json();
+        renderBlogTags();
+        renderBlogList();
+    } catch (e) {
+        blogList.innerHTML = '<p style="color: var(--text-muted)">博客暂无内容</p>';
+    }
+}
+
+function renderBlogTags() {
+    blogTags.innerHTML = blogData.allTags.map(tag =>
+        `<button class="blog-tag" data-tag="${tag}">${tag}</button>`
+    ).join('');
+
+    blogTags.querySelectorAll('.blog-tag').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+            if (activeBlogTag === tag) {
+                activeBlogTag = null;
+                btn.classList.remove('active');
+            } else {
+                activeBlogTag = tag;
+                blogTags.querySelectorAll('.blog-tag').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            renderBlogList();
+        });
+    });
+}
+
+function renderBlogList() {
+    const posts = activeBlogTag
+        ? blogData.posts.filter(p => p.tags.includes(activeBlogTag))
+        : blogData.posts;
+
+    blogList.innerHTML = posts.map(p => `
+        <div class="blog-card" data-slug="${p.slug}">
+            <div class="blog-card-title">${p.title}</div>
+            <div class="blog-card-meta">${p.date}</div>
+            <div class="blog-card-desc">${p.description}</div>
+            <div class="blog-card-tags">
+                ${p.tags.map(t => `<span class="blog-card-tag">${t}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
+
+    blogList.querySelectorAll('.blog-card').forEach(card => {
+        card.addEventListener('click', () => showBlogPost(card.dataset.slug));
+    });
+}
+
+function showBlogPost(slug) {
+    const post = blogData.posts.find(p => p.slug === slug);
+    if (!post) return;
+
+    const tagHtml = post.tags.map(t => `<span class="tag">${t}</span>`).join(' ');
+    blogDetailContent.innerHTML = `
+        <h1>${post.title}</h1>
+        <div class="blog-detail-meta">${post.date} ${tagHtml}</div>
+        ${post.content}
+    `;
+
+    blogList.style.display = 'none';
+    blogTags.style.display = 'none';
+    blogDetail.style.display = 'block';
+    document.getElementById('blog').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+blogBack.addEventListener('click', () => {
+    blogDetail.style.display = 'none';
+    blogList.style.display = 'grid';
+    blogTags.style.display = 'flex';
+});
+
+loadBlog();
