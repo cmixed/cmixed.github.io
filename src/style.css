@@ -347,6 +347,30 @@ main {
     51%, 100% { opacity: 0; }
 }
 
+.hero-signature {
+    margin-bottom: 2rem;
+    opacity: 0.5;
+    transition: opacity var(--transition-speed);
+}
+
+.hero-signature:hover {
+    opacity: 0.8;
+}
+
+.hero-signature img {
+    height: 36px;
+    width: auto;
+}
+
+[data-theme="dark"] .hero-signature img {
+    filter: brightness(0) invert(1);
+    opacity: 0.7;
+}
+
+[data-theme="light"] .hero-signature img {
+    opacity: 0.6;
+}
+
 .cta-buttons {
     display: flex;
     gap: 1rem;
@@ -460,22 +484,6 @@ section {
 
 .about-text p {
     margin-bottom: 1rem;
-}
-
-.about-signature {
-    text-align: center;
-    margin-top: 2rem;
-    opacity: 0.6;
-    transition: opacity var(--transition-speed);
-}
-
-.about-signature:hover {
-    opacity: 1;
-}
-
-.about-signature img {
-    height: 40px;
-    width: auto;
 }
 
 .stats-box {
