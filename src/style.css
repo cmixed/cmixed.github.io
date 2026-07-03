@@ -702,9 +702,15 @@ section {
     color: var(--primary);
 }
 
-.blog-list {
+.blog-grid {
     display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+}
+
+.blog-more {
+    text-align: center;
+    margin-top: 2rem;
 }
 
 .blog-card {
@@ -1054,6 +1060,10 @@ footer {
     }
 
     .projects-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .blog-grid {
         grid-template-columns: 1fr;
     }
 
