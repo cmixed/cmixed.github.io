@@ -3,6 +3,9 @@ import { join, basename } from 'path';
 import { marked } from 'marked';
 import { fileURLToPath } from 'url';
 
+// Enable marked to process markdown inside HTML blocks
+marked.use({ breaks: true });
+
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const postsDir = join(__dirname, 'posts');
 const outDir = join(__dirname, '..', 'dist', 'blog');
@@ -78,13 +81,12 @@ for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
 
-    // Rewrite image paths: ./img.png → slug/img.png (for blog index page)
-    // and keep ./img.png for standalone page (images are in same dir)
-    const bodyForJson = body.replace(/\.\//g, `./${info.slug}/`);
-    const bodyForHtml = body;
+    // Rewrite image paths for blog index page:
+    // ./img.png → slug/img.png (URL-encode spaces in slug)
+    const slugForPaths = encodeURIComponent(info.slug);
+    const bodyForJson = body.replace(/\.\//g, `./${slugForPaths}/`);
 
     const htmlJson = marked(bodyForJson);
-    const htmlStandalone = marked(bodyForHtml);
 
     posts.push({
         slug: info.slug,
@@ -95,7 +97,8 @@ for (const info of postInfos) {
         content: htmlJson
     });
 
-    // Standalone page
+    // Standalone page — images are in same directory, use original ./ paths
+    const htmlStandalone = marked(body);
     writeFileSync(join(outDir, `${info.slug}.html`), `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -131,7 +134,16 @@ const allTags = [...new Set(posts.flatMap(p => p.tags))];
 
 writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts, allTags }, null, 2));
 
+// Copy blog index.html to dist
 const blogIndex = readFileSync(join(__dirname, 'index.html'), 'utf-8');
 writeFileSync(join(outDir, 'index.html'), blogIndex);
+
+// Copy main CSS to dist/blog/style.css for the blog page
+const cssDir = join(__dirname, '..', 'dist', 'assets');
+const cssFiles = readdirSync(cssDir).filter(f => f.endsWith('.css'));
+if (cssFiles.length > 0) {
+    const cssContent = readFileSync(join(cssDir, cssFiles[0]), 'utf-8');
+    writeFileSync(join(outDir, 'style.css'), cssContent);
+}
 
 console.log(`✓ Generated ${posts.length} posts with ${allTags.length} tags`);
