@@ -207,6 +207,30 @@ function renderSkills() {
 }
 renderSkills();
 
+// Blog preview on main page
+async function loadBlogPreview() {
+    try {
+        const base = import.meta.env.MODE === 'production' ? './' : '/';
+        const res = await fetch(base + 'blog/data.json');
+        const data = await res.json();
+        const preview = data.posts.slice(0, 4);
+        const grid = document.getElementById('blogPreviewGrid');
+        grid.innerHTML = preview.map(p => `
+            <a href="blog/#${p.slug}" class="blog-preview-card">
+                <div class="blog-preview-card-title">${p.title}</div>
+                <div class="blog-preview-card-meta">${p.date}</div>
+                <div class="blog-preview-card-desc">${p.description}</div>
+                <div class="blog-preview-card-tags">
+                    ${p.tags.map(t => `<span>${t}</span>`).join('')}
+                </div>
+            </a>
+        `).join('');
+    } catch (e) {
+        document.getElementById('blogPreviewGrid').innerHTML = '';
+    }
+}
+loadBlogPreview();
+
 const observerOptions = {
     threshold: 0.05,
     rootMargin: '0px 0px -30px 0px'
@@ -226,7 +250,7 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-document.querySelectorAll('#skills, #projects').forEach(section => {
+document.querySelectorAll('#skills, #projects, #blog-preview').forEach(section => {
     const items = section.querySelectorAll('.project-card, .skill-tag');
     items.forEach(el => {
         el.style.opacity = '0';
