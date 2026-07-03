@@ -216,8 +216,8 @@ const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const children = entry.target.querySelectorAll('.project-card, .skill-tag');
-            children.forEach((el, i) => {
-                el.style.transition = `opacity 0.35s ease ${i * 0.03}s, transform 0.35s ease ${i * 0.03}s`;
+            children.forEach(el => {
+                el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                 el.style.opacity = '1';
                 el.style.transform = 'translateY(0)';
             });
@@ -230,7 +230,7 @@ document.querySelectorAll('#skills, #projects').forEach(section => {
     const items = section.querySelectorAll('.project-card, .skill-tag');
     items.forEach(el => {
         el.style.opacity = '0';
-        el.style.transform = 'translateY(16px)';
+        el.style.transform = 'translateY(12px)';
     });
     observer.observe(section);
 });
