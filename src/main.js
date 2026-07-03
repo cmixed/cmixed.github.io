@@ -221,9 +221,21 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-document.querySelectorAll('.project-card, .skill-tag').forEach(el => {
+document.querySelectorAll('.project-card, .skill-tag').forEach((el, i) => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s, transform 0.6s';
+    el.style.transition = `opacity 0.5s ease ${i * 0.06}s, transform 0.5s ease ${i * 0.06}s`;
     observer.observe(el);
 });
+
+// Scroll progress bar
+const scrollProgress = document.createElement('div');
+scrollProgress.className = 'scroll-progress';
+document.body.prepend(scrollProgress);
+
+window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    scrollProgress.style.width = progress + '%';
+}, { passive: true });
