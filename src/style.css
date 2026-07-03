@@ -320,7 +320,7 @@ main {
     height: 2px;
     background: var(--primary);
     z-index: 200;
-    transition: width 0.1s linear;
+    transition: width 0.1s linear, background var(--transition-speed);
     width: 0%;
 }
 
@@ -398,6 +398,7 @@ main {
 .hero-signature img {
     height: 36px;
     width: auto;
+    transition: filter var(--transition-speed), opacity var(--transition-speed);
 }
 
 [data-theme="dark"] .hero-signature img {
@@ -406,6 +407,7 @@ main {
 }
 
 [data-theme="light"] .hero-signature img {
+    filter: none;
     opacity: 0.6;
 }
 
