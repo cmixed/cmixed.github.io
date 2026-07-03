@@ -208,24 +208,31 @@ function renderSkills() {
 renderSkills();
 
 const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
+    threshold: 0.05,
+    rootMargin: '0px 0px -30px 0px'
 };
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+            const children = entry.target.querySelectorAll('.project-card, .skill-tag');
+            children.forEach((el, i) => {
+                el.style.transition = `opacity 0.35s ease ${i * 0.03}s, transform 0.35s ease ${i * 0.03}s`;
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
+            observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
-document.querySelectorAll('.project-card, .skill-tag').forEach((el, i) => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = `opacity 0.5s ease ${i * 0.06}s, transform 0.5s ease ${i * 0.06}s`;
-    observer.observe(el);
+document.querySelectorAll('#skills, #projects').forEach(section => {
+    const items = section.querySelectorAll('.project-card, .skill-tag');
+    items.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(16px)';
+    });
+    observer.observe(section);
 });
 
 // Scroll progress bar
