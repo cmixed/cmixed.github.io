@@ -10,6 +10,7 @@ const outDir = join(__dirname, '..', 'dist', 'blog');
 mkdirSync(outDir, { recursive: true });
 
 function parseFrontmatter(content) {
+    content = content.replace(/\r\n/g, '\n');
     const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     if (!match) return { meta: {}, body: content };
 
@@ -80,5 +81,9 @@ posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 const allTags = [...new Set(posts.flatMap(p => p.tags))];
 
 writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts, allTags }, null, 2));
+
+// Copy blog index.html to dist
+const blogIndex = readFileSync(join(__dirname, 'index.html'), 'utf-8');
+writeFileSync(join(outDir, 'index.html'), blogIndex);
 
 console.log(`✓ Generated ${posts.length} posts with ${allTags.length} tags`);
