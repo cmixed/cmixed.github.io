@@ -248,11 +248,13 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 // ===== BLOG =====
-const blogList = document.getElementById('blogList');
+const blogGrid = document.getElementById('blogGrid');
 const blogTags = document.getElementById('blogTags');
+const blogMore = document.getElementById('blogMore');
 const blogDetail = document.getElementById('blogDetail');
 const blogDetailContent = document.getElementById('blogDetailContent');
 const blogBack = document.getElementById('blogBack');
+const BLOG_MAX = 6;
 let blogData = null;
 let activeBlogTag = null;
 
@@ -264,7 +266,7 @@ async function loadBlog() {
         renderBlogTags();
         renderBlogList();
     } catch (e) {
-        blogList.innerHTML = '<p style="color: var(--text-muted)">博客暂无内容</p>';
+        blogGrid.innerHTML = '<p style="color: var(--text-muted)">博客暂无内容</p>';
     }
 }
 
@@ -294,7 +296,9 @@ function renderBlogList() {
         ? blogData.posts.filter(p => p.tags.includes(activeBlogTag))
         : blogData.posts;
 
-    blogList.innerHTML = posts.map(p => `
+    const show = posts.slice(0, BLOG_MAX);
+
+    blogGrid.innerHTML = show.map(p => `
         <div class="blog-card" data-slug="${p.slug}">
             <div class="blog-card-title">${p.title}</div>
             <div class="blog-card-meta">${p.date}</div>
@@ -305,9 +309,11 @@ function renderBlogList() {
         </div>
     `).join('');
 
-    blogList.querySelectorAll('.blog-card').forEach(card => {
+    blogGrid.querySelectorAll('.blog-card').forEach(card => {
         card.addEventListener('click', () => showBlogPost(card.dataset.slug));
     });
+
+    blogMore.style.display = posts.length > BLOG_MAX ? 'block' : 'none';
 }
 
 function showBlogPost(slug) {
@@ -321,16 +327,18 @@ function showBlogPost(slug) {
         ${post.content}
     `;
 
-    blogList.style.display = 'none';
+    blogGrid.style.display = 'none';
     blogTags.style.display = 'none';
+    blogMore.style.display = 'none';
     blogDetail.style.display = 'block';
     document.getElementById('blog').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 blogBack.addEventListener('click', () => {
     blogDetail.style.display = 'none';
-    blogList.style.display = 'grid';
+    blogGrid.style.display = 'grid';
     blogTags.style.display = 'flex';
+    renderBlogList();
 });
 
 loadBlog();
