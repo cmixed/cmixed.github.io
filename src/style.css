@@ -6,28 +6,28 @@
 
 @font-face {
     font-family: 'SarasaUiSC';
-    src: url('../font/SarasaUiSC-Regular.ttf') format('truetype');
+    src: url('/font/SarasaUiSC-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'SarasaGothicSC';
-    src: url('../font/SarasaGothicSC-Regular.ttf') format('truetype');
+    src: url('/font/SarasaGothicSC-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'SarasaMonoSC';
-    src: url('../font/SarasaMonoSC-Regular.ttf') format('truetype');
+    src: url('/font/SarasaMonoSC-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'SarasaTermSC';
-    src: url('../font/SarasaTermSC-Regular.ttf') format('truetype');
+    src: url('/font/SarasaTermSC-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
