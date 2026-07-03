@@ -3,7 +3,19 @@ import { join, basename } from 'path';
 import { marked } from 'marked';
 import { fileURLToPath } from 'url';
 
-marked.use({ breaks: true });
+marked.use({
+    breaks: true,
+    extensions: [{
+        name: 'highlight',
+        level: 'inline',
+        start(src) { return src.match(/==/)?.index; },
+        tokenizer(src) {
+            const match = src.match(/^==(.+?)==/);
+            if (match) return { type: 'highlight', raw: match[0], text: match[1] };
+        },
+        renderer(token) { return `<mark>${token.text}</mark>`; }
+    }]
+});
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const postsDir = join(__dirname, 'posts');
@@ -97,6 +109,7 @@ for (const info of postInfos) {
         pre{background:#1e293b;padding:1rem;border-radius:8px;overflow-x:auto}pre code{background:none;padding:0}
         .meta{color:#94a3b8;font-size:.85rem;margin-bottom:2rem}.tag{display:inline-block;padding:.15rem .5rem;border:1px solid rgba(82,94,84,.2);border-radius:4px;font-size:.75rem;margin-right:.5rem;color:#94a3b8}
         img{max-width:100%;height:auto;border-radius:8px;margin:1rem 0}
+        mark{background:rgba(82,94,84,.2);color:#525e54;padding:.1rem .3rem;border-radius:3px}
     </style>
 </head>
 <body>
