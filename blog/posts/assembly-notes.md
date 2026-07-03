@@ -1,3 +1,10 @@
+---
+title: x86 汇编语言学习笔记
+date: 2025-06-01
+tags: [Assembly, x86, 底层]
+description: 从基础知识到实战应用的汇编语言学习笔记，涵盖 CPU 架构、内存模型与指令集。
+---
+
 # Assembly Language（汇编语言）
 
 ---
