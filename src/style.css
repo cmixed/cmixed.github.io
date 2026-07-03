@@ -23,18 +23,18 @@
 }
 
 [data-theme="light"] {
-    --primary: #2563eb;
-    --primary-dim: rgba(37, 99, 235, 0.08);
-    --primary-glow: rgba(37, 99, 235, 0.15);
-    --bg: #f2f2ee;
-    --bg-rgb: 242, 242, 238;
-    --bg-secondary: #eaeae6;
-    --bg-card: #f7f7f4;
-    --text: #1a1a18;
-    --text-dim: #5c5c54;
-    --text-muted: #8a8a80;
-    --border: rgba(100, 100, 90, 0.15);
-    --shadow: rgba(0, 0, 0, 0.05);
+    --primary: #d97706;
+    --primary-dim: rgba(217, 119, 6, 0.1);
+    --primary-glow: rgba(217, 119, 6, 0.15);
+    --bg: #faf6f1;
+    --bg-rgb: 250, 246, 241;
+    --bg-secondary: #f0ebe3;
+    --bg-card: #fffcf8;
+    --text: #2c1810;
+    --text-dim: #6b5a4e;
+    --text-muted: #9a8c82;
+    --border: rgba(180, 150, 120, 0.2);
+    --shadow: rgba(60, 40, 20, 0.06);
 }
 
 body {
@@ -213,6 +213,44 @@ body.nav-open::before {
 
 [data-theme="light"] .theme-toggle .moon-icon { opacity: 0; }
 [data-theme="light"] .theme-toggle .sun-icon { opacity: 1; position: relative; }
+
+/* Accessibility toggle */
+.a11y-toggle {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-speed);
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+}
+
+.a11y-toggle:hover {
+    border-color: var(--primary);
+}
+
+.a11y-icon {
+    font-size: 13px;
+    color: var(--text-dim);
+    transition: color var(--transition-speed), transform 0.3s;
+    line-height: 1;
+}
+
+.a11y-toggle.active {
+    background: var(--primary-dim);
+    border-color: var(--primary);
+}
+
+.a11y-toggle.active .a11y-icon {
+    color: var(--primary);
+    transform: rotate(90deg);
+}
 
 /* ===== MAIN ===== */
 main {
@@ -888,4 +926,18 @@ footer {
         animation: none;
         opacity: 0.5;
     }
+}
+
+/* User-toggled reduced motion (via a11y button) */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+}
+
+html.reduce-motion .hero::before {
+    animation: none;
+    opacity: 0.5;
 }
