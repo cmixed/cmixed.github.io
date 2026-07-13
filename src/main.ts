@@ -24,9 +24,7 @@ interface BlogData {
 }
 
 function escapeHtml(str: string): string {
-  const el = document.createElement('span');
-  el.textContent = str;
-  return el.innerHTML;
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 const themeToggle = document.getElementById('themeToggle') as HTMLButtonElement;

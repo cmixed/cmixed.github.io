@@ -465,13 +465,13 @@ section {
     max-width: 960px;
     margin: 0 auto;
     content-visibility: auto;
-    contain-intrinsic-size: 1px 500px;
+    contain-intrinsic-size: auto 500px;
 }
 
-#about { contain-intrinsic-size: 1px 300px; }
-#skills { contain-intrinsic-size: 1px 200px; }
-#projects { contain-intrinsic-size: 1px 400px; }
-#contact { contain-intrinsic-size: 1px 300px; }
+#about { contain-intrinsic-size: auto 300px; }
+#skills { contain-intrinsic-size: auto 200px; }
+#projects { contain-intrinsic-size: auto 400px; }
+#contact { contain-intrinsic-size: auto 300px; }
 
 .section-header {
     font-size: 1.5rem;
