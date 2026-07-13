@@ -1,3 +1,6 @@
+import projects from './data/projects.json';
+import skills from './data/skills.json';
+
 interface Project {
   title: string;
   subtitle: string;
@@ -149,52 +152,9 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   });
 });
 
-const projects: Project[] = [
-  {
-    title: 'srs',
-    subtitle: '异构模型集成级联系统',
-    desc: 'Python 实现的 AI 心理健康咨询系统，集成多种异构大语言模型，支持 RAG 增强检索、多通道通讯与用户管理。',
-    url: 'https://github.com/cmixed/srs',
-    status: 'Python',
-    tags: ['Python', 'LLM', 'RAG', 'AI'],
-  },
-  {
-    title: 'zcol',
-    subtitle: '单头文件 C++23 终端颜色库',
-    desc: 'C++23 实现的 Header-Only 终端彩色输出与日志库，支持 RAII 作用域颜色守卫、源位置日志、UDL 语法糖。',
-    url: 'https://github.com/cmixed/zcol',
-    status: 'C++23',
-    tags: ['C++23', 'Header-Only', 'Terminal', 'Library'],
-  },
-  {
-    title: 'pac_man',
-    subtitle: '经典吃豆人游戏',
-    desc: '使用 C++23 + EasyX 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑、AI 幽灵寻路与碰撞检测。',
-    url: 'https://github.com/cmixed/pac_man',
-    status: 'C++23',
-    tags: ['C++23', 'AI', 'Game Dev', 'EasyX'],
-  },
-  {
-    title: 'route',
-    subtitle: '图算法与并行计算框架',
-    desc: '基于 C++20 的图数据结构与最短路径算法实现，支持 Dijkstra、A*、Bellman-Ford 等多线程并行计算。',
-    url: 'https://github.com/cmixed/route',
-    status: 'C++20',
-    tags: ['C++20', 'Graph', 'Thread Pool', 'Algorithm'],
-  },
-  {
-    title: 'fk-deltaforce',
-    subtitle: '三角洲 ACE 日志分析',
-    desc: 'Rust 实现的三角洲行动反作弊日志分析工具，自动解析扫描日志、统计风险指标并导出高危目标 CSV 报告。',
-    url: 'https://github.com/cmixed/fk-deltaforce',
-    status: 'Rust',
-    tags: ['Rust', 'Log Parsing', 'CLI', 'Analysis'],
-  },
-];
-
 function renderProjects(): void {
   const grid = document.getElementById('projectsGrid') as HTMLElement;
-  grid.innerHTML = projects
+  grid.innerHTML = (projects as Project[])
     .map(
       (p) => `
         <a href="${p.url}" class="project-card" target="_blank" rel="noopener noreferrer">
@@ -216,34 +176,9 @@ function renderProjects(): void {
 }
 renderProjects();
 
-const skills: string[] = [
-  'Modern C++',
-  'Rust',
-  'Python 3',
-  'x86 Assembly',
-  'C++23 Library Design',
-  'Header-Only Library',
-  'System Programming',
-  'Performance Optimization',
-  'Reverse Engineering',
-  'Low-level Architecture',
-  'Game Development',
-  'Game AI & Pathfinding',
-  'Graph Algorithms',
-  'Parallel Computing',
-  'LLM & RAG',
-  'AI Application',
-  'Algorithm Design',
-  'CLI Tool Development',
-  'Multithreading',
-  'Git',
-  'CMake',
-  'Linux',
-];
-
 function renderSkills(): void {
   const container = document.getElementById('skillsContainer') as HTMLElement;
-  container.innerHTML = skills.map((s) => `<div class="skill-tag">${s}</div>`).join('');
+  container.innerHTML = (skills as string[]).map((s) => `<div class="skill-tag">${s}</div>`).join('');
 }
 renderSkills();
 
