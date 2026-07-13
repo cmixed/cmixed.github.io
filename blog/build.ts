@@ -51,7 +51,15 @@ marked.use({
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const postsDir = join(__dirname, 'posts');
 const outDir = join(__dirname, '..', 'dist', 'blog');
+const templatesDir = join(__dirname, 'templates');
 mkdirSync(outDir, { recursive: true });
+
+function renderTemplate(template: string, data: Record<string, string>): string {
+  return Object.entries(data).reduce(
+    (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), value),
+    template
+  );
+}
 
 function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
   content = content.replace(/\r\n/g, '\n');
@@ -146,33 +154,16 @@ for (const info of postInfos) {
 
   // Standalone page
   const htmlStandalone = marked(body) as string;
-  writeFileSync(
-    join(outDir, `${info.slug}.html`),
-    `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="${escapeXml(meta.description || '')}">
-    <title>${escapeXml(meta.title || info.slug)} · cmixed</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-    <style>
-        body{font-family:'Inter',-apple-system,sans-serif;background:#0f172a;color:#f1f5f9;max-width:720px;margin:0 auto;padding:2rem;line-height:1.8}
-        a{color:#525e54}h1{margin-bottom:.5rem}h2{margin-top:2rem}code{background:#1e293b;padding:.15rem .4rem;border-radius:4px;font-size:.9em}
-        pre{background:#1e293b;padding:1rem;border-radius:8px;overflow-x:auto}pre code{background:none;padding:0}
-        .meta{color:#94a3b8;font-size:.85rem;margin-bottom:2rem}.tag{display:inline-block;padding:.15rem .5rem;border:1px solid rgba(82,94,84,.2);border-radius:4px;font-size:.75rem;margin-right:.5rem;color:#94a3b8}
-        img{max-width:100%;height:auto;border-radius:8px;margin:1rem 0}
-        mark{background:rgba(82,94,84,.2);color:#525e54;padding:.1rem .3rem;border-radius:3px}
-    </style>
-</head>
-<body>
-    <a href="../">&larr; 返回博客</a>
-    <h1>${escapeXml(meta.title || info.slug)}</h1>
-    <div class="meta">${meta.date || ''} · 阅读约 ${readTime} 分钟 · ${(meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' ')}</div>
-    ${htmlStandalone}
-</body>
-</html>`
-  );
+  const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
+  const postHtml = renderTemplate(postTemplate, {
+    description: escapeXml(meta.description || ''),
+    title: escapeXml(meta.title || info.slug),
+    date: meta.date || '',
+    readTime: String(readTime),
+    tags: (meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
+    content: htmlStandalone,
+  });
+  writeFileSync(join(outDir, `${info.slug}.html`), postHtml);
 
   // Copy assets
   if (info.assetsDir && statSync(info.assetsDir).isDirectory()) {
@@ -224,24 +215,8 @@ writeFileSync(join(outDir, 'feed.xml'), rss);
 writeFileSync(join(outDir, 'index.html'), readFileSync(join(__dirname, 'index.html'), 'utf-8'));
 
 // Generate blog 404 page
-writeFileSync(
-  join(outDir, '404.html'),
-  `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
-<head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex">
-    <title>404 · 博客 | cmixed</title>
-    <link rel="stylesheet" href="style.css">
-    <style>body{padding-top:0;display:flex;align-items:center;justify-content:center;min-height:80vh}
-    .e404{text-align:center}.e404 h1{font-size:5rem;color:var(--primary);margin-bottom:.5rem}
-    .e404 p{color:var(--text-dim);margin-bottom:1.5rem}</style>
-</head>
-<body>
-    <div class="e404"><h1>404</h1><p>文章不存在或已被移除</p><a href="../" class="btn">返回首页</a></div>
-</body>
-</html>`
-);
+const notFoundTemplate = readFileSync(join(templatesDir, '404.html'), 'utf-8');
+writeFileSync(join(outDir, '404.html'), notFoundTemplate);
 
 // Copy main CSS
 const cssDir = join(__dirname, '..', 'dist', 'assets');
