@@ -42,7 +42,7 @@ marked.use({
         if (match) return { type: 'highlight', raw: match[0], text: match[1] };
       },
       renderer(token: unknown): string {
-        return `<mark>${(token as { text: string }).text}</mark>`;
+        return `<mark>${marked.parseInline((token as { text: string }).text)}</mark>`;
       },
     },
   ],
