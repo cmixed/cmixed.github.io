@@ -63,7 +63,6 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const postsDir = join(__dirname, 'posts');
 const outDir = join(__dirname, '..', 'dist', 'blog');
 const templatesDir = join(__dirname, 'templates');
-mkdirSync(outDir, { recursive: true });
 
 export function renderTemplate(template: string, data: Record<string, string>): string {
   return Object.entries(data).reduce(
@@ -141,63 +140,66 @@ function discoverPosts(): PostInfo[] {
   return results;
 }
 
-// Process posts
-const postInfos = discoverPosts();
-const posts: PostData[] = [];
+function build(): void {
+  mkdirSync(outDir, { recursive: true });
 
-for (const info of postInfos) {
-  const raw = readFileSync(info.mdPath, 'utf-8');
-  const { meta, body } = parseFrontmatter(raw);
-  const slugForPaths = encodeURIComponent(info.slug);
-  const bodyForJson = body.replace(/\.\//g, `./${slugForPaths}/`);
-  const htmlJson = marked(bodyForJson) as string;
-  const readTime = estimateReadTime(body);
+  // Process posts
+  const postInfos = discoverPosts();
+  const posts: PostData[] = [];
 
-  posts.push({
-    slug: info.slug,
-    title: meta.title || info.slug,
-    date: meta.date || '未知日期',
-    tags: Array.isArray(meta.tags) ? meta.tags : [],
-    description: meta.description || '',
-    readTime,
-    content: htmlJson,
-  });
+  for (const info of postInfos) {
+    const raw = readFileSync(info.mdPath, 'utf-8');
+    const { meta, body } = parseFrontmatter(raw);
+    const slugForPaths = encodeURIComponent(info.slug);
+    const bodyForJson = body.replace(/\.\//g, `./${slugForPaths}/`);
+    const htmlJson = marked(bodyForJson) as string;
+    const readTime = estimateReadTime(body);
 
-  // Standalone page
-  const htmlStandalone = marked(body) as string;
-  const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
-  const postHtml = renderTemplate(postTemplate, {
-    slug: info.slug,
-    description: escapeXml(meta.description || ''),
-    title: escapeXml(meta.title || info.slug),
-    date: meta.date || '',
-    readTime: String(readTime),
-    tags: (meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
-    content: htmlStandalone,
-  });
-  writeFileSync(join(outDir, `${info.slug}.html`), postHtml);
+    posts.push({
+      slug: info.slug,
+      title: meta.title || info.slug,
+      date: meta.date || '未知日期',
+      tags: Array.isArray(meta.tags) ? meta.tags : [],
+      description: meta.description || '',
+      readTime,
+      content: htmlJson,
+    });
 
-  // Copy assets
-  if (info.assetsDir && statSync(info.assetsDir).isDirectory()) {
-    copyDirSync(info.assetsDir, join(outDir, info.slug));
+    // Standalone page
+    const htmlStandalone = marked(body) as string;
+    const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
+    const postHtml = renderTemplate(postTemplate, {
+      slug: info.slug,
+      description: escapeXml(meta.description || ''),
+      title: escapeXml(meta.title || info.slug),
+      date: meta.date || '',
+      readTime: String(readTime),
+      tags: (meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
+      content: htmlStandalone,
+    });
+    writeFileSync(join(outDir, `${info.slug}.html`), postHtml);
+
+    // Copy assets
+    if (info.assetsDir && statSync(info.assetsDir).isDirectory()) {
+      copyDirSync(info.assetsDir, join(outDir, info.slug));
+    }
   }
-}
 
-posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-// Add prev/next
-for (let i = 0; i < posts.length; i++) {
-  posts[i].prev =
-    i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
-  posts[i].next = i > 0 ? { slug: posts[i - 1].slug, title: posts[i - 1].title } : null;
-}
+  // Add prev/next
+  for (let i = 0; i < posts.length; i++) {
+    posts[i].prev =
+      i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
+    posts[i].next = i > 0 ? { slug: posts[i - 1].slug, title: posts[i - 1].title } : null;
+  }
 
-const allTags = [...new Set(posts.flatMap((p) => p.tags))];
+  const allTags = [...new Set(posts.flatMap((p) => p.tags))];
 
-// Generate RSS feed
-const rssItems = posts
-  .map(
-    (p) => `
+  // Generate RSS feed
+  const rssItems = posts
+    .map(
+      (p) => `
     <item>
         <title>${escapeXml(p.title)}</title>
         <link>https://cmixed.github.io/blog/#${p.slug}</link>
@@ -205,10 +207,10 @@ const rssItems = posts
         <pubDate>${new Date(p.date).toUTCString()}</pubDate>
         <guid>https://cmixed.github.io/blog/#${p.slug}</guid>
     </item>`
-  )
-  .join('');
+    )
+    .join('');
 
-const rss = `<?xml version="1.0" encoding="UTF-8"?>
+  const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
     <title>cmixed 博客</title>
@@ -220,20 +222,26 @@ const rss = `<?xml version="1.0" encoding="UTF-8"?>
 </channel>
 </rss>`;
 
-writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts, allTags }, null, 2));
-writeFileSync(join(outDir, 'feed.xml'), rss);
+  writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts, allTags }, null, 2));
+  writeFileSync(join(outDir, 'feed.xml'), rss);
 
-// Copy blog index.html
-writeFileSync(join(outDir, 'index.html'), readFileSync(join(__dirname, 'index.html'), 'utf-8'));
+  // Copy blog index.html
+  writeFileSync(join(outDir, 'index.html'), readFileSync(join(__dirname, 'index.html'), 'utf-8'));
 
-// Generate blog 404 page
-const notFoundTemplate = readFileSync(join(templatesDir, '404.html'), 'utf-8');
-writeFileSync(join(outDir, '404.html'), notFoundTemplate);
+  // Generate blog 404 page
+  const notFoundTemplate = readFileSync(join(templatesDir, '404.html'), 'utf-8');
+  writeFileSync(join(outDir, '404.html'), notFoundTemplate);
 
-// Copy main CSS
-const cssDir = join(__dirname, '..', 'dist', 'assets');
-const cssFiles = readdirSync(cssDir).filter((f: string) => f.endsWith('.css'));
-if (cssFiles.length > 0)
-  writeFileSync(join(outDir, 'style.css'), readFileSync(join(cssDir, cssFiles[0]), 'utf-8'));
+  // Copy main CSS
+  const cssDir = join(__dirname, '..', 'dist', 'assets');
+  const cssFiles = readdirSync(cssDir).filter((f: string) => f.endsWith('.css'));
+  if (cssFiles.length > 0)
+    writeFileSync(join(outDir, 'style.css'), readFileSync(join(cssDir, cssFiles[0]), 'utf-8'));
 
-console.log(`✓ ${posts.length} posts, ${allTags.length} tags, RSS feed, 404 page`);
+  console.log(`✓ ${posts.length} posts, ${allTags.length} tags, RSS feed, 404 page`);
+}
+
+// Only run build when executed directly, not when imported
+if (import.meta.url === `file://${process.argv[1]}`) {
+  build();
+}
