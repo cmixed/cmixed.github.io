@@ -6,11 +6,6 @@ export default defineConfig({
     outDir: 'dist',
     cssMinify: 'esbuild',
     minify: 'esbuild',
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-      },
-    },
   },
   css: {
     devSourcemap: false,

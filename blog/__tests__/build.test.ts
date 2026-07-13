@@ -53,7 +53,7 @@ describe('escapeXml', () => {
 
   it('should escape quotes', () => {
     expect(escapeXml('"test"')).toBe('&quot;test&quot;');
-    expect(escapeXml("'test'")).toBe("'test'");
+    expect(escapeXml("'test'")).toBe('&apos;test&apos;');
   });
 
   it('should handle multiple special characters', () => {

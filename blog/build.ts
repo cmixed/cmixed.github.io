@@ -32,10 +32,8 @@ marked.use({
   breaks: true,
   renderer: {
     image({ href, title, text }: { href: string; title?: string | null; text: string }): string {
-      // Convert .png to .avif
-      const src = href.endsWith('.png') ? href.replace(/\.png$/, '.avif') : href;
       const titleAttr = title ? ` title="${title}"` : '';
-      return `<img src="${src}" alt="${text}"${titleAttr} loading="lazy">`;
+      return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy">`;
     },
   },
   extensions: [
@@ -111,7 +109,8 @@ export function escapeXml(str: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 function discoverPosts(): PostInfo[] {
@@ -148,8 +147,8 @@ function build(): void {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
     const slugForPaths = encodeURIComponent(info.slug);
-    const bodyForJson = body.replace(/\.\//g, `./${slugForPaths}/`);
-    const htmlJson = marked(bodyForJson) as string;
+    const htmlBase = marked(body) as string;
+    const htmlJson = htmlBase.replace(/\.\/(?=["'])/g, `./${slugForPaths}/`);
     const readTime = estimateReadTime(body);
 
     posts.push({
@@ -163,7 +162,6 @@ function build(): void {
     });
 
     // Standalone page
-    const htmlStandalone = marked(body) as string;
     const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
     const postHtml = renderTemplate(postTemplate, {
       slug: info.slug,
@@ -172,7 +170,7 @@ function build(): void {
       date: meta.date || '',
       readTime: String(readTime),
       tags: (meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
-      content: htmlStandalone,
+      content: htmlBase,
     });
     writeFileSync(join(outDir, `${info.slug}.html`), postHtml);
 
@@ -239,6 +237,6 @@ function build(): void {
 }
 
 // Only run build when executed directly, not when imported
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   build();
 }

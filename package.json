@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "blog": "tsx blog/build.ts",
-    "build": "tsc --noEmit && vite build && tsx blog/build.ts",
+    "build": "tsc --noEmit && tsx scripts/optimize-images.ts && vite build && tsx blog/build.ts",
     "preview": "vite preview",
     "lint": "eslint src/ blog/build.ts",
     "lint:fix": "eslint src/ blog/build.ts --fix",
@@ -24,7 +24,6 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.1.1",
-    "@types/sharp": "^0.31.1",
     "eslint": "^10.7.0",
     "marked": "^18.0.5",
     "prettier": "^3.9.5",
