@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,24 +14,172 @@
     <meta name="twitter:description" content="{{description}}">
     <title>{{title}} · cmixed</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
     <style>
-        body{font-family:'Inter',-apple-system,sans-serif;background:#0f172a;color:#f1f5f9;max-width:720px;margin:0 auto;padding:2rem;line-height:1.8}
-        a{color:#525e54}h1{margin-bottom:.5rem}h2{margin-top:2rem}code{background:#1e293b;padding:.15rem .4rem;border-radius:4px;font-size:.9em}
-        pre{background:#1e293b;padding:1rem;border-radius:8px;overflow-x:auto}pre code{background:none;padding:0}
-        .meta{color:#94a3b8;font-size:.85rem;margin-bottom:2rem}.tag{display:inline-block;padding:.15rem .5rem;border:1px solid rgba(82,94,84,.2);border-radius:4px;font-size:.75rem;margin-right:.5rem;color:#94a3b8}
-        img{max-width:100%;height:auto;border-radius:8px;margin:1rem 0}
-        mark{background:rgba(82,94,84,.2);color:#525e54;padding:.1rem .3rem;border-radius:3px}
-        table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.85rem;overflow-x:auto;display:block}
-        th,td{padding:.6rem .75rem;border:1px solid rgba(82,94,84,.2);text-align:left;vertical-align:top}
-        th{background:#1e293b;font-weight:600;white-space:nowrap}
-        tr:nth-child(even){background:rgba(30,41,59,.5)}
-        @media(max-width:768px){table{font-size:.8rem}th,td{padding:.4rem .5rem}}
+        :root {
+            --primary: #525e54; --bg: #0f172a; --bg-rgb: 15, 23, 42;
+            --bg-secondary: #1e293b; --bg-card: #1e293b;
+            --text: #f1f5f9; --text-dim: #94a3b8; --text-muted: #64748b;
+            --border: rgba(82, 94, 84, 0.15); --shadow: rgba(0, 0, 0, 0.3);
+            --primary-dim: rgba(82, 94, 84, 0.15);
+        }
+        [data-theme="light"] {
+            --primary: #d97706; --bg: #f0e9df; --bg-rgb: 240, 233, 223;
+            --bg-secondary: #e6ddd1; --bg-card: #f5efe6;
+            --text: #2c1810; --text-dim: #6b5a4e; --text-muted: #9a8c82;
+            --border: rgba(150, 120, 90, 0.2); --shadow: rgba(60, 40, 20, 0.08);
+            --primary-dim: rgba(217, 119, 6, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+            background: var(--bg); color: var(--text); max-width: 720px;
+            margin: 0 auto; padding: 2rem; line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.3s, color 0.3s;
+        }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Nav */
+        .post-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 2rem;
+        }
+        .post-nav a { font-size: 0.9rem; }
+        .theme-toggle {
+            position: relative; width: 48px; height: 26px;
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 13px; cursor: pointer; overflow: hidden;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .theme-toggle:hover { border-color: var(--primary); }
+        .theme-toggle-slider {
+            position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+            background: var(--primary); border-radius: 50%;
+            transition: transform 0.3s, background 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        [data-theme="light"] .theme-toggle-slider { transform: translateX(22px); }
+        .theme-icon { font-size: 11px; color: var(--bg); transition: opacity 0.3s; }
+        .sun-icon { position: absolute; opacity: 0; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .moon-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        [data-theme="light"] .moon-icon { opacity: 0; }
+        [data-theme="light"] .sun-icon { opacity: 1; }
+
+        /* Content */
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        h2 { font-size: 1.3rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 0.75rem; color: var(--text); }
+        h3 { font-size: 1.1rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.5rem; color: var(--text); }
+        h4 { font-size: 1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text); }
+        h5, h6 { font-size: 0.9rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text-dim); }
+        .meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .tag { display: inline-block; padding: 0.15rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; margin-left: 0.5rem; color: var(--text-dim); background: var(--bg-secondary); }
+
+        /* Code */
+        code { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 0.85rem; }
+        :not(pre) > code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em; }
+        pre { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
+        pre code { background: none; padding: 0; font-size: 0.85rem; }
+
+        /* Lists */
+        ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.4rem; }
+        li > ul, li > ol { margin-top: 0.4rem; margin-bottom: 0; }
+
+        /* Blockquote */
+        blockquote {
+            border-left: 3px solid var(--primary); padding: 0.5rem 1rem;
+            margin: 1rem 0; background: var(--primary-dim); border-radius: 0 6px 6px 0;
+            color: var(--text-dim);
+        }
+        blockquote p { margin-bottom: 0.5rem; }
+        blockquote p:last-child { margin-bottom: 0; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; overflow-x: auto; display: block; }
+        th, td { padding: 0.6rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+        th { background: var(--bg-secondary); font-weight: 600; white-space: nowrap; }
+        tr:nth-child(even) { background: rgba(var(--bg-rgb), 0.5); }
+
+        /* Images */
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; box-shadow: 0 2px 12px var(--shadow); }
+
+        /* Mark */
+        mark { background: var(--primary-dim); color: var(--primary); padding: 0.1rem 0.3rem; border-radius: 3px; }
+
+        /* HR */
+        hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+        /* Back to top */
+        .back-to-top {
+            position: fixed; bottom: 2rem; right: 2rem; width: 40px; height: 40px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.3s;
+            color: var(--text-dim); font-size: 1.1rem; z-index: 50;
+        }
+        .back-to-top.visible { opacity: 1; pointer-events: auto; }
+        .back-to-top:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        @media (max-width: 768px) {
+            body { padding: 1.5rem 1rem; }
+            h1 { font-size: 1.4rem; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 0.4rem 0.5rem; }
+        }
     </style>
 </head>
 <body>
-    <a href="../">&larr; 返回博客</a>
+    <nav class="post-nav">
+        <a href="../">&larr; 返回博客</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+            <div class="theme-toggle-slider">
+                <span class="theme-icon moon-icon">&#9684;</span>
+                <span class="theme-icon sun-icon">&#9685;</span>
+            </div>
+        </button>
+    </nav>
     <h1>{{title}}</h1>
     <div class="meta">{{date}} · 阅读约 {{readTime}} 分钟 · {{tags}}</div>
     {{content}}
+    <button class="back-to-top" id="backToTop" aria-label="回到顶部">&uarr;</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        (function() {
+            var htmlEl = document.documentElement;
+            var saved = localStorage.getItem('theme');
+            if (saved) htmlEl.setAttribute('data-theme', saved);
+            else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) htmlEl.setAttribute('data-theme', 'light');
+
+            var hljsLink = document.getElementById('hljs-theme');
+            function updateHljsTheme(t) {
+                hljsLink.href = t === 'dark'
+                    ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+                    : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+            }
+            updateHljsTheme(htmlEl.getAttribute('data-theme'));
+
+            document.getElementById('themeToggle').addEventListener('click', function() {
+                var t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                htmlEl.setAttribute('data-theme', t);
+                localStorage.setItem('theme', t);
+                updateHljsTheme(t);
+            });
+
+            document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
+
+            var btt = document.getElementById('backToTop');
+            window.addEventListener('scroll', function() {
+                btt.classList.toggle('visible', window.scrollY > 400);
+            }, { passive: true });
+            btt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        })();
+    </script>
 </body>
 </html>
