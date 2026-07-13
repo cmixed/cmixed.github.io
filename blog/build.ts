@@ -24,8 +24,8 @@ interface PostData {
   description: string;
   readTime: number;
   content: string;
-  prev: { slug: string; title: string } | null;
-  next: { slug: string; title: string } | null;
+  prev?: { slug: string; title: string } | null;
+  next?: { slug: string; title: string } | null;
 }
 
 marked.use({
@@ -38,7 +38,7 @@ marked.use({
             const match = src.match(/^==(.+?)==/);
             if (match) return { type: 'highlight', raw: match[0], text: match[1] };
         },
-        renderer(token: { text: string }): string { return `<mark>${token.text}</mark>`; }
+        renderer(token: unknown): string { return `<mark>${(token as { text: string }).text}</mark>`; }
     }]
 });
 
@@ -89,7 +89,7 @@ function discoverPosts(): PostInfo[] {
             results.push({ mdPath: join(postsDir, entry.name), slug: basename(entry.name, '.md'), assetsDir: null });
         } else if (entry.isDirectory()) {
             const dirPath = join(postsDir, entry.name);
-            const mdFiles = readdirSync(dirPath).filter(f => f.endsWith('.md'));
+            const mdFiles = readdirSync(dirPath).filter((f: string) => f.endsWith('.md'));
             if (mdFiles.length > 0) results.push({ mdPath: join(dirPath, mdFiles[0]), slug: basename(entry.name), assetsDir: dirPath });
         }
     }
@@ -105,7 +105,7 @@ for (const info of postInfos) {
     const { meta, body } = parseFrontmatter(raw);
     const slugForPaths = encodeURIComponent(info.slug);
     const bodyForJson = body.replace(/\.\//g, `./${slugForPaths}/`);
-    const htmlJson = marked(bodyForJson);
+    const htmlJson = marked(bodyForJson) as string;
     const readTime = estimateReadTime(body);
 
     posts.push({
@@ -119,7 +119,7 @@ for (const info of postInfos) {
     });
 
     // Standalone page
-    const htmlStandalone = marked(body);
+    const htmlStandalone = marked(body) as string;
     writeFileSync(join(outDir, `${info.slug}.html`), `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -208,7 +208,7 @@ writeFileSync(join(outDir, '404.html'), `<!DOCTYPE html>
 
 // Copy main CSS
 const cssDir = join(__dirname, '..', 'dist', 'assets');
-const cssFiles = readdirSync(cssDir).filter(f => f.endsWith('.css'));
+const cssFiles = readdirSync(cssDir).filter((f: string) => f.endsWith('.css'));
 if (cssFiles.length > 0) writeFileSync(join(outDir, 'style.css'), readFileSync(join(cssDir, cssFiles[0]), 'utf-8'));
 
 console.log(`✓ ${posts.length} posts, ${allTags.length} tags, RSS feed, 404 page`);

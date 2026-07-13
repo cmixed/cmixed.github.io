@@ -10,8 +10,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node"]
   },
-  "include": ["src", "blog"],
+  "include": ["src", "blog", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
