@@ -8,7 +8,6 @@
     <link rel="alternate" type="application/rss+xml" title="cmixed 博客 RSS" href="feed.xml">
     <title>博客 · cmixed</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
     <style>
         body { padding-top: 0; transition: background 0.3s, color 0.3s; }
 
@@ -26,7 +25,8 @@
             padding: 0.3rem 0.8rem; background: var(--bg-secondary);
             border: 1px solid var(--border); border-radius: 6px;
             color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
-            transition: all var(--transition-speed);
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+            text-decoration: none; display: inline-block;
         }
         .blog-tag:hover, .blog-tag.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
 
@@ -37,7 +37,8 @@
         .blog-page-list { display: grid; gap: 1.25rem; }
         .blog-page-card {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 1.5rem; cursor: pointer; transition: all var(--transition-speed);
+            padding: 1.5rem; transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            text-decoration: none; color: inherit; display: block;
         }
         .blog-page-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 20px var(--shadow); }
         .blog-page-card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem; }
@@ -49,73 +50,9 @@
             border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); background: var(--bg-secondary);
         }
 
-        /* Article layout with sidebar TOC */
-        .blog-article-layout { display: grid; grid-template-columns: 200px 1fr; gap: 2rem; max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
-        .blog-toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 1rem; }
-        .blog-toc-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-        .blog-toc a {
-            display: block; padding: 0.3rem 0; font-size: 0.8rem;
-            color: var(--text-dim); text-decoration: none; border-left: 2px solid transparent;
-            padding-left: 0.75rem; transition: all 0.2s; line-height: 1.4;
-        }
-        .blog-toc a:hover { color: var(--primary); border-left-color: var(--primary); }
-        .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
-        .blog-toc a[data-level="3"] { padding-left: 1.5rem; font-size: 0.75rem; }
-
-        .blog-article { max-width: 100%; min-width: 0; }
-        .blog-page-back { background: none; border: none; color: var(--primary); font-size: 0.9rem; cursor: pointer; padding: 0; margin-bottom: 1.5rem; }
-        .blog-page-back:hover { opacity: 0.7; }
-        .blog-page-detail-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-        .blog-page-detail-meta .tag {
-            display: inline-block; padding: 0.15rem 0.5rem;
-            border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; margin-left: 0.5rem;
-            color: var(--text-dim); background: var(--bg-secondary);
-        }
-        .blog-page-content { line-height: 1.9; color: var(--text-dim); }
-        .blog-page-content h1 { font-size: 1.6rem; color: var(--text); margin-bottom: 0.5rem; margin-top: 0; }
-        .blog-page-content h2 { font-size: 1.2rem; color: var(--text); margin-top: 2rem; margin-bottom: 0.75rem; }
-        .blog-page-content h3 { font-size: 1.05rem; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; }
-        .blog-page-content p { margin-bottom: 1rem; }
-        .blog-page-content pre { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
-        .blog-page-content code { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 0.85rem; }
-        .blog-page-content :not(pre) > code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em; }
-        .blog-page-content ul, .blog-page-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
-        .blog-page-content li { margin-bottom: 0.4rem; }
-        .blog-page-content a { color: var(--primary); text-decoration: none; }
-        .blog-page-content a:hover { text-decoration: underline; }
-        .blog-page-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; box-shadow: 0 2px 12px var(--shadow); }
-        .blog-page-content mark { background: var(--primary-dim); color: var(--primary); padding: 0.1rem 0.3rem; border-radius: 3px; }
-        .blog-empty { color: var(--text-muted); text-align: center; padding: 3rem 0; }
-
-        /* Prev/Next navigation */
-        .blog-nav-posts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
-        .blog-nav-post {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
-            padding: 1rem 1.25rem; cursor: pointer; transition: all var(--transition-speed);
-            text-decoration: none; color: inherit; display: block;
-        }
-        .blog-nav-post:hover { border-color: var(--primary); transform: translateY(-1px); }
-        .blog-nav-post-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .blog-nav-post-title { font-weight: 600; font-size: 0.9rem; }
-        .blog-nav-post.next { text-align: right; }
-
-        /* Back to top */
-        .back-to-top {
-            position: fixed; bottom: 2rem; right: 2rem; width: 40px; height: 40px;
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; opacity: 0; pointer-events: none; transition: all var(--transition-speed);
-            color: var(--text-dim); font-size: 1.1rem; z-index: 50;
-        }
-        .back-to-top.visible { opacity: 1; pointer-events: auto; }
-        .back-to-top:hover { border-color: var(--primary); color: var(--primary); }
-
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }
             .blog-page h1 { font-size: 1.4rem; }
-            .blog-article-layout { grid-template-columns: 1fr; padding: 2rem 1.25rem; }
-            .blog-toc { display: none; }
-            .blog-nav-posts { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -123,7 +60,7 @@
     <nav class="blog-nav">
         <div class="blog-nav-left">
             <a href="../" class="logo" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--primary);">&larr; cmixed</a>
-            <a href="#" id="blogHomeLink" style="font-weight:600;font-size:0.95rem;color:var(--text);text-decoration:none;">博客</a>
+            <a href="./" style="font-weight:600;font-size:0.95rem;color:var(--text);">博客</a>
         </div>
         <div style="display:flex;align-items:center;gap:1rem;">
             <a href="feed.xml" title="RSS 订阅" style="color:var(--text-muted);font-size:1.1rem;">&#9741;</a>
@@ -136,200 +73,58 @@
         </div>
     </nav>
 
-    <div class="blog-page" id="blogListView">
+    <div class="blog-page">
         <h1>博客</h1>
         <p class="blog-page-sub">技术笔记、工具分享与学习记录</p>
-        <div class="blog-page-tags" id="blogTags"></div>
-        <div class="blog-page-list" id="blogList"></div>
+        <div class="blog-page-tags">{{tags}}</div>
+        <div class="blog-page-list">{{posts}}</div>
     </div>
 
-    <div class="blog-article-layout" id="blogDetail" style="display:none">
-        <aside class="blog-toc" id="blogToc"><div class="blog-toc-title">目录</div><div id="tocLinks"></div></aside>
-        <article class="blog-article">
-            <button class="blog-page-back" id="blogBack">&larr; 返回文章列表</button>
-            <div class="blog-page-detail-meta" id="blogDetailMeta"></div>
-            <div class="blog-page-content" id="blogDetailContent"></div>
-            <div class="blog-nav-posts" id="blogNavPosts"></div>
-        </article>
-    </div>
-
-    <button class="back-to-top" id="backToTop" aria-label="回到顶部">&uarr;</button>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
-    (async function() {
-        function escapeHtml(str) {
-            const el = document.createElement('span');
-            el.textContent = str;
-            return el.innerHTML;
-        }
+        (function() {
+            var htmlEl = document.documentElement;
+            var saved = localStorage.getItem('theme');
+            if (saved) htmlEl.setAttribute('data-theme', saved);
+            else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) htmlEl.setAttribute('data-theme', 'light');
 
-        const htmlEl = document.documentElement;
-        const saved = localStorage.getItem('theme');
-        if (saved) htmlEl.setAttribute('data-theme', saved);
-        else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) htmlEl.setAttribute('data-theme', 'light');
+            document.getElementById('themeToggle').addEventListener('click', function() {
+                var t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                htmlEl.setAttribute('data-theme', t);
+                localStorage.setItem('theme', t);
+            });
 
-        // Theme toggle + highlight.js theme swap
-        const hljsLink = document.getElementById('hljs-theme');
-        function updateHljsTheme(theme) {
-            hljsLink.href = theme === 'dark'
-                ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
-                : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
-        }
-        updateHljsTheme(htmlEl.getAttribute('data-theme'));
-
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            htmlEl.setAttribute('data-theme', t);
-            localStorage.setItem('theme', t);
-            updateHljsTheme(t);
-        });
-
-        let data;
-        try {
-            const res = await fetch('data.json');
-            if (!res.ok) throw new Error('Failed to load blog data');
-            data = await res.json();
-        } catch (e) {
-            document.getElementById('blogList').innerHTML = '<div class="blog-empty">加载失败，请刷新重试</div>';
-            return;
-        }
-        let activeTag = null;
-
-        function renderTags() {
-            document.getElementById('blogTags').innerHTML = data.allTags.map(tag =>
-                `<button class="blog-tag" data-tag="${tag}">${tag}</button>`
-            ).join('');
-            document.querySelectorAll('.blog-tag').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    activeTag = activeTag === btn.dataset.tag ? null : btn.dataset.tag;
-                    document.querySelectorAll('.blog-tag').forEach(b => b.classList.remove('active'));
-                    if (activeTag) btn.classList.add('active');
-                    renderList();
+            // Tag filtering
+            var params = new URLSearchParams(location.search);
+            var activeTag = params.get('tag');
+            if (activeTag) {
+                document.querySelectorAll('.blog-tag').forEach(function(btn) {
+                    if (btn.textContent === activeTag) btn.classList.add('active');
                 });
-            });
-        }
-
-        function renderList() {
-            const posts = activeTag ? data.posts.filter(p => p.tags.includes(activeTag)) : data.posts;
-            const list = document.getElementById('blogList');
-            if (!posts.length) { list.innerHTML = '<div class="blog-empty">没有匹配的文章</div>'; return; }
-            list.innerHTML = posts.map(p => `
-                <div class="blog-page-card" data-slug="${escapeHtml(p.slug)}">
-                    <div class="blog-page-card-title">${escapeHtml(p.title)}</div>
-                    <div class="blog-page-card-meta">${escapeHtml(p.date)} · 阅读约 ${p.readTime} 分钟</div>
-                    <div class="blog-page-card-desc">${escapeHtml(p.description)}</div>
-                    <div class="blog-page-card-tags">${p.tags.map(t => `<span>${escapeHtml(t)}</span>`).join('')}</div>
-                </div>
-            `).join('');
-            list.querySelectorAll('.blog-page-card').forEach(card => {
-                card.addEventListener('click', () => showPost(card.dataset.slug, true));
-            });
-        }
-
-        function buildTOC(contentHtml) {
-            const div = document.createElement('div');
-            div.innerHTML = contentHtml;
-            div.querySelectorAll('h2, h3').forEach((h, i) => {
-                h.id = 'heading-' + i;
-            });
-            const headings = div.querySelectorAll('h2, h3');
-            let toc = '';
-            headings.forEach(h => {
-                const level = h.tagName === 'H2' ? '2' : '3';
-                toc += `<a href="#${h.id}" data-level="${level}">${h.textContent.trim()}</a>`;
-            });
-            return { toc, content: div.innerHTML };
-        }
-
-        function showPost(slug, pushState) {
-            const post = data.posts.find(p => p.slug === slug);
-            if (!post) return;
-
-            const tagHtml = post.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ');
-            document.getElementById('blogDetailMeta').innerHTML = `${escapeHtml(post.date)} · 阅读约 ${post.readTime} 分钟 ${tagHtml}`;
-
-            const { toc, content } = buildTOC(post.content);
-            document.getElementById('blogDetailContent').innerHTML = content;
-            document.getElementById('tocLinks').innerHTML = toc;
-
-            // Prev/next navigation
-            let navHtml = '';
-            if (post.prev) navHtml += `<a class="blog-nav-post prev" data-slug="${escapeHtml(post.prev.slug)}"><div class="blog-nav-post-label">&larr; 上一篇</div><div class="blog-nav-post-title">${escapeHtml(post.prev.title)}</div></a>`;
-            if (post.next) navHtml += `<a class="blog-nav-post next" data-slug="${escapeHtml(post.next.slug)}"><div class="blog-nav-post-label">下一篇 &rarr;</div><div class="blog-nav-post-title">${escapeHtml(post.next.title)}</div></a>`;
-            document.getElementById('blogNavPosts').innerHTML = navHtml;
-            document.querySelectorAll('.blog-nav-post').forEach(el => {
-                el.addEventListener('click', () => showPost(el.dataset.slug, true));
-            });
-
-            document.getElementById('blogListView').style.display = 'none';
-            document.getElementById('blogDetail').style.display = 'grid';
-            window.scrollTo(0, 0);
-
-            // Syntax highlighting
-            document.querySelectorAll('.blog-page-content pre code').forEach(block => hljs.highlightElement(block));
-
-            // Lazy loading for images
-            document.querySelectorAll('.blog-page-content img').forEach(img => img.setAttribute('loading', 'lazy'));
-
-            // Update URL hash
-            if (pushState) history.pushState({ slug }, '', '#' + slug);
-
-            setTimeout(setupTocTracking, 100);
-        }
-
-        function setupTocTracking() {
-            const links = document.querySelectorAll('#tocLinks a');
-            const ids = Array.from(links).map(a => a.getAttribute('href').slice(1));
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        links.forEach(l => l.classList.remove('active'));
-                        const link = document.querySelector(`#tocLinks a[href="#${entry.target.id}"]`);
-                        if (link) link.classList.add('active');
+                document.querySelectorAll('.blog-page-card').forEach(function(card) {
+                    var tags = Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
+                    if (!tags.includes(activeTag)) card.style.display = 'none';
+                });
+            }
+            document.querySelectorAll('.blog-tag').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var tag = btn.textContent;
+                    if (activeTag === tag) {
+                        activeTag = null;
+                        history.pushState(null, '', location.pathname);
+                    } else {
+                        activeTag = tag;
+                        history.pushState(null, '', '?tag=' + encodeURIComponent(tag));
                     }
+                    document.querySelectorAll('.blog-tag').forEach(function(b) { b.classList.remove('active'); });
+                    if (activeTag) btn.classList.add('active');
+                    document.querySelectorAll('.blog-page-card').forEach(function(card) {
+                        var tags = Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
+                        card.style.display = (!activeTag || tags.includes(activeTag)) ? '' : 'none';
+                    });
                 });
-            }, { rootMargin: '-80px 0px -70% 0px' });
-            ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
-        }
-
-        function showList() {
-            document.getElementById('blogDetail').style.display = 'none';
-            document.getElementById('blogListView').style.display = 'block';
-            history.pushState(null, '', location.pathname);
-        }
-
-        document.getElementById('blogBack').addEventListener('click', showList);
-        document.getElementById('blogHomeLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            showList();
-        });
-
-        // Hash routing
-        window.addEventListener('hashchange', () => {
-            const slug = location.hash.slice(1);
-            if (slug) showPost(slug);
-            else showList();
-        });
-        window.addEventListener('popstate', (e) => {
-            if (e.state && e.state.slug) showPost(e.state.slug);
-            else showList();
-        });
-
-        // Back to top
-        const btt = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            btt.classList.toggle('visible', window.scrollY > 400);
-        }, { passive: true });
-        btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-
-        renderTags();
-        renderList();
-
-        // Open post from URL hash
-        const hashSlug = location.hash.slice(1);
-        if (hashSlug) showPost(hashSlug);
-    })();
+            });
+        })();
     </script>
 </body>
 </html>

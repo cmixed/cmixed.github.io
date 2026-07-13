@@ -154,9 +154,7 @@ function build(): void {
   for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
-    const slugForPaths = encodeURIComponent(info.slug);
     const htmlBase = marked(body) as string;
-    const htmlJson = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${slugForPaths}/`);
     const readTime = estimateReadTime(body);
 
     posts.push({
@@ -166,7 +164,7 @@ function build(): void {
       tags: Array.isArray(meta.tags) ? meta.tags : [],
       description: meta.description || '',
       readTime,
-      content: htmlJson,
+      content: '',
     });
 
     // Standalone page (rewrite ./ paths to include slug directory)
@@ -227,11 +225,22 @@ function build(): void {
 </channel>
 </rss>`;
 
-  writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts, allTags }, null, 2));
   writeFileSync(join(outDir, 'feed.xml'), rss);
 
-  // Copy blog index.html
-  writeFileSync(join(outDir, 'index.html'), readFileSync(join(__dirname, 'index.html'), 'utf-8'));
+  // Generate static blog list page
+  const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
+  const tagsHtml = allTags.map((t) => `<a href="./?tag=${encodeURIComponent(t)}" class="blog-tag">${escapeXml(t)}</a>`).join('');
+  const postsHtml = posts
+    .map((p) => `
+        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card">
+            <div class="blog-page-card-title">${escapeXml(p.title)}</div>
+            <div class="blog-page-card-meta">${escapeXml(p.date)} · 阅读约 ${p.readTime} 分钟</div>
+            <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
+            <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
+        </a>`)
+    .join('');
+  const indexHtml = indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml);
+  writeFileSync(join(outDir, 'index.html'), indexHtml);
 
   // Generate blog 404 page
   const notFoundTemplate = readFileSync(join(templatesDir, '404.html'), 'utf-8');
