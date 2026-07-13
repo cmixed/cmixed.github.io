@@ -54,14 +54,14 @@ const outDir = join(__dirname, '..', 'dist', 'blog');
 const templatesDir = join(__dirname, 'templates');
 mkdirSync(outDir, { recursive: true });
 
-function renderTemplate(template: string, data: Record<string, string>): string {
+export function renderTemplate(template: string, data: Record<string, string>): string {
   return Object.entries(data).reduce(
     (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), value),
     template
   );
 }
 
-function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
+export function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
   content = content.replace(/\r\n/g, '\n');
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) return { meta: {}, body: content };
@@ -93,13 +93,13 @@ function copyDirSync(src: string, dest: string): void {
   }
 }
 
-function estimateReadTime(body: string): number {
+export function estimateReadTime(body: string): number {
   const text = body.replace(/[#*`[\]()>!-]/g, '').replace(/\s+/g, ' ');
   const words = text.length; // Chinese chars ~ 1 word each
   return Math.max(1, Math.ceil(words / 400));
 }
 
-function escapeXml(str: string): string {
+export function escapeXml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
