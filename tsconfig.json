@@ -13,6 +13,6 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src", "blog", "vite-env.d.ts"],
+  "include": ["src", "blog", "scripts", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
