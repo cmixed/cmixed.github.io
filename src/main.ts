@@ -23,6 +23,12 @@ interface BlogData {
   allTags: string[];
 }
 
+function escapeHtml(str: string): string {
+  const el = document.createElement('span');
+  el.textContent = str;
+  return el.innerHTML;
+}
+
 const themeToggle = document.getElementById('themeToggle') as HTMLButtonElement;
 const html = document.documentElement;
 const statusText = document.getElementById('statusText') as HTMLElement;
@@ -157,17 +163,17 @@ function renderProjects(): void {
   grid.innerHTML = (projects as Project[])
     .map(
       (p) => `
-        <a href="${p.url}" class="project-card" target="_blank" rel="noopener noreferrer">
+        <a href="${escapeHtml(p.url)}" class="project-card" target="_blank" rel="noopener noreferrer">
             <div class="project-header">
                 <div>
-                    <div class="project-title">${p.title}</div>
-                    <div style="font-size: 0.8rem; color: var(--text-dim);">${p.subtitle}</div>
+                    <div class="project-title">${escapeHtml(p.title)}</div>
+                    <div class="project-subtitle">${escapeHtml(p.subtitle)}</div>
                 </div>
-                <span class="project-status">${p.status}</span>
+                <span class="project-status">${escapeHtml(p.status)}</span>
             </div>
-            <div class="project-desc">${p.desc}</div>
+            <div class="project-desc">${escapeHtml(p.desc)}</div>
             <div class="project-tech">
-                ${p.tags.map((t) => `<span class="tech-tag">${t}</span>`).join('')}
+                ${p.tags.map((t) => `<span class="tech-tag">${escapeHtml(t)}</span>`).join('')}
             </div>
         </a>
     `
@@ -178,7 +184,7 @@ renderProjects();
 
 function renderSkills(): void {
   const container = document.getElementById('skillsContainer') as HTMLElement;
-  container.innerHTML = (skills as string[]).map((s) => `<div class="skill-tag">${s}</div>`).join('');
+  container.innerHTML = (skills as string[]).map((s) => `<div class="skill-tag">${escapeHtml(s)}</div>`).join('');
 }
 renderSkills();
 
@@ -193,12 +199,12 @@ async function loadBlogPreview(): Promise<void> {
     grid.innerHTML = preview
       .map(
         (p) => `
-            <a href="blog/#${p.slug}" class="blog-preview-card">
-                <div class="blog-preview-card-title">${p.title}</div>
-                <div class="blog-preview-card-meta">${p.date}</div>
-                <div class="blog-preview-card-desc">${p.description}</div>
+            <a href="blog/#${escapeHtml(p.slug)}" class="blog-preview-card">
+                <div class="blog-preview-card-title">${escapeHtml(p.title)}</div>
+                <div class="blog-preview-card-meta">${escapeHtml(p.date)}</div>
+                <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-tags">
-                    ${p.tags.map((t) => `<span>${t}</span>`).join('')}
+                    ${p.tags.map((t) => `<span>${escapeHtml(t)}</span>`).join('')}
                 </div>
             </a>
         `
@@ -218,11 +224,8 @@ const observerOptions: IntersectionObserverInit = {
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
-      const children = entry.target.querySelectorAll('.project-card, .skill-tag');
-      children.forEach((el: Element) => {
-        (el as HTMLElement).style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        (el as HTMLElement).style.opacity = '1';
-        (el as HTMLElement).style.transform = 'translateY(0)';
+      entry.target.querySelectorAll('.fade-in-item').forEach((el) => {
+        el.classList.add('visible');
       });
       observer.unobserve(entry.target);
     }
@@ -230,10 +233,8 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 document.querySelectorAll('#skills, #projects, #blog-preview').forEach((section) => {
-  const items = section.querySelectorAll('.project-card, .skill-tag');
-  items.forEach((el: Element) => {
-    (el as HTMLElement).style.opacity = '0';
-    (el as HTMLElement).style.transform = 'translateY(12px)';
+  section.querySelectorAll('.project-card, .skill-tag').forEach((el) => {
+    el.classList.add('fade-in-item');
   });
   observer.observe(section);
 });
