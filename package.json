@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "blog": "node blog/build.js",
-    "build": "vite build && node blog/build.js",
+    "blog": "tsx blog/build.ts",
+    "build": "vite build && tsx blog/build.ts",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "marked": "^18.0.5",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
     "vite": "^6.0.0"
   }
 }
