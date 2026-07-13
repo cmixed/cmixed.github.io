@@ -206,20 +206,13 @@ body.nav-open::before {
     transition: opacity 0.3s;
 }
 
-.theme-toggle .sun-icon,
-.theme-toggle .moon-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
 .theme-toggle .sun-icon {
+    position: absolute;
     opacity: 0;
 }
 
 [data-theme="light"] .theme-toggle .moon-icon { opacity: 0; }
-[data-theme="light"] .theme-toggle .sun-icon { opacity: 1; }
+[data-theme="light"] .theme-toggle .sun-icon { opacity: 1; position: relative; }
 
 /* Accessibility toggle */
 .a11y-toggle {
