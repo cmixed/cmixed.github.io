@@ -103,16 +103,19 @@
         .blog-nav-post-title { font-weight: 600; font-size: 0.9rem; }
         .blog-nav-post.next { text-align: right; }
 
-        /* Back to top */
-        .back-to-top {
-            position: fixed; bottom: 2rem; right: 2rem; width: 40px; height: 40px;
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.3s;
-            color: var(--text-dim); font-size: 1.1rem; z-index: 50;
+        /* Floating action buttons */
+        .fab-group {
+            position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.5rem; z-index: 50;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
-        .back-to-top.visible { opacity: 1; pointer-events: auto; }
-        .back-to-top:hover { border-color: var(--primary); color: var(--primary); }
+        .fab-group.visible { opacity: 1; pointer-events: auto; }
+        .fab-btn {
+            width: 40px; height: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: border-color 0.3s, color 0.3s;
+            color: var(--text-dim); font-size: 1rem; text-decoration: none;
+        }
+        .fab-btn:hover { border-color: var(--primary); color: var(--primary); }
 
         @media (max-width: 768px) {
             .blog-article-layout { grid-template-columns: 1fr; padding: 2rem 1.25rem; }
@@ -154,7 +157,11 @@
         </article>
     </div>
 
-    <button class="back-to-top" id="backToTop" aria-label="回到顶部">&uarr;</button>
+    <div class="fab-group" id="fabGroup">
+        <a href="./" class="fab-btn" title="博客主页">&#9750;</a>
+        <button class="fab-btn" id="backToTop" title="返回顶部">&uarr;</button>
+        <button class="fab-btn" id="goBottom" title="直达底部">&darr;</button>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
@@ -215,12 +222,13 @@
             }, { rootMargin: '-80px 0px -70% 0px' });
             ids.forEach(function(id) { var el = document.getElementById(id); if (el) observer.observe(el); });
 
-            // Back to top
-            var btt = document.getElementById('backToTop');
+            // Floating buttons
+            var fabGroup = document.getElementById('fabGroup');
             window.addEventListener('scroll', function() {
-                btt.classList.toggle('visible', window.scrollY > 400);
+                fabGroup.classList.toggle('visible', window.scrollY > 400);
             }, { passive: true });
-            btt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+            document.getElementById('backToTop').addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+            document.getElementById('goBottom').addEventListener('click', function() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); });
         })();
     </script>
 </body>
