@@ -167,6 +167,7 @@ for (const info of postInfos) {
   const htmlStandalone = marked(body) as string;
   const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
   const postHtml = renderTemplate(postTemplate, {
+    slug: info.slug,
     description: escapeXml(meta.description || ''),
     title: escapeXml(meta.title || info.slug),
     date: meta.date || '',
