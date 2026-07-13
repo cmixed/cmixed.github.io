@@ -156,7 +156,7 @@ function build(): void {
     const { meta, body } = parseFrontmatter(raw);
     const slugForPaths = encodeURIComponent(info.slug);
     const htmlBase = marked(body) as string;
-    const htmlJson = htmlBase.replace(/\.\/(?=["'])/g, `./${slugForPaths}/`);
+    const htmlJson = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${slugForPaths}/`);
     const readTime = estimateReadTime(body);
 
     posts.push({
@@ -169,7 +169,8 @@ function build(): void {
       content: htmlJson,
     });
 
-    // Standalone page
+    // Standalone page (rewrite ./ paths to include slug directory)
+    const htmlStandalone = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${info.slug}/`);
     const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
     const postHtml = renderTemplate(postTemplate, {
       slug: info.slug,
@@ -178,7 +179,7 @@ function build(): void {
       date: meta.date || '',
       readTime: String(readTime),
       tags: (meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
-      content: htmlBase,
+      content: htmlStandalone,
     });
     writeFileSync(join(outDir, `${info.slug}.html`), postHtml);
 
