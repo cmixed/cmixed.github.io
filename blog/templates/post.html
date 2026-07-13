@@ -46,14 +46,20 @@
         .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
         .toc-group { margin-bottom: 0.25rem; }
         .toc-h2 {
-            cursor: pointer; position: relative;
+            display: flex; align-items: center; justify-content: space-between;
+            text-decoration: none; color: var(--text-dim);
         }
-        .toc-h2::after {
-            content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-            width: 0; height: 0; border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent;
-            transition: transform 0.2s; opacity: 0.5;
+        .toc-h2-text { flex: 1; }
+        .toc-h2-arrow {
+            width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; flex-shrink: 0;
         }
-        .toc-group.collapsed .toc-h2::after { transform: translateY(-50%) rotate(90deg); }
+        .toc-h2-arrow:hover { opacity: 1; }
+        .toc-h2-arrow::after {
+            content: ''; width: 0; height: 0;
+            border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent;
+        }
+        .toc-group.collapsed .toc-h2-arrow { transform: rotate(90deg); }
         .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
         .toc-group.collapsed .toc-children { max-height: 0 !important; }
         .toc-children a { padding-left: 1.5rem; font-size: 0.75rem; }
@@ -189,26 +195,23 @@
             // Syntax highlighting
             document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
 
-            // TOC: collapsible h3 children under h2
-            document.querySelectorAll('.toc-h2').forEach(function(h2) {
-                var group = h2.parentElement;
+            // TOC: arrow click to collapse/expand, text click to navigate
+            document.querySelectorAll('.toc-group').forEach(function(group) {
                 var children = group.querySelector('.toc-children');
-                if (children) {
+                var arrow = group.querySelector('.toc-h2-arrow');
+                if (children && arrow) {
                     children.style.maxHeight = children.scrollHeight + 'px';
-                    h2.addEventListener('click', function(e) {
-                        e.preventDefault();
+                    arrow.addEventListener('click', function(e) {
+                        e.stopPropagation();
                         group.classList.toggle('collapsed');
                         if (!group.classList.contains('collapsed')) {
                             children.style.maxHeight = children.scrollHeight + 'px';
                         }
-                        // Also scroll to heading
-                        var href = h2.getAttribute('href');
-                        if (href) document.querySelector(href).scrollIntoView({ behavior: 'smooth' });
                     });
                 }
             });
 
-            // TOC scroll tracking
+            // TOC scroll tracking (skip links inside collapsed groups)
             var links = document.querySelectorAll('#tocLinks a');
             var ids = Array.from(links).map(function(a) { return a.getAttribute('href').slice(1); });
             var observer = new IntersectionObserver(function(entries) {
@@ -216,7 +219,9 @@
                     if (entry.isIntersecting) {
                         links.forEach(function(l) { l.classList.remove('active'); });
                         var link = document.querySelector('#tocLinks a[href="#' + entry.target.id + '"]');
-                        if (link) link.classList.add('active');
+                        if (link && !link.closest('.toc-group.collapsed')) {
+                            link.classList.add('active');
+                        }
                     }
                 });
             }, { rootMargin: '-80px 0px -70% 0px' });
