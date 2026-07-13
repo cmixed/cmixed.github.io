@@ -24,8 +24,7 @@ Body content here`;
     expect(result.meta).toEqual({});
     expect(result.body).toBe('Just plain content');
   });
-
-  });
+});
 
 describe('estimateReadTime', () => {
   it('should calculate read time for short content', () => {
@@ -58,7 +57,9 @@ describe('escapeXml', () => {
   });
 
   it('should handle multiple special characters', () => {
-    expect(escapeXml('<div class="test">&</div>')).toBe('&lt;div class=&quot;test&quot;&gt;&amp;&lt;/div&gt;');
+    expect(escapeXml('<div class="test">&</div>')).toBe(
+      '&lt;div class=&quot;test&quot;&gt;&amp;&lt;/div&gt;'
+    );
   });
 });
 
