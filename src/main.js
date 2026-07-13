@@ -62,7 +62,8 @@ const texts = [
     'Game Developer',
     'System Programmer',
     'Library Designer',
-    'Performance Optimizer'
+    'Performance Optimizer',
+    'Certified Software Designer'
 ];
 let textIndex = 0;
 let charIndex = 0;
