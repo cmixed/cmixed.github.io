@@ -255,6 +255,16 @@ function build(): void {
 
   const allTags = [...new Set(posts.flatMap((p) => p.tags))];
 
+  // Generate data.json for main site blog preview
+  const dataJson = posts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    date: p.date,
+    tags: p.tags,
+    description: p.description,
+  }));
+  writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts: dataJson, allTags }, null, 2));
+
   // Generate RSS feed
   const rssItems = posts
     .map(
