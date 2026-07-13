@@ -171,15 +171,29 @@ function build(): void {
     // Standalone page (rewrite ./ paths to include slug directory)
     const htmlStandalone = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${info.slug}/`);
 
-    // Generate TOC from h2/h3 headings
-    let tocHtml = '';
+    // Collect headings and add IDs
+    interface Heading { id: string; level: number; text: string; }
+    const headings: Heading[] = [];
     const htmlWithIds = htmlStandalone.replace(/<h([23])>(.*?)<\/h\1>/g, (_match, level, text, offset) => {
       const id = 'heading-' + offset;
       const cleanText = text.replace(/<[^>]+>/g, '');
-      const tocLevel = level === '2' ? '2' : '3';
-      tocHtml += `<a href="#${id}" data-level="${tocLevel}">${cleanText}</a>`;
+      headings.push({ id, level: Number(level), text: cleanText });
       return `<h${level} id="${id}">${text}</h${level}>`;
     });
+
+    // Build nested TOC: h2 groups with h3 children
+    let tocHtml = '';
+    let inGroup = false;
+    for (const h of headings) {
+      if (h.level === 2) {
+        if (inGroup) tocHtml += '</div>';
+        tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2">${h.text}</a><div class="toc-children">`;
+        inGroup = true;
+      } else {
+        tocHtml += `<a href="#${h.id}" data-level="3">${h.text}</a>`;
+      }
+    }
+    if (inGroup) tocHtml += '</div></div>';
 
     postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
 

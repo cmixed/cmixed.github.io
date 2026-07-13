@@ -35,18 +35,8 @@
         .blog-toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 1rem; }
         .blog-toc-title {
             font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
-            margin-bottom: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
-            user-select: none;
+            margin-bottom: 0.75rem;
         }
-        .blog-toc-title:hover { color: var(--text-dim); }
-        .blog-toc-title::after {
-            content: ''; display: inline-block; width: 0; height: 0;
-            border-left: 4px solid transparent; border-right: 4px solid transparent;
-            border-top: 5px solid currentColor; transition: transform 0.2s;
-        }
-        .blog-toc.collapsed .blog-toc-title::after { transform: rotate(-90deg); }
-        .blog-toc-links { overflow: hidden; transition: max-height 0.3s ease; }
-        .blog-toc.collapsed .blog-toc-links { max-height: 0 !important; }
         .blog-toc a {
             display: block; padding: 0.3rem 0; font-size: 0.8rem;
             color: var(--text-dim); text-decoration: none; border-left: 2px solid transparent;
@@ -54,7 +44,19 @@
         }
         .blog-toc a:hover { color: var(--primary); border-left-color: var(--primary); }
         .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
-        .blog-toc a[data-level="3"] { padding-left: 1.5rem; font-size: 0.75rem; }
+        .toc-group { margin-bottom: 0.25rem; }
+        .toc-h2 {
+            cursor: pointer; position: relative;
+        }
+        .toc-h2::after {
+            content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            width: 0; height: 0; border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent;
+            transition: transform 0.2s; opacity: 0.5;
+        }
+        .toc-group.collapsed .toc-h2::after { transform: translateY(-50%) rotate(90deg); }
+        .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
+        .toc-group.collapsed .toc-children { max-height: 0 !important; }
+        .toc-children a { padding-left: 1.5rem; font-size: 0.75rem; }
 
         /* Article content */
         .blog-article { max-width: 100%; min-width: 0; }
@@ -141,7 +143,7 @@
 
     <div class="blog-article-layout">
         <aside class="blog-toc" id="blogToc">
-            <div class="blog-toc-title" id="tocToggle">目录</div>
+            <div class="blog-toc-title">目录</div>
             <div class="blog-toc-links" id="tocLinks">{{toc}}</div>
         </aside>
         <article class="blog-article">
@@ -180,15 +182,22 @@
             // Syntax highlighting
             document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
 
-            // TOC toggle
-            var tocEl = document.getElementById('blogToc');
-            var tocLinksEl = document.getElementById('tocLinks');
-            var tocToggle = document.getElementById('tocToggle');
-            tocLinksEl.style.maxHeight = tocLinksEl.scrollHeight + 'px';
-            tocToggle.addEventListener('click', function() {
-                tocEl.classList.toggle('collapsed');
-                if (!tocEl.classList.contains('collapsed')) {
-                    tocLinksEl.style.maxHeight = tocLinksEl.scrollHeight + 'px';
+            // TOC: collapsible h3 children under h2
+            document.querySelectorAll('.toc-h2').forEach(function(h2) {
+                var group = h2.parentElement;
+                var children = group.querySelector('.toc-children');
+                if (children) {
+                    children.style.maxHeight = children.scrollHeight + 'px';
+                    h2.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        group.classList.toggle('collapsed');
+                        if (!group.classList.contains('collapsed')) {
+                            children.style.maxHeight = children.scrollHeight + 'px';
+                        }
+                        // Also scroll to heading
+                        var href = h2.getAttribute('href');
+                        if (href) document.querySelector(href).scrollIntoView({ behavior: 'smooth' });
+                    });
                 }
             });
 
