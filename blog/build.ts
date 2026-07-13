@@ -32,13 +32,10 @@ marked.use({
   breaks: true,
   renderer: {
     image({ href, title, text }: { href: string; title?: string | null; text: string }): string {
-      if (href.endsWith('.png')) {
-        const avifSrc = href.replace(/\.png$/, '.avif');
-        const titleAttr = title ? ` title="${title}"` : '';
-        return `<picture><source srcset="${avifSrc}" type="image/avif"><img src="${href}" alt="${text}"${titleAttr} loading="lazy"></picture>`;
-      }
+      // Convert .png to .avif
+      const src = href.endsWith('.png') ? href.replace(/\.png$/, '.avif') : href;
       const titleAttr = title ? ` title="${title}"` : '';
-      return `<img src="${href}" alt="${text}"${titleAttr}>`;
+      return `<img src="${src}" alt="${text}"${titleAttr} loading="lazy">`;
     },
   },
   extensions: [
