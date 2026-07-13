@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
     <style>
         body { padding-top: 0; transition: background 0.3s, color 0.3s; }
-        [data-theme="light"] #hljs-theme { href: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css'; }
 
         .blog-nav {
             position: sticky; top: 0; width: 100%; padding: 1rem 2rem;
@@ -159,6 +158,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
     (async function() {
+        function escapeHtml(str) {
+            const el = document.createElement('span');
+            el.textContent = str;
+            return el.innerHTML;
+        }
+
         const htmlEl = document.documentElement;
         const saved = localStorage.getItem('theme');
         if (saved) htmlEl.setAttribute('data-theme', saved);
@@ -180,8 +185,15 @@
             updateHljsTheme(t);
         });
 
-        const res = await fetch('data.json');
-        const data = await res.json();
+        let data;
+        try {
+            const res = await fetch('data.json');
+            if (!res.ok) throw new Error('Failed to load blog data');
+            data = await res.json();
+        } catch (e) {
+            document.getElementById('blogList').innerHTML = '<div class="blog-empty">加载失败，请刷新重试</div>';
+            return;
+        }
         let activeTag = null;
 
         function renderTags() {
@@ -203,15 +215,15 @@
             const list = document.getElementById('blogList');
             if (!posts.length) { list.innerHTML = '<div class="blog-empty">没有匹配的文章</div>'; return; }
             list.innerHTML = posts.map(p => `
-                <div class="blog-page-card" data-slug="${p.slug}">
-                    <div class="blog-page-card-title">${p.title}</div>
-                    <div class="blog-page-card-meta">${p.date} · 阅读约 ${p.readTime} 分钟</div>
-                    <div class="blog-page-card-desc">${p.description}</div>
-                    <div class="blog-page-card-tags">${p.tags.map(t => `<span>${t}</span>`).join('')}</div>
+                <div class="blog-page-card" data-slug="${escapeHtml(p.slug)}">
+                    <div class="blog-page-card-title">${escapeHtml(p.title)}</div>
+                    <div class="blog-page-card-meta">${escapeHtml(p.date)} · 阅读约 ${p.readTime} 分钟</div>
+                    <div class="blog-page-card-desc">${escapeHtml(p.description)}</div>
+                    <div class="blog-page-card-tags">${p.tags.map(t => `<span>${escapeHtml(t)}</span>`).join('')}</div>
                 </div>
             `).join('');
             list.querySelectorAll('.blog-page-card').forEach(card => {
-                card.addEventListener('click', () => showPost(card.dataset.slug));
+                card.addEventListener('click', () => showPost(card.dataset.slug, true));
             });
         }
 
@@ -230,12 +242,12 @@
             return { toc, content: div.innerHTML };
         }
 
-        function showPost(slug) {
+        function showPost(slug, pushState) {
             const post = data.posts.find(p => p.slug === slug);
             if (!post) return;
 
-            const tagHtml = post.tags.map(t => `<span class="tag">${t}</span>`).join(' ');
-            document.getElementById('blogDetailMeta').innerHTML = `${post.date} · 阅读约 ${post.readTime} 分钟 ${tagHtml}`;
+            const tagHtml = post.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ');
+            document.getElementById('blogDetailMeta').innerHTML = `${escapeHtml(post.date)} · 阅读约 ${post.readTime} 分钟 ${tagHtml}`;
 
             const { toc, content } = buildTOC(post.content);
             document.getElementById('blogDetailContent').innerHTML = content;
@@ -243,11 +255,11 @@
 
             // Prev/next navigation
             let navHtml = '';
-            if (post.prev) navHtml += `<a class="blog-nav-post prev" data-slug="${post.prev.slug}"><div class="blog-nav-post-label">&larr; 上一篇</div><div class="blog-nav-post-title">${post.prev.title}</div></a>`;
-            if (post.next) navHtml += `<a class="blog-nav-post next" data-slug="${post.next.slug}"><div class="blog-nav-post-label">下一篇 &rarr;</div><div class="blog-nav-post-title">${post.next.title}</div></a>`;
+            if (post.prev) navHtml += `<a class="blog-nav-post prev" data-slug="${escapeHtml(post.prev.slug)}"><div class="blog-nav-post-label">&larr; 上一篇</div><div class="blog-nav-post-title">${escapeHtml(post.prev.title)}</div></a>`;
+            if (post.next) navHtml += `<a class="blog-nav-post next" data-slug="${escapeHtml(post.next.slug)}"><div class="blog-nav-post-label">下一篇 &rarr;</div><div class="blog-nav-post-title">${escapeHtml(post.next.title)}</div></a>`;
             document.getElementById('blogNavPosts').innerHTML = navHtml;
             document.querySelectorAll('.blog-nav-post').forEach(el => {
-                el.addEventListener('click', () => showPost(el.dataset.slug));
+                el.addEventListener('click', () => showPost(el.dataset.slug, true));
             });
 
             document.getElementById('blogListView').style.display = 'none';
@@ -259,6 +271,9 @@
 
             // Lazy loading for images
             document.querySelectorAll('.blog-page-content img').forEach(img => img.setAttribute('loading', 'lazy'));
+
+            // Update URL hash
+            if (pushState) history.pushState({ slug }, '', '#' + slug);
 
             setTimeout(setupTocTracking, 100);
         }
@@ -278,9 +293,23 @@
             ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
         }
 
-        document.getElementById('blogBack').addEventListener('click', () => {
+        function showList() {
             document.getElementById('blogDetail').style.display = 'none';
             document.getElementById('blogListView').style.display = 'block';
+            history.pushState(null, '', location.pathname);
+        }
+
+        document.getElementById('blogBack').addEventListener('click', showList);
+
+        // Hash routing
+        window.addEventListener('hashchange', () => {
+            const slug = location.hash.slice(1);
+            if (slug) showPost(slug);
+            else showList();
+        });
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.slug) showPost(e.state.slug);
+            else showList();
         });
 
         // Back to top
@@ -292,6 +321,10 @@
 
         renderTags();
         renderList();
+
+        // Open post from URL hash
+        const hashSlug = location.hash.slice(1);
+        if (hashSlug) showPost(hashSlug);
     })();
     </script>
 </body>
