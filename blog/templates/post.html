@@ -15,7 +15,7 @@
     <title>{{title}} · cmixed</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme" media="print" onload="this.media='all'">
     <style>
         body { padding-top: 0; transition: background 0.3s, color 0.3s; }
 
@@ -169,7 +169,6 @@
         <button class="fab-btn" id="goBottom" title="直达底部">&darr;</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
         (function() {
             var htmlEl = document.documentElement;
@@ -192,8 +191,16 @@
                 updateHljsTheme(t);
             });
 
-            // Syntax highlighting
-            document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
+            // Conditional syntax highlighting (~43KB saved when no code blocks)
+            var codeBlocks = document.querySelectorAll('pre code');
+            if (codeBlocks.length > 0) {
+                var script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+                script.onload = function() {
+                    codeBlocks.forEach(function(block) { hljs.highlightElement(block); });
+                };
+                document.head.appendChild(script);
+            }
 
             // TOC: arrow click to collapse/expand, text click to navigate
             document.querySelectorAll('.toc-group').forEach(function(group) {
@@ -211,14 +218,16 @@
                 }
             });
 
-            // TOC scroll tracking (skip links inside collapsed groups)
+            // TOC scroll tracking with O(1) lookup (skip links inside collapsed groups)
             var links = document.querySelectorAll('#tocLinks a');
-            var ids = Array.from(links).map(function(a) { return a.getAttribute('href').slice(1); });
+            var linkMap = {};
+            links.forEach(function(a) { linkMap[a.getAttribute('href').slice(1)] = a; });
+            var ids = Object.keys(linkMap);
             var observer = new IntersectionObserver(function(entries) {
                 entries.forEach(function(entry) {
                     if (entry.isIntersecting) {
                         links.forEach(function(l) { l.classList.remove('active'); });
-                        var link = document.querySelector('#tocLinks a[href="#' + entry.target.id + '"]');
+                        var link = linkMap[entry.target.id];
                         if (link && !link.closest('.toc-group.collapsed')) {
                             link.classList.add('active');
                         }
