@@ -150,6 +150,7 @@ function build(): void {
   // Process posts
   const postInfos = discoverPosts();
   const posts: PostData[] = [];
+  const postHtmlMap: Map<string, { toc: string; content: string }> = new Map();
 
   for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
@@ -169,17 +170,18 @@ function build(): void {
 
     // Standalone page (rewrite ./ paths to include slug directory)
     const htmlStandalone = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${info.slug}/`);
-    const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
-    const postHtml = renderTemplate(postTemplate, {
-      slug: info.slug,
-      description: escapeXml(meta.description || ''),
-      title: escapeXml(meta.title || info.slug),
-      date: meta.date || '',
-      readTime: String(readTime),
-      tags: (meta.tags || []).map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
-      content: htmlStandalone,
+
+    // Generate TOC from h2/h3 headings
+    let tocHtml = '';
+    const htmlWithIds = htmlStandalone.replace(/<h([23])>(.*?)<\/h\1>/g, (_match, level, text, offset) => {
+      const id = 'heading-' + offset;
+      const cleanText = text.replace(/<[^>]+>/g, '');
+      const tocLevel = level === '2' ? '2' : '3';
+      tocHtml += `<a href="#${id}" data-level="${tocLevel}">${cleanText}</a>`;
+      return `<h${level} id="${id}">${text}</h${level}>`;
     });
-    writeFileSync(join(outDir, `${info.slug}.html`), postHtml);
+
+    postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
 
     // Copy assets
     if (info.assetsDir && statSync(info.assetsDir).isDirectory()) {
@@ -189,11 +191,35 @@ function build(): void {
 
   posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  // Add prev/next
+  // Add prev/next and generate final HTML
+  const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
   for (let i = 0; i < posts.length; i++) {
-    posts[i].prev =
-      i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
+    posts[i].prev = i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
     posts[i].next = i > 0 ? { slug: posts[i - 1].slug, title: posts[i - 1].title } : null;
+
+    const post = posts[i];
+    const { toc, content } = postHtmlMap.get(post.slug)!;
+
+    let prevNextHtml = '';
+    if (post.prev) {
+      prevNextHtml += `<a class="blog-nav-post prev" href="${encodeURIComponent(post.prev.slug)}.html"><div class="blog-nav-post-label">&larr; 上一篇</div><div class="blog-nav-post-title">${escapeXml(post.prev.title)}</div></a>`;
+    }
+    if (post.next) {
+      prevNextHtml += `<a class="blog-nav-post next" href="${encodeURIComponent(post.next.slug)}.html"><div class="blog-nav-post-label">下一篇 &rarr;</div><div class="blog-nav-post-title">${escapeXml(post.next.title)}</div></a>`;
+    }
+
+    const postHtml = renderTemplate(postTemplate, {
+      slug: post.slug,
+      description: escapeXml(post.description),
+      title: escapeXml(post.title),
+      date: post.date,
+      readTime: String(post.readTime),
+      tags: post.tags.map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
+      toc,
+      content,
+      prevNext: prevNextHtml,
+    });
+    writeFileSync(join(outDir, `${post.slug}.html`), postHtml);
   }
 
   const allTags = [...new Set(posts.flatMap((p) => p.tags))];
