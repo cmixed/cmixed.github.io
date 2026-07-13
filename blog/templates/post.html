@@ -33,7 +33,20 @@
         /* Article layout with sidebar TOC */
         .blog-article-layout { display: grid; grid-template-columns: 200px 1fr; gap: 2rem; max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
         .blog-toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 1rem; }
-        .blog-toc-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+        .blog-toc-title {
+            font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+            user-select: none;
+        }
+        .blog-toc-title:hover { color: var(--text-dim); }
+        .blog-toc-title::after {
+            content: ''; display: inline-block; width: 0; height: 0;
+            border-left: 4px solid transparent; border-right: 4px solid transparent;
+            border-top: 5px solid currentColor; transition: transform 0.2s;
+        }
+        .blog-toc.collapsed .blog-toc-title::after { transform: rotate(-90deg); }
+        .blog-toc-links { overflow: hidden; transition: max-height 0.3s ease; }
+        .blog-toc.collapsed .blog-toc-links { max-height: 0 !important; }
         .blog-toc a {
             display: block; padding: 0.3rem 0; font-size: 0.8rem;
             color: var(--text-dim); text-decoration: none; border-left: 2px solid transparent;
@@ -127,9 +140,9 @@
     </nav>
 
     <div class="blog-article-layout">
-        <aside class="blog-toc">
-            <div class="blog-toc-title">目录</div>
-            <div id="tocLinks">{{toc}}</div>
+        <aside class="blog-toc" id="blogToc">
+            <div class="blog-toc-title" id="tocToggle">目录</div>
+            <div class="blog-toc-links" id="tocLinks">{{toc}}</div>
         </aside>
         <article class="blog-article">
             <h1>{{title}}</h1>
@@ -166,6 +179,18 @@
 
             // Syntax highlighting
             document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
+
+            // TOC toggle
+            var tocEl = document.getElementById('blogToc');
+            var tocLinksEl = document.getElementById('tocLinks');
+            var tocToggle = document.getElementById('tocToggle');
+            tocLinksEl.style.maxHeight = tocLinksEl.scrollHeight + 'px';
+            tocToggle.addEventListener('click', function() {
+                tocEl.classList.toggle('collapsed');
+                if (!tocEl.classList.contains('collapsed')) {
+                    tocLinksEl.style.maxHeight = tocLinksEl.scrollHeight + 'px';
+                }
+            });
 
             // TOC scroll tracking
             var links = document.querySelectorAll('#tocLinks a');
