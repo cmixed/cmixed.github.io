@@ -121,6 +121,14 @@ export function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/<[^>]+>/g, '') // strip HTML tags
+    .replace(/[^\w\u4e00-\u9fff]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 function discoverPosts(): PostInfo[] {
   const results: PostInfo[] = [];
   for (const entry of readdirSync(postsDir, { withFileTypes: true })) {
@@ -171,12 +179,16 @@ function build(): void {
     // Standalone page (rewrite ./ paths to include slug directory)
     const htmlStandalone = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${info.slug}/`);
 
-    // Collect headings and add IDs
+    // Collect headings and add stable IDs based on text content
     interface Heading { id: string; level: number; text: string; }
     const headings: Heading[] = [];
-    const htmlWithIds = htmlStandalone.replace(/<h([23])>(.*?)<\/h\1>/g, (_match, level, text, offset) => {
-      const id = 'heading-' + offset;
+    const usedIds = new Map<string, number>();
+    const htmlWithIds = htmlStandalone.replace(/<h([23])>(.*?)<\/h\1>/g, (_match, level, text) => {
       const cleanText = text.replace(/<[^>]+>/g, '');
+      let id = slugify(cleanText);
+      const count = usedIds.get(id) || 0;
+      usedIds.set(id, count + 1);
+      if (count > 0) id += `-${count}`;
       headings.push({ id, level: Number(level), text: cleanText });
       return `<h${level} id="${id}">${text}</h${level}>`;
     });
@@ -186,10 +198,15 @@ function build(): void {
     let inGroup = false;
     for (const h of headings) {
       if (h.level === 2) {
-        if (inGroup) tocHtml += '</div>';
-        tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2">${h.text}</a><div class="toc-children">`;
+        if (inGroup) tocHtml += '</div></div>';
+        tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2"><span class="toc-h2-text">${h.text}</span><span class="toc-h2-arrow"></span></a><div class="toc-children">`;
         inGroup = true;
       } else {
+        if (!inGroup) {
+          // h3 before any h2 — start a group without a parent h2
+          tocHtml += `<div class="toc-group"><div class="toc-children">`;
+          inGroup = true;
+        }
         tocHtml += `<a href="#${h.id}" data-level="3">${h.text}</a>`;
       }
     }
