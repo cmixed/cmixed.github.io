@@ -35,6 +35,14 @@ marked.use({
       const titleAttr = title ? ` title="${title}"` : '';
       return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy">`;
     },
+    link({ href, title, text }: { href: string; title?: string | null; text: string }): string {
+      const isExternal = /^https?:\/\//.test(href);
+      const titleAttr = title ? ` title="${title}"` : '';
+      if (isExternal) {
+        return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
+      }
+      return `<a href="${href}"${titleAttr}>${text}</a>`;
+    },
   },
   extensions: [
     {
@@ -197,19 +205,20 @@ function build(): void {
       (p) => `
     <item>
         <title>${escapeXml(p.title)}</title>
-        <link>https://cmixed.github.io/blog/#${p.slug}</link>
+        <link>https://cmixed.github.io/blog/${encodeURIComponent(p.slug)}.html</link>
         <description>${escapeXml(p.description)}</description>
         <pubDate>${new Date(p.date).toUTCString()}</pubDate>
-        <guid>https://cmixed.github.io/blog/#${p.slug}</guid>
+        <guid>https://cmixed.github.io/blog/${encodeURIComponent(p.slug)}.html</guid>
     </item>`
     )
     .join('');
 
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
     <title>cmixed 博客</title>
     <link>https://cmixed.github.io/blog/</link>
+    <atom:link href="https://cmixed.github.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
     <description>cmixed 的技术博客 - C++、Rust、系统编程、AI 应用</description>
     <language>zh-cn</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
