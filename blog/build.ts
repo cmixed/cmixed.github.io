@@ -311,9 +311,9 @@ function build(): void {
     .map((p) => `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card">
             <div class="blog-page-card-title">${escapeXml(p.title)}</div>
-            <div class="blog-page-card-meta">创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · 阅读约 ${p.readTime} 分钟</div>
-            <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
+            <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)}</div>
+            <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
         </a>`)
     .join('');
   const indexHtml = indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml);
