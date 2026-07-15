@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 interface PostMeta {
   title?: string;
   date?: string;
+  updated?: string;
   tags?: string[];
   description?: string;
 }
@@ -20,6 +21,7 @@ interface PostData {
   slug: string;
   title: string;
   date: string;
+  updated: string;
   tags: string[];
   description: string;
   readTime: number;
@@ -166,10 +168,16 @@ function build(): void {
     const htmlBase = marked(body) as string;
     const readTime = estimateReadTime(body);
 
+    // Get file modification time
+    const fileStats = statSync(info.mdPath);
+    const mtime = fileStats.mtime;
+    const defaultUpdated = `${mtime.getFullYear()}-${String(mtime.getMonth() + 1).padStart(2, '0')}-${String(mtime.getDate()).padStart(2, '0')}`;
+
     posts.push({
       slug: info.slug,
       title: meta.title || info.slug,
       date: meta.date || '未知日期',
+      updated: meta.updated || defaultUpdated,
       tags: Array.isArray(meta.tags) ? meta.tags : [],
       description: meta.description || '',
       readTime,
@@ -244,6 +252,7 @@ function build(): void {
       description: escapeXml(post.description),
       title: escapeXml(post.title),
       date: post.date,
+      updated: post.updated,
       readTime: String(post.readTime),
       tags: post.tags.map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
       toc,
@@ -260,6 +269,7 @@ function build(): void {
     slug: p.slug,
     title: p.title,
     date: p.date,
+    updated: p.updated,
     tags: p.tags,
     description: p.description,
   }));
@@ -301,7 +311,7 @@ function build(): void {
     .map((p) => `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card">
             <div class="blog-page-card-title">${escapeXml(p.title)}</div>
-            <div class="blog-page-card-meta">${escapeXml(p.date)} · 阅读约 ${p.readTime} 分钟</div>
+            <div class="blog-page-card-meta">创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · 阅读约 ${p.readTime} 分钟</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
         </a>`)

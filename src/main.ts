@@ -14,6 +14,7 @@ interface BlogPost {
   slug: string;
   title: string;
   date: string;
+  updated: string;
   tags: string[];
   description: string;
 }
@@ -199,7 +200,7 @@ async function loadBlogPreview(): Promise<void> {
         (p) => `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card">
                 <div class="blog-preview-card-title">${escapeHtml(p.title)}</div>
-                <div class="blog-preview-card-meta">${escapeHtml(p.date)}</div>
+                <div class="blog-preview-card-meta">创建于 ${escapeHtml(p.date)} · 更新于 ${escapeHtml(p.updated)}</div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-tags">
                     ${p.tags.map((t) => `<span>${escapeHtml(t)}</span>`).join('')}
