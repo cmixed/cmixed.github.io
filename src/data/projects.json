@@ -8,6 +8,30 @@
     "tags": ["Python", "LLM", "RAG", "AI"]
   },
   {
+    "title": "route",
+    "subtitle": "图算法与并行计算框架",
+    "desc": "基于 C++20 的图数据结构与最短路径算法实现，支持 Dijkstra、A*、Bellman-Ford 等多线程并行计算。",
+    "url": "https://github.com/cmixed/route",
+    "status": "C++20",
+    "tags": ["C++20", "Graph", "Thread Pool", "Algorithm"]
+  },
+  {
+    "title": "ra2-clicker",
+    "subtitle": "红色警戒2 鼠标连点器",
+    "desc": "Rust + Slint 实现的 RA2 专用连点器，SendInput 一次性下发点击，内存占用 <4MB。支持热键触发、RA2 建造栏区域连点、游戏进程自动检测与配置热重载。",
+    "url": "https://github.com/cmixed/ra2-clicker",
+    "status": "Rust",
+    "tags": ["Rust", "Slint", "Windows", "Tool"]
+  },
+  {
+    "title": "cmixed.github.io",
+    "subtitle": "个人主页与技术博客",
+    "desc": "Vite + TypeScript 构建的个人站点，内置 Markdown 博客生成器、RSS 输出、AVIF 图片优化与结构化数据 SEO。支持明暗主题、无障碍模式与标签筛选。",
+    "url": "https://github.com/cmixed/cmixed.github.io",
+    "status": "TypeScript",
+    "tags": ["TypeScript", "Vite", "Blog", "Static Site"]
+  },
+  {
     "title": "zcol",
     "subtitle": "单头文件 C++23 终端颜色库",
     "desc": "C++23 实现的 Header-Only 终端彩色输出与日志库，支持 RAII 作用域颜色守卫、源位置日志、UDL 语法糖。",
@@ -22,21 +46,5 @@
     "url": "https://github.com/cmixed/pac_man",
     "status": "C++23",
     "tags": ["C++23", "AI", "Game Dev", "EasyX"]
-  },
-  {
-    "title": "route",
-    "subtitle": "图算法与并行计算框架",
-    "desc": "基于 C++20 的图数据结构与最短路径算法实现，支持 Dijkstra、A*、Bellman-Ford 等多线程并行计算。",
-    "url": "https://github.com/cmixed/route",
-    "status": "C++20",
-    "tags": ["C++20", "Graph", "Thread Pool", "Algorithm"]
-  },
-  {
-    "title": "fk-deltaforce",
-    "subtitle": "三角洲 ACE 日志分析",
-    "desc": "Rust 实现的三角洲行动反作弊日志分析工具，自动解析扫描日志、统计风险指标并导出高危目标 CSV 报告。",
-    "url": "https://github.com/cmixed/fk-deltaforce",
-    "status": "Rust",
-    "tags": ["Rust", "Log Parsing", "CLI", "Analysis"]
   }
 ]
