@@ -67,6 +67,8 @@
         /* Article content */
         .blog-article { max-width: 100%; min-width: 0; }
         .blog-article-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .blog-article-tags { margin-bottom: 0.5rem; }
+        .blog-article-info { font-size: 0.8rem; }
         .blog-article-content { line-height: 1.9; color: var(--text-dim); }
         .blog-article-content h1 { font-size: 1.6rem; color: var(--text); margin-bottom: 0.5rem; margin-top: 0; }
         .blog-article-content h2 { font-size: 1.3rem; color: var(--text); margin-top: 2.5rem; margin-bottom: 0.75rem; font-weight: 700; scroll-margin-top: 90px; }
@@ -158,7 +160,8 @@
         <article class="blog-article">
             <h1>{{title}}</h1>
             <div class="blog-article-meta">
-                创建于 {{date}} · 更新于 {{updated}} · 阅读约 {{readTime}} 分钟 · {{tags}}
+                <div class="blog-article-tags">{{tags}}</div>
+                <div class="blog-article-info">阅读约 {{readTime}} 分钟 · 创建于 {{date}} · 更新于 {{updated}}</div>
             </div>
             <div class="blog-article-content">{{content}}</div>
             <div class="blog-nav-posts">{{prevNext}}</div>
