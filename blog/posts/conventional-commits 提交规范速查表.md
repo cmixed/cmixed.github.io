@@ -3,6 +3,7 @@ title: Conventional Commits 提交规范速查表
 date: 2026-08-16
 tags: [Git, 提交规范, 开发工具]
 description: 日常提交参考手册。整合官方规范、社区扩展类型与破坏性变更标记。
+
 ---
 
 # 📋 Conventional Commits 提交规范速查表
