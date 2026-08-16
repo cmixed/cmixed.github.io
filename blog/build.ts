@@ -212,7 +212,7 @@ function build(): void {
     for (const h of headings) {
       if (h.level === 2) {
         if (inGroup) tocHtml += '</div></div>';
-        tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2"><span class="toc-h2-text">${h.text}</span><span class="toc-h2-arrow"></span></a><div class="toc-children">`;
+        tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2"><span class="toc-h2-arrow"></span><span class="toc-h2-text">${h.text}</span></a><div class="toc-children">`;
         inGroup = true;
       } else {
         if (!inGroup) {

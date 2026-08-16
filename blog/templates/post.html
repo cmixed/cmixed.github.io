@@ -48,13 +48,13 @@
         .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
         .toc-group { margin-bottom: 0.25rem; }
         .toc-h2 {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center;
             text-decoration: none; color: var(--text-dim);
         }
-        .toc-h2-text { flex: 1; }
         .toc-h2-arrow {
             width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
             cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; flex-shrink: 0;
+            margin-right: 0.4rem;
         }
         .toc-h2-arrow:hover { opacity: 1; }
         .toc-h2-arrow::after {
