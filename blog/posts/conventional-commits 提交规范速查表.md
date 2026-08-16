@@ -1,3 +1,5 @@
+# 📋 Conventional Commits 提交规范速查表
+
 ---
 title: Conventional Commits 提交规范速查表
 date: 2026-08-16
@@ -6,13 +8,9 @@ description: 日常提交参考手册。整合官方规范、社区扩展类型�
 
 ---
 
-# 📋 Conventional Commits 提交规范速查表
-
----
-
 ## 一、提交格式
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -21,7 +19,7 @@ description: 日常提交参考手册。整合官方规范、社区扩展类型�
 ```
 
 | 部分 | 必填 | 说明 |
-|------|:----:|------|
+| --- | :---: | --- |
 | `type` | ✅ | 提交类型（见下方） |
 | `scope` | ❌ | 影响范围，如 `api`、`ui`、`auth` |
 | `subject` | ✅ | 简短描述，不超过 50 字符 |
@@ -35,7 +33,7 @@ description: 日常提交参考手册。整合官方规范、社区扩展类型�
 ### 官方类型（conventionalcommits.org）
 
 | 标签 | 含义 | SemVer | 典型场景 |
-|:----:|------|:------:|----------|
+| :---: | --- | :---: | --- |
 | **feat** | 新功能 | `MINOR` | 新增页面、组件、API 接口、按钮功能 |
 | **fix** | 修复 Bug | `PATCH` | 修复报错、逻辑错误、文案错误 |
 | **docs** | 文档 | — | README、API 文档、代码注释更新 |
@@ -53,7 +51,7 @@ description: 日常提交参考手册。整合官方规范、社区扩展类型�
 ### 社区扩展类型
 
 | 标签 | 含义 | 典型场景 |
-|:----:|------|----------|
+| :---: | --- | --- |
 | **ops** | 运维 | 部署脚本、Docker、监控、K8s 配置 |
 | **deps** | 依赖更新 | 升级/降级 npm/pip/cargo 包 |
 | **design** | 设计调整 | UI 颜色、布局、间距、CSS 样式 |
@@ -73,18 +71,18 @@ description: 日常提交参考手册。整合官方规范、社区扩展类型�
 ## 三、破坏性变更
 
 | 标记 | 含义 | SemVer |
-|:----:|------|:------:|
+| :---: | --- | :---: |
 | `!` | 在 type/scope 后加感叹号 | `MAJOR` |
 | `BREAKING CHANGE:` | footer 中说明破坏细节 | `MAJOR` |
 
-```
+```text
 feat(api)!: remove deprecated v1 endpoints
 
 BREAKING CHANGE: v1 API 已废弃，请迁移至 v2。
 迁移脚本见 scripts/migrate-v1-to-v2.sh
 ```
 
-```
+```text
 refactor(db)!: 将用户表从 MongoDB 迁移至 PostgreSQL
 
 BREAKING CHANGE: 数据库架构完全重构，
@@ -98,7 +96,7 @@ BREAKING CHANGE: 数据库架构完全重构，
 ### 不知道该用哪个类型？
 
 | 你的改动是…… | 使用标签 |
-|-------------|:--------:|
+| --- | :---: |
 | 新增功能/页面/组件 | `feat` |
 | 修复 bug/报错/错误文案 | `fix` |
 | UI 样式调整（颜色、布局、间距） | `design` |
@@ -127,7 +125,7 @@ BREAKING CHANGE: 数据库架构完全重构，
 
 ## 五、Scope 常用值
 
-```
+```text
 api      → 后端接口
 ui       → 用户界面
 auth     → 认证/授权
@@ -151,24 +149,26 @@ seo      → SEO
 ## 六、完整示例
 
 ### 简单提交
-```
+
+```text
 feat(auth): add OAuth2 login support
 ```
 
-```
+```text
 fix(ui): resolve mobile menu not closing on click
 ```
 
-```
+```text
 docs(api): update authentication endpoint examples
 ```
 
-```
+```text
 style: format all files with Prettier 3.0
 ```
 
 ### 带 body 和 footer
-```
+
+```text
 feat(api): implement user profile endpoints
 
 - Add GET /api/v1/users/me
@@ -179,7 +179,8 @@ Closes #123
 ```
 
 ### 破坏性变更
-```
+
+```text
 feat(db)!: migrate from MongoDB to PostgreSQL
 
 BREAKING CHANGE: all existing data must be migrated
@@ -189,7 +190,8 @@ Refs: #456
 ```
 
 ### 多行 footer
-```
+
+```text
 fix(auth): resolve token refresh race condition
 
 The refresh token was being reused before the new
@@ -204,14 +206,16 @@ Co-authored-by: Alice <alice@example.com>
 ## 七、书写规范
 
 ### ✅ 正确示范
-```
+
+```text
 feat(search): add fuzzy matching for product names
 fix(checkout): prevent double submission on rapid clicks
 refactor(utils): extract date formatting into shared helper
 ```
 
 ### ❌ 错误示范
-```
+
+```text
 update file              ← 无类型
 fix bug                  ← 太笼统
 feat: some changes       ← 描述不清
@@ -219,6 +223,7 @@ style: update button color  ← style 不是 UI 样式
 ```
 
 ### 书写原则
+
 1. **祈使句** — 用 "Add" 而非 "Added" 或 "Adds"
 2. **首字母小写**（type 除外）
 3. **末尾不加句号**
@@ -230,7 +235,7 @@ style: update button color  ← style 不是 UI 样式
 ## 八、SemVer 速查
 
 | 提交类型 | SemVer 影响 |
-|---------|:-----------:|
+| --- | :---: |
 | `fix` | `PATCH` |
 | `feat` | `MINOR` |
 | `BREAKING CHANGE` / `!` | `MAJOR` |
@@ -241,7 +246,7 @@ style: update button color  ← style 不是 UI 样式
 ## 九、参考链接
 
 | 资源 | 链接 |
-|------|------|
+| --- | --- |
 | 📎 官方规范（中文） | [conventionalcommits.org/zh-hans](https://www.conventionalcommits.org/zh-hans/v1.0.0/) |
 | 📎 官方规范（英文） | [conventionalcommits.org](https://www.conventionalcommits.org/en/v1.0.0/) |
 | 📎 Angular 提交规范 | [github.com/angular/angular/blob/main/CONTRIBUTING.md](https://github.com/angular/angular/blob/main/CONTRIBUTING.md) |
