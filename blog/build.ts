@@ -9,6 +9,7 @@ interface PostMeta {
   updated?: string;
   tags?: string[];
   description?: string;
+  pinned?: boolean;
 }
 
 interface PostInfo {
@@ -26,6 +27,7 @@ interface PostData {
   description: string;
   readTime: number;
   content: string;
+  pinned: boolean;
   prev?: { slug: string; title: string } | null;
   next?: { slug: string; title: string } | null;
 }
@@ -87,8 +89,10 @@ export function parseFrontmatter(content: string): { meta: PostMeta; body: strin
     const idx = line.indexOf(':');
     if (idx === -1) continue;
     const key = line.slice(0, idx).trim();
-    let val: string | string[] = line.slice(idx + 1).trim();
-    if (val.startsWith('[') && val.endsWith(']'))
+    let val: string | string[] | boolean = line.slice(idx + 1).trim();
+    if (val === 'true') val = true;
+    else if (val === 'false') val = false;
+    else if (val.startsWith('[') && val.endsWith(']'))
       val = val
         .slice(1, -1)
         .split(',')
@@ -182,6 +186,7 @@ function build(): void {
       description: meta.description || '',
       readTime,
       content: '',
+      pinned: meta.pinned === true,
     });
 
     // Standalone page (rewrite ./ paths to include slug directory)
@@ -228,7 +233,9 @@ function build(): void {
     }
   }
 
-  posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const pinned = posts.filter((p) => p.pinned).sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
+  const rest = posts.filter((p) => !p.pinned).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  posts.splice(0, posts.length, ...pinned, ...rest);
 
   // Add prev/next and generate final HTML
   const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
@@ -272,6 +279,7 @@ function build(): void {
     updated: p.updated,
     tags: p.tags,
     description: p.description,
+    ...(p.pinned ? { pinned: true } : {}),
   }));
   writeFileSync(join(outDir, 'data.json'), JSON.stringify({ posts: dataJson, allTags }, null, 2));
 
@@ -309,7 +317,7 @@ function build(): void {
   const tagsHtml = allTags.map((t) => `<a href="./?tag=${encodeURIComponent(t)}" class="blog-tag">${escapeXml(t)}</a>`).join('');
   const postsHtml = posts
     .map((p) => `
-        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card">
+        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
             <div class="blog-page-card-title">${escapeXml(p.title)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
             <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)}</div>
