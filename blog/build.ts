@@ -81,7 +81,7 @@ export function renderTemplate(template: string, data: Record<string, string>): 
 export function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
   content = content.replace(/\r\n/g, '\n');
   let match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) match = content.match(/^[^\n]*\n---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!match) match = content.match(/^[^\n]*\n+---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) return { meta: {}, body: content };
   const yaml = match[1],
     body = match[2],
