@@ -1,3 +1,5 @@
+# 软件列表
+
 ---
 title: 常用软件列表
 date: 2025-07-15
@@ -6,26 +8,29 @@ description: 个人常用软件和开发工具的整理列表，包括C盘、D�
 
 ---
 
-### C盘软件名称
+## C
 
-1. enhance 增强软件
-   1. [Everything](https://www.voidtools.com/everything-1.5a/)
-   2. [FastCopy](https://fastcopy.jp/)
-   3. [Pixpin](https://pixpin.cn/)
-   4. [Powertoys](https://github.com/microsoft/PowerToys)
-   5. [PowerShell 7](https://github.com/PowerShell/PowerShell)
-   6. [Process Lasso](https://bitsum.com/download-process-lasso/)
-   7. 火绒
-2. must in C 必须在 C 盘
-   1. [Git](https://git-scm.com/downloads)
-   2. [InternetDownloadManager](https://www.internetdownloadmanager.com/?v=642b42)
-   3. NVIDA APP
-   4. Office
-   5. [Radmin VPN](https://www.radmin-vpn.com/)
-   6. [Visual Studio](https://visualstudio.microsoft.com/zh-hans/)
-   7. [WSL](https://github.com/microsoft/WSL/releases)
+### enhance 增强软件
 
-### D盘文件夹名称
+1. [Everything](https://www.voidtools.com/everything-1.5a/)
+2. [FastCopy](https://fastcopy.jp/)
+3. [Pixpin](https://pixpin.cn/)
+4. [Powertoys](https://github.com/microsoft/PowerToys)
+5. [PowerShell 7](https://github.com/PowerShell/PowerShell)
+6. [Process Lasso](https://bitsum.com/download-process-lasso/)
+7. 火绒
+
+### must in C 必须在 C 盘
+
+1. [Git](https://git-scm.com/downloads)
+2. [InternetDownloadManager](https://www.internetdownloadmanager.com/?v=642b42)
+3. NVIDA APP
+4. Office
+5. [Radmin VPN](https://www.radmin-vpn.com/)
+6. [Visual Studio](https://visualstudio.microsoft.com/zh-hans/)
+7. [WSL](https://github.com/microsoft/WSL/releases)
+
+## D
 
 1. app 软件
    1. analysis 分析
@@ -190,7 +195,7 @@ description: 个人常用软件和开发工具的整理列表，包括C盘、D�
        1. Bilibili
        2. HR
 
-Dust:
+## Dust
 
 1. [ExplorerPatcher](https://github.com/valinet/ExplorerPatcher)
 2. [Rime](https://rime.im/)
