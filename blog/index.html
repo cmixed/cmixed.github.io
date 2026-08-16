@@ -94,7 +94,8 @@
         <div class="blog-page-tags">{{tags}}</div>
         <div class="blog-sort">
             <span>排序：</span>
-            <button class="blog-sort-btn active" data-sort="date">创建时间</button>
+            <button class="blog-sort-btn active" data-sort="default">默认</button>
+            <button class="blog-sort-btn" data-sort="date">创建时间</button>
             <button class="blog-sort-btn" data-sort="updated">更新时间</button>
         </div>
         <div class="blog-page-list">{{posts}}</div>
@@ -146,14 +147,17 @@
             });
 
             // Sorting
-            var currentSort = 'date';
+            var currentSort = 'default';
+            var grid = document.querySelector('.blog-page-list');
+            var originalCards = Array.from(grid.querySelectorAll('.blog-page-card'));
             function sortCards(sortBy) {
                 currentSort = sortBy;
-                var grid = document.querySelector('.blog-page-list');
-                var cards = Array.from(grid.querySelectorAll('.blog-page-card'));
-                cards.sort(function(a, b) {
-                    return b.getAttribute('data-' + sortBy).localeCompare(a.getAttribute('data-' + sortBy));
-                });
+                var cards = sortBy === 'default' ? originalCards.slice() : Array.from(grid.querySelectorAll('.blog-page-card'));
+                if (sortBy !== 'default') {
+                    cards.sort(function(a, b) {
+                        return b.getAttribute('data-' + sortBy).localeCompare(a.getAttribute('data-' + sortBy));
+                    });
+                }
                 cards.forEach(function(card) { grid.appendChild(card); });
                 document.querySelectorAll('.blog-sort-btn').forEach(function(btn) {
                     btn.classList.toggle('active', btn.getAttribute('data-sort') === sortBy);
@@ -171,7 +175,7 @@
             });
             // Respect URL param for sort
             var sortParam = params.get('sort');
-            if (sortParam === 'updated' || sortParam === 'date') sortCards(sortParam);
+            if (sortParam === 'updated' || sortParam === 'date' || sortParam === 'default') sortCards(sortParam);
         })();
     </script>
 </body>
