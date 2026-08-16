@@ -3,6 +3,7 @@ title: LM Studio 本地部署指南
 date: 2026-02-09
 tags: [LLM, AI, 工具]
 description: 本地大语言模型运行和管理软件 LM Studio 的下载、安装与模型部署全流程。
+pinned: true
 ---
 
 ### 一、软件下载

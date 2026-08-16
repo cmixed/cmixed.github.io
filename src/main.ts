@@ -17,6 +17,7 @@ interface BlogPost {
   updated: string;
   tags: string[];
   description: string;
+  pinned?: boolean;
 }
 
 interface BlogData {
@@ -193,7 +194,9 @@ async function loadBlogPreview(): Promise<void> {
     const base = import.meta.env.MODE === 'production' ? './' : '/';
     const res = await fetch(base + 'blog/data.json');
     const data: BlogData = await res.json();
-    const preview = data.posts.slice(0, 4);
+    const pinned = data.posts.filter((p) => p.pinned);
+    const rest = data.posts.filter((p) => !p.pinned).slice(0, 2);
+    const preview = [...pinned, ...rest];
     const grid = document.getElementById('blogPreviewGrid') as HTMLElement;
     grid.innerHTML = preview
       .map(

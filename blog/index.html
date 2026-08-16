@@ -36,7 +36,7 @@
         .blog-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
         .blog-page-sub { color: var(--text-dim); margin-bottom: 2.5rem; }
         .blog-page-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
-        .blog-page-list { display: grid; gap: 1.25rem; }
+        .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
         .blog-page-card {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
             padding: 1.5rem; transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
@@ -51,11 +51,24 @@
             font-size: 0.7rem; padding: 0.15rem 0.45rem;
             border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); background: var(--bg-secondary);
         }
+        .blog-sort { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-size: 0.85rem; color: var(--text-dim); }
+        .blog-sort-btn {
+            padding: 0.3rem 0.8rem; background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .blog-sort-btn:hover, .blog-sort-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
 
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }
             .blog-page h1 { font-size: 1.4rem; }
         }
+        @media (min-width: 1024px) {
+            .blog-page { max-width: 1000px; }
+            .blog-page-list { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1280px) { .blog-page { max-width: 1120px; } }
+        @media (min-width: 1536px) { .blog-page { max-width: 1280px; } }
     </style>
 </head>
 <body>
@@ -79,6 +92,11 @@
         <h1>博客</h1>
         <p class="blog-page-sub">技术笔记、工具分享与学习记录</p>
         <div class="blog-page-tags">{{tags}}</div>
+        <div class="blog-sort">
+            <span>排序：</span>
+            <button class="blog-sort-btn active" data-sort="date">创建时间</button>
+            <button class="blog-sort-btn" data-sort="updated">更新时间</button>
+        </div>
         <div class="blog-page-list">{{posts}}</div>
     </div>
 
@@ -126,6 +144,34 @@
                     });
                 });
             });
+
+            // Sorting
+            var currentSort = 'date';
+            function sortCards(sortBy) {
+                currentSort = sortBy;
+                var grid = document.querySelector('.blog-page-list');
+                var cards = Array.from(grid.querySelectorAll('.blog-page-card'));
+                cards.sort(function(a, b) {
+                    return b.getAttribute('data-' + sortBy).localeCompare(a.getAttribute('data-' + sortBy));
+                });
+                cards.forEach(function(card) { grid.appendChild(card); });
+                document.querySelectorAll('.blog-sort-btn').forEach(function(btn) {
+                    btn.classList.toggle('active', btn.getAttribute('data-sort') === sortBy);
+                });
+                // Re-apply tag filter
+                if (activeTag) {
+                    document.querySelectorAll('.blog-page-card').forEach(function(card) {
+                        var tags = Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
+                        card.style.display = (!activeTag || tags.includes(activeTag)) ? '' : 'none';
+                    });
+                }
+            }
+            document.querySelectorAll('.blog-sort-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() { sortCards(btn.getAttribute('data-sort')); });
+            });
+            // Respect URL param for sort
+            var sortParam = params.get('sort');
+            if (sortParam === 'updated' || sortParam === 'date') sortCards(sortParam);
         })();
     </script>
 </body>
