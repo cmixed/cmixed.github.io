@@ -47,7 +47,7 @@
         .blog-toc a:hover { color: var(--primary); border-left-color: var(--primary); }
         .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
         .toc-group { margin-bottom: 0.25rem; }
-        .toc-h2 {
+        .blog-toc .toc-h2 {
             display: flex; align-items: center;
             text-decoration: none; color: var(--text-dim);
         }
@@ -62,6 +62,7 @@
             border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent;
         }
         .toc-group.collapsed .toc-h2-arrow { transform: rotate(90deg); }
+        .toc-group:not(:has(.toc-children > *)) .toc-h2-arrow { visibility: hidden; }
         .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
         .toc-group.collapsed .toc-children { max-height: 0 !important; }
         .toc-children a { padding-left: 1.5rem; font-size: 0.75rem; }
