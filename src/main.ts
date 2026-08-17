@@ -88,13 +88,12 @@ a11yToggle.addEventListener('click', () => {
 
 const texts = [
   'Modern C++ Developer',
+  '职业资格软件设计师',
+  'AI & LLM Developer',
+  '大规模软件开发初学者',
   'Rust Engineer',
-  'Python & AI Developer',
-  'Game Developer',
-  'System Programmer',
-  'Library Designer',
-  'Performance Optimizer',
-  'Certified Software Designer',
+  '性能优化爱好者',
+  'Python Developer',
 ];
 let textIndex = 0;
 let charIndex = 0;
