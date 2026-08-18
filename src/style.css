@@ -282,13 +282,13 @@ main {
     height: 600px;
     background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
     border-radius: 50%;
-    animation: hero-glow 1s ease-in-out infinite alternate;
+    animation: hero-glow 6s ease-in-out infinite alternate;
     pointer-events: none;
 }
 
 @keyframes hero-glow {
-    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
-    100% { transform: translate(50%, 50%) scale(1.2); opacity: 0.7; }
+    0% { transform: translate(-50%, -50%) translateY(0) scale(1); opacity: 0.35; }
+    100% { transform: translate(-50%, -50%) translateY(-20px) scale(1.08); opacity: 0.5; }
 }
 
 .hero-content {
@@ -301,15 +301,15 @@ main {
 /* Hero entrance animation */
 .hero-content > * {
     opacity: 0;
-    transform: translateY(20px);
-    animation: hero-enter 0.6s ease forwards;
+    transform: translateY(8px);
+    animation: hero-enter 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
-.hero-content > *:nth-child(1) { animation-delay: 0.1s; }
-.hero-content > *:nth-child(2) { animation-delay: 0.2s; }
-.hero-content > *:nth-child(3) { animation-delay: 0.35s; }
-.hero-content > *:nth-child(4) { animation-delay: 0.5s; }
-.hero-content > *:nth-child(5) { animation-delay: 0.65s; }
+.hero-content > *:nth-child(1) { animation-delay: 0.05s; }
+.hero-content > *:nth-child(2) { animation-delay: 0.12s; }
+.hero-content > *:nth-child(3) { animation-delay: 0.2s; }
+.hero-content > *:nth-child(4) { animation-delay: 0.3s; }
+.hero-content > *:nth-child(5) { animation-delay: 0.4s; }
 
 @keyframes hero-enter {
     to {
@@ -350,12 +350,27 @@ main {
     background: var(--primary);
     border-radius: 50%;
     display: inline-block;
-    animation: pulse 2s ease-in-out infinite;
+    position: relative;
+    animation: pulse 2s ease-out infinite;
+}
+
+.status-indicator::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: pulse-ring 2s ease-out infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); }
-    50% { box-shadow: 0 0 0 6px transparent; }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.5; }
+    70%, 100% { transform: scale(3); opacity: 0; }
 }
 
 .hero h1 {
@@ -431,7 +446,7 @@ main {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.3s;
     text-decoration: none;
     display: inline-block;
     border-radius: 8px;
@@ -441,6 +456,7 @@ main {
     border-color: var(--primary);
     color: var(--primary);
     box-shadow: 0 0 20px var(--primary-glow);
+    transform: translateY(-2px);
 }
 
 .btn:active {
