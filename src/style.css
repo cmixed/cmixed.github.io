@@ -282,7 +282,7 @@ main {
     height: 600px;
     background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
     border-radius: 50%;
-    animation: hero-glow 8s ease-in-out infinite alternate;
+    animation: hero-glow 1s ease-in-out infinite alternate;
     pointer-events: none;
 }
 
