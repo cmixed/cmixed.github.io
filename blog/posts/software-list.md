@@ -210,35 +210,35 @@ description: 个人常用软件和开发工具的整理列表，包括C盘、D�
 
 ### projects 项目
 
- 1. DaVinci Resolve项目
- 2. InnoSetup项目
+1. DaVinci Resolve项目
+2. InnoSetup项目
 
 ### sto 仓库
 
- 1. Eagle
- 2. VSCode 用户数据
+1. Eagle
+2. VSCode 用户数据
 
 ### virt 虚拟化
 
- 1. AstrBot (WSL)
- 2. Hyper-V
- 3. Ubuntu 26.04
+1. AstrBot (WSL)
+2. Hyper-V
+3. Ubuntu 26.04
 
 ### zone 缓存与存储
 
 #### cache 缓存
 
- 1. Bandiview
- 2. Bandizip
- 3. buildcache
- 4. Fab
- 5. IDM
- 6. QQ
- 7. QQ音乐
- 8. Qt-OL
- 9. UE
- 10. WeChat
- 11. WeMeet
+1. Bandiview
+2. Bandizip
+3. buildcache
+4. Fab
+5. IDM
+6. QQ
+7. QQ音乐
+8. Qt-OL
+9. UE
+10. WeChat
+11. WeMeet
 
 #### sto 存储
 
