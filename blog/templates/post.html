@@ -82,6 +82,19 @@
         [data-theme="dark"] .blog-article-content pre { background: #1e293b; }
         [data-theme="light"] .blog-article-content pre { background: #e6ddd1; }
         .blog-article-content pre code { background: transparent; }
+        .code-block { position: relative; margin-bottom: 1rem; }
+        .code-block > pre { margin-bottom: 0; padding-top: 2.3rem; }
+        .code-block-lang {
+            position: absolute; top: 0.55rem; left: 0.75rem; z-index: 1;
+            font-size: 0.7rem; line-height: 1.4; font-weight: 600;
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.1rem 0.5rem;
+            pointer-events: none;
+        }
         .blog-article-content code { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 0.85rem; }
         .blog-article-content :not(pre) > code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em; }
         .blog-article-content ul, .blog-article-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
@@ -211,6 +224,24 @@
                 };
                 document.head.appendChild(script);
             }
+
+            // Code block language badge (top-left)
+            document.querySelectorAll('.blog-article-content pre').forEach(function(pre) {
+                if (pre.parentNode.classList.contains('code-block')) return;
+                var code = pre.querySelector('code');
+                if (!code) return;
+                var match = (code.className || '').match(/language-(\S+)/);
+                if (!match) return;
+                var lang = match[1];
+                var wrapper = document.createElement('div');
+                wrapper.className = 'code-block';
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
+                var badge = document.createElement('span');
+                badge.className = 'code-block-lang';
+                badge.textContent = lang;
+                wrapper.appendChild(badge);
+            });
 
             // TOC: arrow click to collapse/expand, text click to navigate
             document.querySelectorAll('.toc-group').forEach(function(group) {
