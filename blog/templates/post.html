@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" href="../cm-192x192.png">
     <link rel="apple-touch-icon" href="../cm-192x192.png">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-theme" media="print" onload="this.media='all'">
     <style>
         body { padding-top: 0; transition: background 0.3s, color 0.3s; }
 
@@ -186,8 +186,8 @@
             var hljsLink = document.getElementById('hljs-theme');
             function updateHljsTheme(t) {
                 hljsLink.href = t === 'dark'
-                    ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
-                    : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+                    ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
+                    : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
             }
             updateHljsTheme(htmlEl.getAttribute('data-theme'));
 
