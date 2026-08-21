@@ -272,7 +272,7 @@
             // TOC: arrow click to collapse/expand, text click to navigate
             document.querySelectorAll('.toc-group').forEach(function(group) {
                 var children = group.querySelector('.toc-children');
-                var arrow = group.querySelector('.toc-h2-arrow');
+                var arrow = group.querySelector('.toc-h2-arrow, .toc-arrow');
                 if (children && arrow) {
                     children.style.maxHeight = children.scrollHeight + 'px';
                     arrow.addEventListener('click', function(e) {
