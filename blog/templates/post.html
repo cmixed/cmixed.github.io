@@ -197,8 +197,8 @@
         </div>
     </nav>
 
+    <div class="blog-toc-overlay" id="tocOverlay"></div>
     <div class="blog-article-layout">
-        <div class="blog-toc-overlay" id="tocOverlay"></div>
         <aside class="blog-toc" id="blogToc">
             <div class="blog-toc-title">目录</div>
             <div class="blog-toc-links" id="tocLinks">{{toc}}</div>
@@ -338,11 +338,9 @@
             }, { rootMargin: '-80px 0px -70% 0px' });
             ids.forEach(function(id) { var el = document.getElementById(id); if (el) observer.observe(el); });
 
-            // Floating buttons
+            // Floating buttons — always visible
             var fabGroup = document.getElementById('fabGroup');
-            window.addEventListener('scroll', function() {
-                fabGroup.classList.toggle('visible', window.scrollY > 400);
-            }, { passive: true });
+            fabGroup.classList.add('visible');
             document.getElementById('backToTop').addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
             document.getElementById('goBottom').addEventListener('click', function() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); });
 
