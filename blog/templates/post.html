@@ -188,6 +188,7 @@
         <div style="display:flex;align-items:center;gap:1rem;">
             <a href="feed.xml" title="RSS 订阅" style="color:var(--text-muted);font-size:1.1rem;">&#9741;</a>
             <button class="fab-btn" id="indentToggle" title="首行缩进">&#8677;</button>
+            <button class="fab-btn" id="tocToggle" title="目录">&#9776;</button>
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
                 <div class="theme-toggle-slider">
                     <span class="theme-icon moon-icon">&#9684;</span>
@@ -216,7 +217,6 @@
     </div>
 
     <div class="fab-group" id="fabGroup">
-        <button class="fab-btn" id="tocToggle" title="目录">&#9776;</button>
         <a href="./" class="fab-btn" title="博客主页">&#9750;</a>
         <button class="fab-btn" id="backToTop" title="返回顶部">&uarr;</button>
         <button class="fab-btn" id="goBottom" title="直达底部">&darr;</button>
@@ -338,9 +338,11 @@
             }, { rootMargin: '-80px 0px -70% 0px' });
             ids.forEach(function(id) { var el = document.getElementById(id); if (el) observer.observe(el); });
 
-            // Floating buttons — always visible
+            // Floating buttons
             var fabGroup = document.getElementById('fabGroup');
-            fabGroup.classList.add('visible');
+            window.addEventListener('scroll', function() {
+                fabGroup.classList.toggle('visible', window.scrollY > 400);
+            }, { passive: true });
             document.getElementById('backToTop').addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
             document.getElementById('goBottom').addEventListener('click', function() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); });
 
