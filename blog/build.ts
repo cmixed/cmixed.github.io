@@ -26,7 +26,6 @@ interface PostData {
   tags: string[];
   description: string;
   readTime: number;
-  content: string;
   pinned: boolean;
   prev?: { slug: string; title: string } | null;
   next?: { slug: string; title: string } | null;
@@ -131,7 +130,6 @@ export function escapeXml(str: string): string {
 function slugify(text: string): string {
   return text
     .toLowerCase()
-    .replace(/<[^>]+>/g, '') // strip HTML tags
     .replace(/[^\w\u4e00-\u9fff]+/g, '-')
     .replace(/^-|-$/g, '');
 }
@@ -166,6 +164,7 @@ function build(): void {
   const postInfos = discoverPosts();
   const posts: PostData[] = [];
   const postHtmlMap: Map<string, { toc: string; content: string }> = new Map();
+  const headingRe = /<h([1234])>(.*?)<\/h\1>/g;
 
   for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
@@ -186,7 +185,6 @@ function build(): void {
       tags: Array.isArray(meta.tags) ? meta.tags : [],
       description: meta.description || '',
       readTime,
-      content: '',
       pinned: meta.pinned === true,
     });
 
@@ -197,7 +195,7 @@ function build(): void {
     interface Heading { id: string; level: number; text: string; }
     const headings: Heading[] = [];
     const usedIds = new Map<string, number>();
-    const htmlWithIds = htmlStandalone.replace(/<h([1234])>(.*?)<\/h\1>/g, (_match, level, text) => {
+    const htmlWithIds = htmlStandalone.replace(headingRe, (_match, level, text) => {
       const cleanText = text.replace(/<[^>]+>/g, '');
       let id = slugify(cleanText);
       const count = usedIds.get(id) || 0;
@@ -226,8 +224,13 @@ function build(): void {
         tocHtml += `<div class="toc-item toc-h1"><a href="#${h.id}" data-level="1">${h.text}</a></div>`;
       } else if (h.level === 2) {
         closeTo(2);
-        tocHtml += `<div class="toc-group"><div class="toc-item"><span class="toc-arrow"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div><div class="toc-children">`;
-        openGroups.push(2);
+        const hasH3Children = i + 1 < headings.length && headings[i + 1].level >= 3;
+        if (hasH3Children) {
+          tocHtml += `<div class="toc-group"><div class="toc-item"><span class="toc-arrow"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div><div class="toc-children">`;
+          openGroups.push(2);
+        } else {
+          tocHtml += `<div class="toc-item"><span class="toc-spacer"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div>`;
+        }
       } else if (h.level === 3) {
         closeTo(3);
         const hasChildren = i + 1 < headings.length && headings[i + 1].level === 4;
@@ -251,7 +254,7 @@ function build(): void {
     postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
 
     // Copy assets
-    if (info.assetsDir && statSync(info.assetsDir).isDirectory()) {
+    if (info.assetsDir) {
       copyDirSync(info.assetsDir, join(outDir, info.slug));
     }
   }
