@@ -268,18 +268,35 @@
                 wrapper.appendChild(badge);
             });
 
-            // TOC: arrow click to collapse/expand
+            // TOC: arrow click to collapse/expand (supports nested groups)
+            function updateAncestorHeights(el) {
+                var parent = el.parentElement;
+                while (parent) {
+                    if (parent.classList && parent.classList.contains('toc-children') && !parent.parentElement.classList.contains('collapsed')) {
+                        parent.style.maxHeight = parent.scrollHeight + 'px';
+                    }
+                    parent = parent.parentElement;
+                }
+            }
             document.querySelectorAll('.toc-group').forEach(function(group) {
                 var children = group.querySelector(':scope > .toc-children');
                 var arrow = group.querySelector(':scope > .toc-item > .toc-arrow');
                 if (children && arrow) {
-                    children.style.maxHeight = children.scrollHeight + 'px';
+                    children.style.maxHeight = group.classList.contains('collapsed') ? '0px' : children.scrollHeight + 'px';
                     arrow.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        group.classList.toggle('collapsed');
-                        if (!group.classList.contains('collapsed')) {
-                            children.style.maxHeight = children.scrollHeight + 'px';
+                        var wasCollapsed = group.classList.contains('collapsed');
+                        if (wasCollapsed) {
+                            // Expand: measure content height BEFORE removing collapsed
+                            var h = children.scrollHeight;
+                            group.classList.remove('collapsed');
+                            children.style.maxHeight = h + 'px';
+                        } else {
+                            // Collapse: CSS rule handles max-height: 0, just add class
+                            group.classList.add('collapsed');
+                            children.style.maxHeight = '0px';
                         }
+                        updateAncestorHeights(children);
                     });
                 }
             });
