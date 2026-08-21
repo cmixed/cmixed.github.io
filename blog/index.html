@@ -121,11 +121,11 @@
             var indentBtn = document.getElementById('indentToggle');
             var content = document.querySelector('.blog-article-content');
             var savedIndent = localStorage.getItem('indent');
-            if (savedIndent === 'true') htmlEl.classList.add('indent');
+            if (savedIndent === 'true') document.body.classList.add('indent');
             indentBtn.addEventListener('click', function() {
                 if (!content) return;
-                htmlEl.classList.toggle('indent');
-                localStorage.setItem('indent', htmlEl.classList.contains('indent'));
+                document.body.classList.toggle('indent');
+                localStorage.setItem('indent', document.body.classList.contains('indent'));
             });
 
             // Tag filtering
