@@ -22,6 +22,10 @@
         .blog-nav-left { display: flex; align-items: center; gap: 1.5rem; }
         .blog-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
         .blog-nav a:hover { color: var(--primary); }
+        .blog-nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); }
+        .blog-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+        .blog-nav-right { display: flex; align-items: center; gap: 1rem; }
+        .blog-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }
 
         .blog-tag {
             padding: 0.3rem 0.8rem; background: var(--bg-secondary);
@@ -59,21 +63,10 @@
         }
         .blog-sort-btn:hover, .blog-sort-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
 
-        .fab-btn {
-            width: 32px; height: 32px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: border-color 0.3s, color 0.3s, background 0.3s;
-            color: var(--text-dim); font-size: 1rem; text-decoration: none;
-        }
-        .fab-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .fab-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
-
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }
             .blog-page h1 { font-size: 1.4rem; }
         }
-        body.indent .blog-article-content > p:not(:has(> img:only-child)) { text-indent: 2em; }
-        body.indent .blog-article-content > p:first-child { text-indent: 0; }
         @media (min-width: 1024px) {
             .blog-page { max-width: 1000px; }
             .blog-page-list { grid-template-columns: repeat(2, 1fr); }
@@ -85,12 +78,11 @@
 <body>
     <nav class="blog-nav">
         <div class="blog-nav-left">
-            <a href="../" class="logo" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--primary);">&larr; cmixed</a>
-            <a href="./" style="font-weight:600;font-size:0.95rem;color:var(--text);">博客</a>
+            <a href="../" class="logo blog-nav-logo">&larr; cmixed</a>
+            <a href="./" class="blog-nav-title">博客</a>
         </div>
-        <div style="display:flex;align-items:center;gap:1rem;">
-            <a href="feed.xml" title="RSS 订阅" style="color:var(--text-muted);font-size:1.1rem;">&#9741;</a>
-            <button class="fab-btn" id="indentToggle" title="首行缩进">&#8677;</button>
+        <div class="blog-nav-right">
+            <a href="feed.xml" title="RSS 订阅" class="blog-nav-rss">&#9741;</a>
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
                 <div class="theme-toggle-slider">
                     <span class="theme-icon moon-icon">&#9684;</span>
@@ -126,16 +118,10 @@
                 localStorage.setItem('theme', t);
             });
 
-            // Indent toggle
-            var indentBtn = document.getElementById('indentToggle');
-            var content = document.querySelector('.blog-article-content');
-            var savedIndent = localStorage.getItem('indent');
-            if (savedIndent === 'true') { document.body.classList.add('indent'); indentBtn.classList.add('active'); }
-            indentBtn.addEventListener('click', function() {
-                if (!content) return;
-                document.body.classList.toggle('indent');
-                indentBtn.classList.toggle('active', document.body.classList.contains('indent'));
-                localStorage.setItem('indent', document.body.classList.contains('indent'));
+            // Pre-compute card tag arrays
+            var cards = Array.from(document.querySelectorAll('.blog-page-card'));
+            var cardTags = cards.map(function(card) {
+                return Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
             });
 
             // Tag filtering
@@ -145,9 +131,8 @@
                 document.querySelectorAll('.blog-tag').forEach(function(btn) {
                     if (btn.textContent === activeTag) btn.classList.add('active');
                 });
-                document.querySelectorAll('.blog-page-card').forEach(function(card) {
-                    var tags = Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
-                    if (!tags.includes(activeTag)) card.style.display = 'none';
+                cards.forEach(function(card, i) {
+                    if (!cardTags[i].includes(activeTag)) card.style.display = 'none';
                 });
             }
             document.querySelectorAll('.blog-tag').forEach(function(btn) {
@@ -163,9 +148,8 @@
                     }
                     document.querySelectorAll('.blog-tag').forEach(function(b) { b.classList.remove('active'); });
                     if (activeTag) btn.classList.add('active');
-                    document.querySelectorAll('.blog-page-card').forEach(function(card) {
-                        var tags = Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
-                        card.style.display = (!activeTag || tags.includes(activeTag)) ? '' : 'none';
+                    cards.forEach(function(card, i) {
+                        card.style.display = (!activeTag || cardTags[i].includes(activeTag)) ? '' : 'none';
                     });
                 });
             });
@@ -173,24 +157,23 @@
             // Sorting
             var currentSort = 'default';
             var grid = document.querySelector('.blog-page-list');
-            var originalCards = Array.from(grid.querySelectorAll('.blog-page-card'));
+            var originalCards = cards.slice();
             function sortCards(sortBy) {
                 currentSort = sortBy;
-                var cards = sortBy === 'default' ? originalCards.slice() : Array.from(grid.querySelectorAll('.blog-page-card'));
+                var sorted = sortBy === 'default' ? originalCards.slice() : cards.slice();
                 if (sortBy !== 'default') {
-                    cards.sort(function(a, b) {
+                    sorted.sort(function(a, b) {
                         return b.getAttribute('data-' + sortBy).localeCompare(a.getAttribute('data-' + sortBy));
                     });
                 }
-                cards.forEach(function(card) { grid.appendChild(card); });
+                sorted.forEach(function(card) { grid.appendChild(card); });
                 document.querySelectorAll('.blog-sort-btn').forEach(function(btn) {
                     btn.classList.toggle('active', btn.getAttribute('data-sort') === sortBy);
                 });
                 // Re-apply tag filter
                 if (activeTag) {
-                    document.querySelectorAll('.blog-page-card').forEach(function(card) {
-                        var tags = Array.from(card.querySelectorAll('.blog-page-card-tags span')).map(function(s) { return s.textContent; });
-                        card.style.display = (!activeTag || tags.includes(activeTag)) ? '' : 'none';
+                    cards.forEach(function(card, i) {
+                        card.style.display = cardTags[i].includes(activeTag) ? '' : 'none';
                     });
                 }
             }

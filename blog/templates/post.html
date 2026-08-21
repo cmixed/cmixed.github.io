@@ -17,7 +17,6 @@
     <link rel="icon" type="image/png" href="../cm-192x192.png">
     <link rel="apple-touch-icon" href="../cm-192x192.png">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-theme" media="print" onload="this.media='all'">
     <style>
         body { padding-top: 0; transition: background 0.3s, color 0.3s; }
 
@@ -31,6 +30,10 @@
         .blog-nav-left { display: flex; align-items: center; gap: 1.5rem; }
         .blog-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
         .blog-nav a:hover { color: var(--primary); }
+        .blog-nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); }
+        .blog-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+        .blog-nav-right { display: flex; align-items: center; gap: 1rem; }
+        .blog-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }
 
         /* Sidebar TOC */
         .blog-article-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
@@ -182,11 +185,11 @@
 <body>
     <nav class="blog-nav">
         <div class="blog-nav-left">
-            <a href="../" class="logo" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--primary);">&larr; cmixed</a>
-            <a href="./" style="font-weight:600;font-size:0.95rem;color:var(--text);">博客</a>
+            <a href="../" class="logo blog-nav-logo">&larr; cmixed</a>
+            <a href="./" class="blog-nav-title">博客</a>
         </div>
-        <div style="display:flex;align-items:center;gap:1rem;">
-            <a href="feed.xml" title="RSS 订阅" style="color:var(--text-muted);font-size:1.1rem;">&#9741;</a>
+        <div class="blog-nav-right">
+            <a href="feed.xml" title="RSS 订阅" class="blog-nav-rss">&#9741;</a>
             <button class="fab-btn" id="indentToggle" title="首行缩进">&#8677;</button>
             <button class="fab-btn" id="tocToggle" title="目录">&#9776;</button>
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
@@ -231,6 +234,7 @@
 
             var hljsLink = document.getElementById('hljs-theme');
             function updateHljsTheme(t) {
+                if (!hljsLink) return;
                 hljsLink.href = t === 'dark'
                     ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
                     : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
@@ -259,6 +263,11 @@
             // Conditional syntax highlighting (~43KB saved when no code blocks)
             var codeBlocks = document.querySelectorAll('pre code');
             if (codeBlocks.length > 0) {
+                var hljsCss = document.createElement('link');
+                hljsCss.rel = 'stylesheet';
+                hljsCss.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+                hljsCss.id = 'hljs-theme';
+                document.head.appendChild(hljsCss);
                 var script = document.createElement('script');
                 script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
                 script.onload = function() {
@@ -320,18 +329,20 @@
                 }
             });
 
-            // TOC scroll tracking with O(1) lookup (skip links inside collapsed groups)
+            // TOC scroll tracking with O(1) active toggle
             var links = document.querySelectorAll('#tocLinks a');
             var linkMap = {};
             links.forEach(function(a) { linkMap[a.getAttribute('href').slice(1)] = a; });
             var ids = Object.keys(linkMap);
+            var currentActive = null;
             var observer = new IntersectionObserver(function(entries) {
                 entries.forEach(function(entry) {
                     if (entry.isIntersecting) {
-                        links.forEach(function(l) { l.classList.remove('active'); });
                         var link = linkMap[entry.target.id];
                         if (link && !link.closest('.toc-group.collapsed')) {
+                            if (currentActive) currentActive.classList.remove('active');
                             link.classList.add('active');
+                            currentActive = link;
                         }
                     }
                 });
@@ -349,22 +360,28 @@
             // TOC toggle
             var tocBtn = document.getElementById('tocToggle');
             var tocOverlay = document.getElementById('tocOverlay');
+            var savedToc = localStorage.getItem('toc-open');
+            if (savedToc === 'true') {
+                document.body.classList.add('toc-open');
+                tocBtn.classList.add('active');
+            }
             tocBtn.addEventListener('click', function() {
                 document.body.classList.toggle('toc-open');
                 tocBtn.classList.toggle('active', document.body.classList.contains('toc-open'));
+                localStorage.setItem('toc-open', document.body.classList.contains('toc-open'));
             });
             tocOverlay.addEventListener('click', function() {
                 document.body.classList.remove('toc-open');
                 tocBtn.classList.remove('active');
+                localStorage.setItem('toc-open', 'false');
             });
-            // Close mobile TOC when clicking a link (but not when clicking an arrow)
-            document.querySelectorAll('#tocLinks a').forEach(function(a) {
-                a.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 768 && !e.target.closest('.toc-arrow')) {
-                        document.body.classList.remove('toc-open');
-                        tocBtn.classList.remove('active');
-                    }
-                });
+            // Close mobile TOC via event delegation (click on link text, not arrow)
+            document.getElementById('tocLinks').addEventListener('click', function(e) {
+                if (window.innerWidth <= 768 && e.target.tagName === 'A' && !e.target.closest('.toc-arrow')) {
+                    document.body.classList.remove('toc-open');
+                    tocBtn.classList.remove('active');
+                    localStorage.setItem('toc-open', 'false');
+                }
             });
         })();
     </script>
