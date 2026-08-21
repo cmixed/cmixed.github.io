@@ -32,44 +32,41 @@
         .blog-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
         .blog-nav a:hover { color: var(--primary); }
 
-        /* Article layout with sidebar TOC */
+        /* Sidebar TOC */
         .blog-article-layout { display: grid; grid-template-columns: 200px 1fr; gap: 2rem; max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
         .blog-toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 1rem; }
-        .blog-toc-title {
-            font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
-            margin-bottom: 0.75rem;
+        .blog-toc-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; }
+
+        /* TOC item — flex row: arrow/spacer + link */
+        .toc-item { display: flex; align-items: center; padding: 0.2rem 0; }
+        .toc-item a {
+            flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+            font-size: 0.8rem; color: var(--text-dim); text-decoration: none;
+            border-left: 2px solid transparent; padding: 0.2rem 0.5rem; line-height: 1.4;
+            transition: color 0.2s, border-color 0.2s;
         }
-        .blog-toc a {
-            display: block; padding: 0.3rem 0; font-size: 0.8rem;
-            color: var(--text-dim); text-decoration: none; border-left: 2px solid transparent;
-            padding-left: 0.75rem; transition: color 0.2s, border-color 0.2s; line-height: 1.4;
-        }
-        .blog-toc a:hover { color: var(--primary); border-left-color: var(--primary); }
-        .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+        .toc-item a:hover { color: var(--primary); border-left-color: var(--primary); }
+        .toc-item a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+
+        /* Arrow (collapsible) & spacer (non-collapsible) */
+        .toc-arrow, .toc-spacer { width: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .toc-arrow { cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; }
+        .toc-arrow:hover { opacity: 1; }
+        .toc-arrow::after { content: ''; width: 0; height: 0; border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent; }
+        .toc-group.collapsed > .toc-item > .toc-arrow { transform: rotate(90deg); }
+
+        /* Level-specific styling */
+        .toc-item[data-level="2"] a { font-weight: 600; }
+        .toc-item[data-level="3"] { padding-left: 1rem; }
+        .toc-item[data-level="4"] { padding-left: 2rem; }
+        .toc-item[data-level="4"] a { font-size: 0.7rem; opacity: 0.85; }
+        .toc-item.toc-h1 a { font-weight: 700; font-size: 0.85rem; }
+        .toc-item.toc-title span { font-weight: 700; font-size: 0.9rem; color: var(--text); padding: 0.3rem 0.5rem; display: block; }
+
+        /* Group & children — collapsible */
         .toc-group { margin-bottom: 0.25rem; }
-        .blog-toc .toc-h2, .blog-toc .toc-h3 {
-            display: flex !important; align-items: center; gap: 0.4rem;
-            text-decoration: none; color: var(--text-dim);
-        }
-        .toc-h2-arrow, .toc-arrow {
-            width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; flex-shrink: 0;
-        }
-        .toc-h2-arrow:hover, .toc-arrow:hover { opacity: 1; }
-        .toc-h2-arrow::after, .toc-arrow::after {
-            content: ''; width: 0; height: 0;
-            border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent;
-        }
-        .toc-group.collapsed .toc-h2-arrow, .toc-group.collapsed .toc-arrow { transform: rotate(90deg); }
-        .toc-group:not(:has(.toc-children > *)) .toc-h2-arrow,
-        .toc-group:not(:has(.toc-children > *)) .toc-arrow { visibility: hidden; }
         .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
-        .toc-group.collapsed .toc-children { max-height: 0 !important; }
-        .toc-children > a, .toc-children .toc-h3 { padding-left: 1.5rem; font-size: 0.75rem; }
-        .toc-children a[data-level="4"] {
-            padding-left: 2.25rem !important; font-size: 0.7rem; opacity: 0.85;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+        .toc-group.collapsed > .toc-children { max-height: 0 !important; }
 
         /* Article content */
         .blog-article { max-width: 100%; min-width: 0; }
@@ -87,7 +84,7 @@
         .blog-article-content h2 { font-size: 1.3rem; color: var(--text); margin-top: 2.5rem; margin-bottom: 0.75rem; font-weight: 700; scroll-margin-top: 90px; }
         .blog-article-content h3 { font-size: 1.1rem; color: var(--text); margin-top: 2rem; margin-bottom: 0.5rem; font-weight: 600; scroll-margin-top: 90px; }
         .blog-article-content h4 { font-size: 1rem; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; scroll-margin-top: 90px; }
-        body.indent .blog-article-content > p { text-indent: 2em; }
+        body.indent .blog-article-content > p:not(:has(> img:only-child)) { text-indent: 2em; }
         body.indent .blog-article-content > p:first-child { text-indent: 0; }
         .blog-article-content h5, .blog-article-content h6 { font-size: 0.9rem; color: var(--text-dim); margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
         .blog-article-content p { margin-bottom: 1rem; }
@@ -151,10 +148,11 @@
         .fab-btn {
             width: 40px; height: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: border-color 0.3s, color 0.3s;
+            cursor: pointer; transition: border-color 0.3s, color 0.3s, background 0.3s;
             color: var(--text-dim); font-size: 1rem; text-decoration: none;
         }
         .fab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .fab-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
 
         @media (max-width: 768px) {
             .blog-article-layout { grid-template-columns: 1fr; padding: 2rem 1.25rem; }
@@ -233,10 +231,11 @@
             var indentBtn = document.getElementById('indentToggle');
             var content = document.querySelector('.blog-article-content');
             var savedIndent = localStorage.getItem('indent');
-            if (savedIndent === 'true') document.body.classList.add('indent');
+            if (savedIndent === 'true') { document.body.classList.add('indent'); indentBtn.classList.add('active'); }
             indentBtn.addEventListener('click', function() {
                 if (!content) return;
                 document.body.classList.toggle('indent');
+                indentBtn.classList.toggle('active', document.body.classList.contains('indent'));
                 localStorage.setItem('indent', document.body.classList.contains('indent'));
             });
 
@@ -269,10 +268,10 @@
                 wrapper.appendChild(badge);
             });
 
-            // TOC: arrow click to collapse/expand, text click to navigate
+            // TOC: arrow click to collapse/expand
             document.querySelectorAll('.toc-group').forEach(function(group) {
-                var children = group.querySelector('.toc-children');
-                var arrow = group.querySelector('.toc-h2-arrow, .toc-arrow');
+                var children = group.querySelector(':scope > .toc-children');
+                var arrow = group.querySelector(':scope > .toc-item > .toc-arrow');
                 if (children && arrow) {
                     children.style.maxHeight = children.scrollHeight + 'px';
                     arrow.addEventListener('click', function(e) {

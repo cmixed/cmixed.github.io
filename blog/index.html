@@ -59,11 +59,20 @@
         }
         .blog-sort-btn:hover, .blog-sort-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
 
+        .fab-btn {
+            width: 32px; height: 32px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: border-color 0.3s, color 0.3s, background 0.3s;
+            color: var(--text-dim); font-size: 1rem; text-decoration: none;
+        }
+        .fab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .fab-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
+
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }
             .blog-page h1 { font-size: 1.4rem; }
         }
-        body.indent .blog-article-content > p { text-indent: 2em; }
+        body.indent .blog-article-content > p:not(:has(> img:only-child)) { text-indent: 2em; }
         body.indent .blog-article-content > p:first-child { text-indent: 0; }
         @media (min-width: 1024px) {
             .blog-page { max-width: 1000px; }
@@ -121,10 +130,11 @@
             var indentBtn = document.getElementById('indentToggle');
             var content = document.querySelector('.blog-article-content');
             var savedIndent = localStorage.getItem('indent');
-            if (savedIndent === 'true') document.body.classList.add('indent');
+            if (savedIndent === 'true') { document.body.classList.add('indent'); indentBtn.classList.add('active'); }
             indentBtn.addEventListener('click', function() {
                 if (!content) return;
                 document.body.classList.toggle('indent');
+                indentBtn.classList.toggle('active', document.body.classList.contains('indent'));
                 localStorage.setItem('indent', document.body.classList.contains('indent'));
             });
 
