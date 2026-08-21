@@ -299,19 +299,21 @@
                 var children = group.querySelector(':scope > .toc-children');
                 var arrow = group.querySelector(':scope > .toc-item > .toc-arrow');
                 if (children && arrow) {
-                    children.style.maxHeight = group.classList.contains('collapsed') ? '0px' : children.scrollHeight + 'px';
+                    if (!group.classList.contains('collapsed')) {
+                        children.style.maxHeight = 'none';
+                    }
                     arrow.addEventListener('click', function(e) {
                         e.stopPropagation();
                         var wasCollapsed = group.classList.contains('collapsed');
                         if (wasCollapsed) {
-                            // Expand: measure content height BEFORE removing collapsed
+                            children.style.maxHeight = '0px';
                             var h = children.scrollHeight;
                             group.classList.remove('collapsed');
                             children.style.maxHeight = h + 'px';
                         } else {
-                            // Collapse: CSS rule handles max-height: 0, just add class
+                            children.style.maxHeight = children.scrollHeight + 'px';
                             group.classList.add('collapsed');
-                            children.style.maxHeight = '0px';
+                            requestAnimationFrame(function() { children.style.maxHeight = '0px'; });
                         }
                         updateAncestorHeights(children);
                     });
@@ -355,10 +357,10 @@
                 document.body.classList.remove('toc-open');
                 tocBtn.classList.remove('active');
             });
-            // Close mobile TOC when clicking a link
+            // Close mobile TOC when clicking a link (but not when clicking an arrow)
             document.querySelectorAll('#tocLinks a').forEach(function(a) {
-                a.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
+                a.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768 && !e.target.closest('.toc-arrow')) {
                         document.body.classList.remove('toc-open');
                         tocBtn.classList.remove('active');
                     }
