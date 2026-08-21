@@ -63,6 +63,8 @@
             .blog-page { padding: 2rem 1.25rem; }
             .blog-page h1 { font-size: 1.4rem; }
         }
+        body.indent .blog-article-content > p { text-indent: 2em; }
+        body.indent .blog-article-content > p:first-child { text-indent: 0; }
         @media (min-width: 1024px) {
             .blog-page { max-width: 1000px; }
             .blog-page-list { grid-template-columns: repeat(2, 1fr); }
@@ -79,6 +81,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:1rem;">
             <a href="feed.xml" title="RSS 订阅" style="color:var(--text-muted);font-size:1.1rem;">&#9741;</a>
+            <button class="fab-btn" id="indentToggle" title="首行缩进">&#8677;</button>
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
                 <div class="theme-toggle-slider">
                     <span class="theme-icon moon-icon">&#9684;</span>
@@ -112,6 +115,17 @@
                 var t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
                 htmlEl.setAttribute('data-theme', t);
                 localStorage.setItem('theme', t);
+            });
+
+            // Indent toggle
+            var indentBtn = document.getElementById('indentToggle');
+            var content = document.querySelector('.blog-article-content');
+            var savedIndent = localStorage.getItem('indent');
+            if (savedIndent === 'true') htmlEl.classList.add('indent');
+            indentBtn.addEventListener('click', function() {
+                if (!content) return;
+                htmlEl.classList.toggle('indent');
+                localStorage.setItem('indent', htmlEl.classList.contains('indent'));
             });
 
             // Tag filtering
