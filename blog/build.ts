@@ -197,7 +197,7 @@ function build(): void {
     interface Heading { id: string; level: number; text: string; }
     const headings: Heading[] = [];
     const usedIds = new Map<string, number>();
-    const htmlWithIds = htmlStandalone.replace(/<h([234])>(.*?)<\/h\1>/g, (_match, level, text) => {
+    const htmlWithIds = htmlStandalone.replace(/<h([1234])>(.*?)<\/h\1>/g, (_match, level, text) => {
       const cleanText = text.replace(/<[^>]+>/g, '');
       let id = slugify(cleanText);
       const count = usedIds.get(id) || 0;
@@ -207,40 +207,46 @@ function build(): void {
       return `<h${level} id="${id}">${text}</h${level}>`;
     });
 
-    // Build nested TOC: h2 groups > h3 (collapsible when it has h4 children) > h4 links
+    // Build nested TOC: h1 (top, no arrow) > h2 (arrow, collapsible) > h3 (arrow if has h4) > h4
     let tocHtml = '';
-    let h2Open = false;
-    let h3Open = false;
-    for (let i = 0; i < headings.length; i++) {
-      const h = headings[i];
-      if (h.level === 2) {
-        if (h3Open) { tocHtml += '</div></div>'; h3Open = false; }
-        if (h2Open) tocHtml += '</div></div>';
-        tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2"><span class="toc-h2-arrow"></span><span class="toc-h2-text">${h.text}</span></a><div class="toc-children">`;
-        h2Open = true;
-      } else if (h.level === 3) {
-        if (!h2Open) {
-          tocHtml += `<div class="toc-group"><div class="toc-children">`;
-          h2Open = true;
-        }
-        if (h3Open) { tocHtml += '</div></div>'; h3Open = false; }
-        const hasChildren = i + 1 < headings.length && headings[i + 1].level === 4;
-        if (hasChildren) {
-          tocHtml += `<div class="toc-group collapsed"><a href="#${h.id}" data-level="3" class="toc-h3"><span class="toc-arrow"></span><span>${h.text}</span></a><div class="toc-children">`;
-          h3Open = true;
-        } else {
-          tocHtml += `<a href="#${h.id}" data-level="3">${h.text}</a>`;
-        }
-      } else {
-        if (!h2Open) {
-          tocHtml += `<div class="toc-group"><div class="toc-children">`;
-          h2Open = true;
-        }
-        tocHtml += `<a href="#${h.id}" data-level="4">${h.text}</a>`;
+    const openGroups: number[] = []; // stack of open heading levels
+
+    function closeTo(targetLevel: number): void {
+      while (openGroups.length > 0 && openGroups[openGroups.length - 1] >= targetLevel) {
+        openGroups.pop();
+        tocHtml += '</div></div>';
       }
     }
-    if (h3Open) tocHtml += '</div></div>';
-    if (h2Open) tocHtml += '</div></div>';
+
+    for (let i = 0; i < headings.length; i++) {
+      const h = headings[i];
+
+      if (h.level === 1) {
+        closeTo(1);
+        tocHtml += `<div class="toc-item toc-h1"><a href="#${h.id}" data-level="1">${h.text}</a></div>`;
+      } else if (h.level === 2) {
+        closeTo(2);
+        tocHtml += `<div class="toc-group"><div class="toc-item"><span class="toc-arrow"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div><div class="toc-children">`;
+        openGroups.push(2);
+      } else if (h.level === 3) {
+        closeTo(3);
+        const hasChildren = i + 1 < headings.length && headings[i + 1].level === 4;
+        if (hasChildren) {
+          tocHtml += `<div class="toc-group collapsed"><div class="toc-item"><span class="toc-arrow"></span><a href="#${h.id}" data-level="3" class="toc-link">${h.text}</a></div><div class="toc-children">`;
+          openGroups.push(3);
+        } else {
+          tocHtml += `<div class="toc-item"><span class="toc-spacer"></span><a href="#${h.id}" data-level="3" class="toc-link">${h.text}</a></div>`;
+        }
+      } else {
+        // h4 — always a leaf
+        tocHtml += `<div class="toc-item"><span class="toc-spacer"></span><a href="#${h.id}" data-level="4" class="toc-link">${h.text}</a></div>`;
+      }
+    }
+    closeTo(0);
+
+    // Prepend article title as first TOC item (scrolls to top)
+    const titleText = escapeXml(meta.title || info.slug);
+    tocHtml = `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` + tocHtml;
 
     postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
 
