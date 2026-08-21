@@ -47,27 +47,33 @@
         .blog-toc a:hover { color: var(--primary); border-left-color: var(--primary); }
         .blog-toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
         .toc-group { margin-bottom: 0.25rem; }
-        .blog-toc .toc-h2 {
+        .blog-toc .toc-h2, .blog-toc .toc-h3 {
             display: flex !important; align-items: center; gap: 0.4rem;
             text-decoration: none; color: var(--text-dim);
         }
-        .toc-h2-arrow {
+        .toc-h2-arrow, .toc-arrow {
             width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
             cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; flex-shrink: 0;
         }
-        .toc-h2-arrow:hover { opacity: 1; }
-        .toc-h2-arrow::after {
+        .toc-h2-arrow:hover, .toc-arrow:hover { opacity: 1; }
+        .toc-h2-arrow::after, .toc-arrow::after {
             content: ''; width: 0; height: 0;
             border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent;
         }
-        .toc-group.collapsed .toc-h2-arrow { transform: rotate(90deg); }
-        .toc-group:not(:has(.toc-children > *)) .toc-h2-arrow { visibility: hidden; }
+        .toc-group.collapsed .toc-h2-arrow, .toc-group.collapsed .toc-arrow { transform: rotate(90deg); }
+        .toc-group:not(:has(.toc-children > *)) .toc-h2-arrow,
+        .toc-group:not(:has(.toc-children > *)) .toc-arrow { visibility: hidden; }
         .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
         .toc-group.collapsed .toc-children { max-height: 0 !important; }
-        .toc-children a { padding-left: 1.5rem; font-size: 0.75rem; }
+        .toc-children > a, .toc-children .toc-h3 { padding-left: 1.5rem; font-size: 0.75rem; }
+        .toc-children a[data-level="4"] {
+            padding-left: 2.25rem !important; font-size: 0.7rem; opacity: 0.85;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
         /* Article content */
         .blog-article { max-width: 100%; min-width: 0; }
+        .blog-article-desc { color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; margin: -0.25rem 0 1.5rem; }
         .blog-article-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
         .blog-article-tags { margin-bottom: 0.5rem; }
         .blog-article-info { font-size: 0.8rem; }
@@ -75,7 +81,7 @@
         .blog-article-content h1 { font-size: 1.6rem; color: var(--text); margin-bottom: 0.5rem; margin-top: 0; }
         .blog-article-content h2 { font-size: 1.3rem; color: var(--text); margin-top: 2.5rem; margin-bottom: 0.75rem; font-weight: 700; scroll-margin-top: 90px; }
         .blog-article-content h3 { font-size: 1.1rem; color: var(--text); margin-top: 2rem; margin-bottom: 0.5rem; font-weight: 600; scroll-margin-top: 90px; }
-        .blog-article-content h4 { font-size: 1rem; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
+        .blog-article-content h4 { font-size: 1rem; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; scroll-margin-top: 90px; }
         .blog-article-content h5, .blog-article-content h6 { font-size: 0.9rem; color: var(--text-dim); margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
         .blog-article-content p { margin-bottom: 1rem; }
         .blog-article-content pre { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
@@ -177,6 +183,7 @@
         </aside>
         <article class="blog-article">
             <h1>{{title}}</h1>
+            {{descriptionHtml}}
             <div class="blog-article-meta">
                 <div class="blog-article-tags">{{tags}}</div>
                 <div class="blog-article-info">阅读约 {{readTime}} 分钟 · 创建于 {{date}} · 更新于 {{updated}}</div>
