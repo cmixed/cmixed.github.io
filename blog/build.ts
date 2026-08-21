@@ -197,7 +197,7 @@ function build(): void {
     interface Heading { id: string; level: number; text: string; }
     const headings: Heading[] = [];
     const usedIds = new Map<string, number>();
-    const htmlWithIds = htmlStandalone.replace(/<h([23])>(.*?)<\/h\1>/g, (_match, level, text) => {
+    const htmlWithIds = htmlStandalone.replace(/<h([234])>(.*?)<\/h\1>/g, (_match, level, text) => {
       const cleanText = text.replace(/<[^>]+>/g, '');
       let id = slugify(cleanText);
       const count = usedIds.get(id) || 0;
@@ -207,24 +207,40 @@ function build(): void {
       return `<h${level} id="${id}">${text}</h${level}>`;
     });
 
-    // Build nested TOC: h2 groups with h3 children
+    // Build nested TOC: h2 groups > h3 (collapsible when it has h4 children) > h4 links
     let tocHtml = '';
-    let inGroup = false;
-    for (const h of headings) {
+    let h2Open = false;
+    let h3Open = false;
+    for (let i = 0; i < headings.length; i++) {
+      const h = headings[i];
       if (h.level === 2) {
-        if (inGroup) tocHtml += '</div></div>';
+        if (h3Open) { tocHtml += '</div></div>'; h3Open = false; }
+        if (h2Open) tocHtml += '</div></div>';
         tocHtml += `<div class="toc-group"><a href="#${h.id}" data-level="2" class="toc-h2"><span class="toc-h2-arrow"></span><span class="toc-h2-text">${h.text}</span></a><div class="toc-children">`;
-        inGroup = true;
-      } else {
-        if (!inGroup) {
-          // h3 before any h2 — start a group without a parent h2
+        h2Open = true;
+      } else if (h.level === 3) {
+        if (!h2Open) {
           tocHtml += `<div class="toc-group"><div class="toc-children">`;
-          inGroup = true;
+          h2Open = true;
         }
-        tocHtml += `<a href="#${h.id}" data-level="3">${h.text}</a>`;
+        if (h3Open) { tocHtml += '</div></div>'; h3Open = false; }
+        const hasChildren = i + 1 < headings.length && headings[i + 1].level === 4;
+        if (hasChildren) {
+          tocHtml += `<div class="toc-group collapsed"><a href="#${h.id}" data-level="3" class="toc-h3"><span class="toc-arrow"></span><span>${h.text}</span></a><div class="toc-children">`;
+          h3Open = true;
+        } else {
+          tocHtml += `<a href="#${h.id}" data-level="3">${h.text}</a>`;
+        }
+      } else {
+        if (!h2Open) {
+          tocHtml += `<div class="toc-group"><div class="toc-children">`;
+          h2Open = true;
+        }
+        tocHtml += `<a href="#${h.id}" data-level="4">${h.text}</a>`;
       }
     }
-    if (inGroup) tocHtml += '</div></div>';
+    if (h3Open) tocHtml += '</div></div>';
+    if (h2Open) tocHtml += '</div></div>';
 
     postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
 
@@ -258,6 +274,9 @@ function build(): void {
     const postHtml = renderTemplate(postTemplate, {
       slug: post.slug,
       description: escapeXml(post.description),
+      descriptionHtml: post.description
+        ? `<p class="blog-article-desc">${escapeXml(post.description)}</p>`
+        : '',
       title: escapeXml(post.title),
       date: post.date,
       updated: post.updated,
