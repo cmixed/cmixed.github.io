@@ -295,6 +295,14 @@
             });
 
             // TOC: arrow click to collapse/expand (supports nested groups)
+            function getAllTocHeights(el) {
+                var h = 0;
+                var items = el.querySelectorAll('.toc-item');
+                items.forEach(function(item) {
+                    h += item.offsetHeight;
+                });
+                return h;
+            }
             function updateAncestorHeights(el) {
                 var parent = el.parentElement;
                 while (parent) {
@@ -316,9 +324,8 @@
                         var wasCollapsed = group.classList.contains('collapsed');
                         if (wasCollapsed) {
                             children.style.maxHeight = '0px';
-                            var h = children.scrollHeight;
                             group.classList.remove('collapsed');
-                            children.style.maxHeight = h + 'px';
+                            children.style.maxHeight = getAllTocHeights(children) + 'px';
                         } else {
                             children.style.maxHeight = children.scrollHeight + 'px';
                             group.classList.add('collapsed');
