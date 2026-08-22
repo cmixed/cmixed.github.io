@@ -46,7 +46,7 @@ marked.use({
       }
       return `<a href="${href}"${titleAttr}>${text}</a>`;
     },
-  },
+  } as any,
   extensions: [
     {
       name: 'highlight',
@@ -169,7 +169,7 @@ function build(): void {
   for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
-    const htmlBase = marked(body) as string;
+    const htmlBase = (marked(body) as string).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
     const readTime = estimateReadTime(body);
 
     // Get file modification time
