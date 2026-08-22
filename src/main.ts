@@ -251,8 +251,8 @@ window.addEventListener(
     const scrollTop = document.documentElement.scrollTop;
     const scrollHeight =
       document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-    scrollProgress.style.width = progress + '%';
+    const progress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+    scrollProgress.style.transform = `scaleX(${progress})`;
   },
   { passive: true }
 );

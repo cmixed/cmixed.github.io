@@ -324,10 +324,13 @@ main {
     top: 0;
     left: 0;
     height: 2px;
+    width: 100%;
     background: var(--primary);
     z-index: 200;
-    transition: width 0.1s linear, background var(--transition-speed);
-    width: 0%;
+    transform-origin: left;
+    transform: scaleX(0);
+    will-change: transform;
+    transition: transform 0.1s linear, background var(--transition-speed);
 }
 
 .status-bar {
@@ -1163,4 +1166,21 @@ html.reduce-motion .hero-content > * {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;
+}
+
+/* Print */
+@media print {
+    nav, .scroll-progress, .hamburger, .theme-toggle, .a11y-toggle,
+    .fab-group, footer, .hero::before, .hero .typewriter, .cta-buttons,
+    .blog-preview-more {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    .hero { padding: 2rem 0 !important; min-height: auto !important; }
+    .hero-content { opacity: 1 !important; transform: none !important; }
+    section { break-inside: avoid; }
+    .about-avatar img { filter: none; }
 }
