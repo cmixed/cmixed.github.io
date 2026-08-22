@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, stat
 import { join, basename } from 'path';
 import { marked } from 'marked';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 interface PostMeta {
   title?: string;
@@ -46,7 +47,7 @@ marked.use({
       }
       return `<a href="${href}"${titleAttr}>${text}</a>`;
     },
-  } as any,
+  },
   extensions: [
     {
       name: 'highlight',
@@ -134,6 +135,31 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, '');
 }
 
+async function addImageDimensions(html: string, assetsDir: string | null): Promise<string> {
+  const imgRe = /<img([^>]*?)src="([^"]*)"([^>]*)>/g;
+  const matches = [...html.matchAll(imgRe)];
+  if (matches.length === 0) return html;
+
+  const results = await Promise.all(
+    matches.map(async (m) => {
+      const [full, before, src, after] = m;
+      if (!src || src.startsWith('http') || src.startsWith('data:')) return full;
+      if (before.includes('width=') || after.includes('width=')) return full;
+      try {
+        const imgPath = assetsDir ? join(assetsDir, src.replace(/^\.\//, '')) : src;
+        const meta = await sharp(imgPath).metadata();
+        if (meta.width && meta.height) {
+          return `<img${before}src="${src}" width="${meta.width}" height="${meta.height}"${after}>`;
+        }
+      } catch { /* skip unreadable images */ }
+      return full;
+    })
+  );
+
+  let i = 0;
+  return html.replace(imgRe, () => results[i++]);
+}
+
 function discoverPosts(): PostInfo[] {
   const results: PostInfo[] = [];
   for (const entry of readdirSync(postsDir, { withFileTypes: true })) {
@@ -157,7 +183,7 @@ function discoverPosts(): PostInfo[] {
   return results;
 }
 
-function build(): void {
+async function build(): Promise<void> {
   mkdirSync(outDir, { recursive: true });
 
   // Process posts
@@ -169,7 +195,10 @@ function build(): void {
   for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
-    const htmlBase = (marked(body) as string).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+    const htmlBase = await addImageDimensions(
+      (marked(body) as string).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>'),
+      info.assetsDir
+    );
     const readTime = estimateReadTime(body);
 
     // Get file modification time
@@ -402,5 +431,5 @@ ${sitemapUrls}
 
 // Only run build when executed directly, not when imported
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  build();
+  build().catch(console.error);
 }
