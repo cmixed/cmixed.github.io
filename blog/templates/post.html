@@ -70,8 +70,8 @@
 
         /* Group & children — collapsible */
         .toc-group { margin-bottom: 0.25rem; }
-        .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
-        .toc-group.collapsed > .toc-children { max-height: 0 !important; }
+        .toc-children { transition: max-height 0.3s ease; }
+        .toc-group.collapsed > .toc-children { max-height: 0 !important; overflow: hidden; }
 
         /* Article content */
         .blog-article { max-width: 100%; min-width: 0; }
@@ -307,7 +307,7 @@
                 var parent = el.parentElement;
                 while (parent) {
                     if (parent.classList && parent.classList.contains('toc-children') && !parent.parentElement.classList.contains('collapsed')) {
-                        parent.style.maxHeight = parent.scrollHeight + 'px';
+                        parent.style.maxHeight = 'none';
                     }
                     parent = parent.parentElement;
                 }
@@ -326,6 +326,11 @@
                             children.style.maxHeight = '0px';
                             group.classList.remove('collapsed');
                             children.style.maxHeight = getAllTocHeights(children) + 'px';
+                            setTimeout(function() {
+                                if (!group.classList.contains('collapsed')) {
+                                    children.style.maxHeight = 'none';
+                                }
+                            }, 350);
                         } else {
                             children.style.maxHeight = children.scrollHeight + 'px';
                             group.classList.add('collapsed');
