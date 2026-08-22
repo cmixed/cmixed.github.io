@@ -36,7 +36,7 @@ marked.use({
   renderer: {
     image({ href, title, text }: { href: string; title?: string | null; text: string }): string {
       const titleAttr = title ? ` title="${title}"` : '';
-      return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy">`;
+      return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" decoding="async">`;
     },
     link({ href, title, text }: { href: string; title?: string | null; text: string }): string {
       const isExternal = /^https?:\/\//.test(href);
@@ -340,6 +340,37 @@ function build(): void {
 </rss>`;
 
   writeFileSync(join(outDir, 'feed.xml'), rss);
+
+  // Generate sitemap with blog posts
+  const sitemapUrls = posts
+    .map(
+      (p) => `  <url>
+    <loc>https://cmixed.github.io/blog/${encodeURIComponent(p.slug)}.html</loc>
+    <lastmod>${p.updated}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+    )
+    .join('\n');
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cmixed.github.io/</loc>
+    <lastmod>2026-08-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://cmixed.github.io/blog/</loc>
+    <lastmod>${posts.length > 0 ? posts[0].updated : '2026-08-22'}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+${sitemapUrls}
+</urlset>`;
+
+  writeFileSync(join(outDir, 'sitemap.xml'), sitemap);
 
   // Generate static blog list page
   const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
