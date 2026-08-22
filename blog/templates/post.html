@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
 <head>
+    <script>
+        var t = localStorage.getItem('theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+        else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'light');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{description}}">
@@ -18,6 +23,7 @@
     <meta name="twitter:description" content="{{description}}">
     <link rel="alternate" type="application/rss+xml" title="cmixed 博客 RSS" href="feed.xml">
     <title>{{title}} · cmixed</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="icon" type="image/png" sizes="32x32" href="../cm-32x32.png">
     <link rel="icon" type="image/png" href="../cm-192x192.png">
     <link rel="apple-touch-icon" href="../cm-192x192.png">
@@ -120,8 +126,6 @@
         .blog-article-content h5, .blog-article-content h6 { font-size: 0.9rem; color: var(--text-dim); margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
         .blog-article-content p { margin-bottom: 1rem; }
         .blog-article-content pre { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
-        [data-theme="dark"] .blog-article-content pre { background: #1e293b; }
-        [data-theme="light"] .blog-article-content pre { background: #e6ddd1; }
         .blog-article-content pre code { background: transparent; }
         .code-block { position: relative; margin-bottom: 1rem; }
         .code-block > pre { margin-bottom: 0; padding-top: 2.3rem; }
@@ -152,7 +156,8 @@
         }
         .blog-article-content blockquote p { margin-bottom: 0.5rem; }
         .blog-article-content blockquote p:last-child { margin-bottom: 0; }
-        .blog-article-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; overflow-x: auto; display: block; }
+        .blog-article-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+        .blog-article-content .table-wrapper { overflow-x: auto; margin: 1rem 0; }
         .blog-article-content th, .blog-article-content td { padding: 0.6rem 0.75rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
         .blog-article-content th { background: var(--bg-secondary); font-weight: 600; white-space: nowrap; }
         .blog-article-content tr:nth-child(even) { background: rgba(var(--bg-rgb), 0.5); }
@@ -207,7 +212,7 @@
             }
             body.toc-open .blog-toc-overlay { display: block; }
             .blog-nav-posts { grid-template-columns: 1fr; }
-            h1 { font-size: 1.4rem; }
+            .blog-article-content h1 { font-size: 1.4rem; }
             table { font-size: 0.8rem; }
             th, td { padding: 0.4rem 0.5rem; }
         }
@@ -259,9 +264,6 @@
     <script>
         (function() {
             var htmlEl = document.documentElement;
-            var saved = localStorage.getItem('theme');
-            if (saved) htmlEl.setAttribute('data-theme', saved);
-            else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) htmlEl.setAttribute('data-theme', 'light');
 
             var hljsLink = document.getElementById('hljs-theme');
             function updateHljsTheme(t) {
@@ -334,12 +336,7 @@
 
             // TOC: arrow click to collapse/expand (supports nested groups)
             function getAllTocHeights(el) {
-                var h = 0;
-                var items = el.querySelectorAll('.toc-item');
-                items.forEach(function(item) {
-                    h += item.offsetHeight;
-                });
-                return h;
+                return el.scrollHeight;
             }
             function updateAncestorHeights(el) {
                 var parent = el.parentElement;
