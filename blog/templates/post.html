@@ -265,8 +265,9 @@
 
             var hljsLink = document.getElementById('hljs-theme');
             function updateHljsTheme(t) {
-                if (!hljsLink) return;
-                hljsLink.href = t === 'dark'
+                var link = document.getElementById('hljs-theme');
+                if (!link) return;
+                link.href = t === 'dark'
                     ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
                     : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
             }
@@ -294,12 +295,16 @@
             // Conditional syntax highlighting (~43KB saved when no code blocks)
             var codeBlocks = document.querySelectorAll('pre code');
             if (codeBlocks.length > 0) {
+                var currentTheme = htmlEl.getAttribute('data-theme') || 'dark';
                 var hljsCss = document.createElement('link');
                 hljsCss.rel = 'stylesheet';
-                hljsCss.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+                hljsCss.href = currentTheme === 'dark'
+                    ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
+                    : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
                 hljsCss.id = 'hljs-theme';
                 hljsCss.crossOrigin = 'anonymous';
                 document.head.appendChild(hljsCss);
+                var hljsLink = document.getElementById('hljs-theme');
                 var script = document.createElement('script');
                 script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
                 script.crossOrigin = 'anonymous';
