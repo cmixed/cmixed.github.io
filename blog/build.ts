@@ -25,12 +25,14 @@ async function renderMermaidSvg(def: string, theme: string): Promise<string> {
 
   try {
     const binPath = join(__dirname, '..', 'node_modules', '.bin', 'mmdc');
+    const puppeteerConfig = join(__dirname, 'puppeteer-config.json');
     await execFileAsync(binPath, [
       '-i', inputFile,
       '-o', outputFile,
       '-t', theme === 'dark' ? 'dark' : 'default',
       '-b', 'transparent',
       '--quiet',
+      '--puppeteerConfigFile', puppeteerConfig,
     ]);
     return readFileSync(outputFile, 'utf-8');
   } finally {
