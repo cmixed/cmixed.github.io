@@ -14,12 +14,13 @@ const execFileAsync = promisify(execFile);
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const MERMAID_CACHE_DIR = join(__dirname, 'mermaid-cache');
 const MAX_WIDTH = 1200;
+const DPR = 2;
 
-async function renderMermaidSvg(def: string, theme: string): Promise<string> {
+async function renderMermaidPng(def: string, theme: string): Promise<Buffer> {
   const tmpId = randomBytes(6).toString('hex');
   const tmpDir = tmpdir();
   const inputFile = join(tmpDir, `mermaid-${tmpId}.mmd`);
-  const outputFile = join(tmpDir, `mermaid-${tmpId}.svg`);
+  const outputFile = join(tmpDir, `mermaid-${tmpId}.png`);
 
   writeFileSync(inputFile, def);
 
@@ -31,64 +32,15 @@ async function renderMermaidSvg(def: string, theme: string): Promise<string> {
       '-o', outputFile,
       '-t', theme === 'dark' ? 'dark' : 'default',
       '-b', 'transparent',
+      '-s', String(DPR),
       '--quiet',
       '--puppeteerConfigFile', puppeteerConfig,
     ]);
-    return readFileSync(outputFile, 'utf-8');
+    return readFileSync(outputFile);
   } finally {
     try { unlinkSync(inputFile); } catch { /* ignore */ }
     try { unlinkSync(outputFile); } catch { /* ignore */ }
   }
-}
-
-function trimSvgViewBox(svg: string): string {
-  const vbMatch = svg.match(/viewBox="([^"]*)"/);
-  if (!vbMatch) return svg;
-  const parts = vbMatch[1].trim().split(/\s+/).map(Number);
-  if (parts.length !== 4 || parts.some(isNaN)) return svg;
-  const [, , vbW, vbH] = parts;
-
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-  const xAttrs = svg.match(/\bx="[^"]*"/g) || [];
-  const yAttrs = svg.match(/\by="[^"]*"/g) || [];
-  const wAttrs = svg.match(/\bwidth="[^"]*"/g) || [];
-  const hAttrs = svg.match(/\bheight="[^"]*"/g) || [];
-
-  for (let i = 0; i < xAttrs.length; i++) {
-    const x = parseFloat(xAttrs[i].match(/x="([^"]*)"/)?.[1] || '');
-    const y = parseFloat(yAttrs[i]?.match(/y="([^"]*)"/)?.[1] || '0');
-    const w = parseFloat(wAttrs[i]?.match(/width="([^"]*)"/)?.[1] || '0');
-    const h = parseFloat(hAttrs[i]?.match(/height="([^"]*)"/)?.[1] || '0');
-    if (!isNaN(x) && !isNaN(y) && !isNaN(w) && !isNaN(h)) {
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x + w);
-      maxY = Math.max(maxY, y + h);
-    }
-  }
-
-  if (minX === Infinity) return svg;
-
-  const padX = (maxX - minX) * 0.05 || 5;
-  const padY = (maxY - minY) * 0.05 || 5;
-  const newW = (maxX - minX) + padX * 2;
-  const newH = (maxY - minY) + padY * 2;
-  if (newW >= vbW && newH >= vbH) return svg;
-
-  const newVB = `${minX - padX} ${minY - padY} ${newW} ${newH}`;
-  return svg
-    .replace(/viewBox="[^"]*"/, `viewBox="${newVB}"`)
-    .replace(/(<svg[^>]*?)\s+width="[^"]*"/, '$1')
-    .replace(/(<svg[^>]*?)\s+height="[^"]*"/, '$1');
-}
-
-function parseSvgDimensions(svg: string): { w: number; h: number } | null {
-  const vbMatch = svg.match(/viewBox="([^"]*)"/);
-  if (!vbMatch) return null;
-  const parts = vbMatch[1].trim().split(/\s+/).map(Number);
-  if (parts.length !== 4 || parts.some(isNaN)) return null;
-  return { w: parts[2], h: parts[3] };
 }
 
 function hashMermaidDef(def: string): string {
@@ -131,19 +83,20 @@ async function renderMermaidBlocks(html: string, outDir: string): Promise<string
     }
 
     try {
-      const lightSvg = trimSvgViewBox(await renderMermaidSvg(def, 'default'));
-      const darkSvg = trimSvgViewBox(await renderMermaidSvg(def, 'dark'));
+      const lightPng = await renderMermaidPng(def, 'default');
+      const darkPng = await renderMermaidPng(def, 'dark');
 
-      const dims = parseSvgDimensions(lightSvg);
-      if (!dims) throw new Error('Cannot parse SVG viewBox');
+      const lightMeta = await sharp(lightPng).metadata();
+      const origW = lightMeta.width || 100;
+      const origH = lightMeta.height || 100;
 
-      const scale = Math.min(1, MAX_WIDTH / dims.w);
-      const outW = Math.round(dims.w * scale);
-      const outH = Math.round(dims.h * scale);
+      const scale = Math.min(1, MAX_WIDTH / (origW / DPR));
+      const outW = Math.round((origW / DPR) * scale);
+      const outH = Math.round((origH / DPR) * scale);
 
       await Promise.all([
-        sharp(Buffer.from(lightSvg)).resize(outW, outH).avif({ quality: 70, effort: 4 }).toFile(lightPath),
-        sharp(Buffer.from(darkSvg)).resize(outW, outH).avif({ quality: 70, effort: 4 }).toFile(darkPath),
+        sharp(lightPng).resize(outW, outH).avif({ quality: 70, effort: 4 }).toFile(lightPath),
+        sharp(darkPng).resize(outW, outH).avif({ quality: 70, effort: 4 }).toFile(darkPath),
       ]);
 
       writeFileSync(cacheFile, JSON.stringify({ w: outW, h: outH }));
