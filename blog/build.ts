@@ -1,8 +1,169 @@
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync } from 'fs';
+import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync, unlinkSync } from 'fs';
 import { join, basename } from 'path';
 import { marked } from 'marked';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import { tmpdir } from 'os';
+import { randomBytes, createHash } from 'crypto';
+
+const execFileAsync = promisify(execFile);
+
+// --- Mermaid pre-rendering via mmdc → SVG → sharp → AVIF ---
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const MERMAID_CACHE_DIR = join(__dirname, 'mermaid-cache');
+const MAX_WIDTH = 1200;
+
+async function renderMermaidSvg(def: string, theme: string): Promise<string> {
+  const tmpId = randomBytes(6).toString('hex');
+  const tmpDir = tmpdir();
+  const inputFile = join(tmpDir, `mermaid-${tmpId}.mmd`);
+  const outputFile = join(tmpDir, `mermaid-${tmpId}.svg`);
+
+  writeFileSync(inputFile, def);
+
+  try {
+    const binPath = join(__dirname, '..', 'node_modules', '.bin', 'mmdc');
+    await execFileAsync(binPath, [
+      '-i', inputFile,
+      '-o', outputFile,
+      '-t', theme === 'dark' ? 'dark' : 'default',
+      '-b', 'transparent',
+      '--quiet',
+    ]);
+    return readFileSync(outputFile, 'utf-8');
+  } finally {
+    try { unlinkSync(inputFile); } catch { /* ignore */ }
+    try { unlinkSync(outputFile); } catch { /* ignore */ }
+  }
+}
+
+function trimSvgViewBox(svg: string): string {
+  const vbMatch = svg.match(/viewBox="([^"]*)"/);
+  if (!vbMatch) return svg;
+  const parts = vbMatch[1].trim().split(/\s+/).map(Number);
+  if (parts.length !== 4 || parts.some(isNaN)) return svg;
+  const [, , vbW, vbH] = parts;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  const xAttrs = svg.match(/\bx="[^"]*"/g) || [];
+  const yAttrs = svg.match(/\by="[^"]*"/g) || [];
+  const wAttrs = svg.match(/\bwidth="[^"]*"/g) || [];
+  const hAttrs = svg.match(/\bheight="[^"]*"/g) || [];
+
+  for (let i = 0; i < xAttrs.length; i++) {
+    const x = parseFloat(xAttrs[i].match(/x="([^"]*)"/)?.[1] || '');
+    const y = parseFloat(yAttrs[i]?.match(/y="([^"]*)"/)?.[1] || '0');
+    const w = parseFloat(wAttrs[i]?.match(/width="([^"]*)"/)?.[1] || '0');
+    const h = parseFloat(hAttrs[i]?.match(/height="([^"]*)"/)?.[1] || '0');
+    if (!isNaN(x) && !isNaN(y) && !isNaN(w) && !isNaN(h)) {
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+    }
+  }
+
+  if (minX === Infinity) return svg;
+
+  const padX = (maxX - minX) * 0.05 || 5;
+  const padY = (maxY - minY) * 0.05 || 5;
+  const newW = (maxX - minX) + padX * 2;
+  const newH = (maxY - minY) + padY * 2;
+  if (newW >= vbW && newH >= vbH) return svg;
+
+  const newVB = `${minX - padX} ${minY - padY} ${newW} ${newH}`;
+  return svg
+    .replace(/viewBox="[^"]*"/, `viewBox="${newVB}"`)
+    .replace(/(<svg[^>]*?)\s+width="[^"]*"/, '$1')
+    .replace(/(<svg[^>]*?)\s+height="[^"]*"/, '$1');
+}
+
+function parseSvgDimensions(svg: string): { w: number; h: number } | null {
+  const vbMatch = svg.match(/viewBox="([^"]*)"/);
+  if (!vbMatch) return null;
+  const parts = vbMatch[1].trim().split(/\s+/).map(Number);
+  if (parts.length !== 4 || parts.some(isNaN)) return null;
+  return { w: parts[2], h: parts[3] };
+}
+
+function hashMermaidDef(def: string): string {
+  return createHash('md5').update(def).digest('hex').slice(0, 12);
+}
+
+async function renderMermaidBlocks(html: string, outDir: string): Promise<string> {
+  const placeholderRe = /<!--MERMAID:(\S+?)-->/g;
+  if (!placeholderRe.test(html)) return html;
+
+  mkdirSync(MERMAID_CACHE_DIR, { recursive: true });
+  const mermaidDir = join(outDir, 'mermaid');
+  mkdirSync(mermaidDir, { recursive: true });
+
+  let counter = 0;
+  const results = new Map<string, string>();
+
+  const defs = new Map<string, string>();
+  html.replace(placeholderRe, (_match, b64) => {
+    if (!defs.has(b64)) defs.set(b64, Buffer.from(b64, 'base64').toString('utf-8'));
+    return '';
+  });
+
+  for (const [b64, def] of defs) {
+    const hash = hashMermaidDef(def);
+    const lightPath = join(mermaidDir, `${hash}-light.avif`);
+    const darkPath = join(mermaidDir, `${hash}-dark.avif`);
+    const cacheFile = join(MERMAID_CACHE_DIR, `${hash}.json`);
+
+    // Skip if AVIF already exists
+    try {
+      statSync(lightPath);
+      statSync(darkPath);
+      const cached = JSON.parse(readFileSync(cacheFile, 'utf-8'));
+      results.set(b64, buildMermaidImgHtml(hash, cached.w, cached.h));
+      counter++;
+      continue;
+    } catch {
+      // AVIF not cached, render below
+    }
+
+    try {
+      const lightSvg = trimSvgViewBox(await renderMermaidSvg(def, 'default'));
+      const darkSvg = trimSvgViewBox(await renderMermaidSvg(def, 'dark'));
+
+      const dims = parseSvgDimensions(lightSvg);
+      if (!dims) throw new Error('Cannot parse SVG viewBox');
+
+      const scale = Math.min(1, MAX_WIDTH / dims.w);
+      const outW = Math.round(dims.w * scale);
+      const outH = Math.round(dims.h * scale);
+
+      await Promise.all([
+        sharp(Buffer.from(lightSvg)).resize(outW, outH).avif({ quality: 70, effort: 4 }).toFile(lightPath),
+        sharp(Buffer.from(darkSvg)).resize(outW, outH).avif({ quality: 70, effort: 4 }).toFile(darkPath),
+      ]);
+
+      writeFileSync(cacheFile, JSON.stringify({ w: outW, h: outH }));
+      results.set(b64, buildMermaidImgHtml(hash, outW, outH));
+      counter++;
+    } catch (err) {
+      console.error(`Mermaid render failed for: ${def.slice(0, 60)}...`, err);
+      results.set(b64, `<pre><code class="language-mermaid">${def}</code></pre>`);
+    }
+  }
+
+  if (counter > 0) console.log(`  ✓ Rendered ${counter} mermaid diagram(s) as AVIF`);
+
+  return html.replace(placeholderRe, (_match, b64) => results.get(b64) || '');
+}
+
+function buildMermaidImgHtml(hash: string, w: number, h: number): string {
+  return `<div class="mermaid-diagram">
+<img class="mermaid-img-light" src="mermaid/${hash}-light.avif" width="${w}" height="${h}" alt="Mermaid diagram" loading="lazy" decoding="async">
+<img class="mermaid-img-dark" src="mermaid/${hash}-dark.avif" width="${w}" height="${h}" alt="Mermaid diagram" loading="lazy" decoding="async">
+</div>`;
+}
 
 interface PostMeta {
   title?: string;
@@ -49,7 +210,9 @@ marked.use({
     },
     code({ text, lang }: { text: string; lang?: string; escaped?: boolean }): string {
       if (lang === 'mermaid') {
-        return `<div class="mermaid" role="img" aria-label="Mermaid diagram">${text.trim()}</div>`;
+        // Encode definition as base64 in a comment placeholder for build-time rendering
+        const b64 = Buffer.from(text.trim()).toString('base64');
+        return `<!--MERMAID:${b64}-->`;
       }
       const escaped = text
         .replace(/&/g, '&amp;')
@@ -78,7 +241,6 @@ marked.use({
   ],
 });
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const postsDir = join(__dirname, 'posts');
 const outDir = join(__dirname, '..', 'dist', 'blog');
 const templatesDir = join(__dirname, 'templates');
@@ -209,12 +371,12 @@ async function build(): Promise<void> {
   for (const info of postInfos) {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
-    const htmlBase = await addImageDimensions(
-      (marked(body) as string)
-        .replace(/<table>/g, '<div class="table-wrapper"><table>')
-        .replace(/<\/table>/g, '</table></div>'),
-      info.assetsDir
-    );
+    const htmlMarked = (marked(body) as string)
+      .replace(/<table>/g, '<div class="table-wrapper"><table>')
+      .replace(/<\/table>/g, '</table></div>');
+    // Pre-render mermaid diagrams to AVIF images (dark + light)
+    const htmlWithMermaid = await renderMermaidBlocks(htmlMarked, outDir);
+    const htmlBase = await addImageDimensions(htmlWithMermaid, info.assetsDir);
     const readTime = estimateReadTime(body);
 
     // Get file modification time

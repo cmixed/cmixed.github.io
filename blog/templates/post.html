@@ -161,8 +161,11 @@
         .blog-article-content th { background: var(--bg-secondary); font-weight: 600; white-space: nowrap; }
         .blog-article-content tr:nth-child(even) { background: rgba(var(--bg-rgb), 0.5); }
         .blog-article-content hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-        .blog-article-content .mermaid { position: relative; display: flex; justify-content: center; margin: 1.5rem 0; padding-top: 2.3rem; overflow-x: auto; }
-        .blog-article-content .mermaid::before {
+        .blog-article-content .mermaid-diagram {
+            position: relative; margin: 1.5rem 0; padding-top: 2.3rem;
+            text-align: center;
+        }
+        .blog-article-content .mermaid-diagram::before {
             content: 'mermaid';
             position: absolute; top: 0.55rem; left: 0.75rem; z-index: 1;
             font-size: 0.7rem; line-height: 1.4; font-weight: 600;
@@ -174,7 +177,10 @@
             padding: 0.1rem 0.5rem;
             pointer-events: none;
         }
-        .blog-article-content .mermaid svg { max-width: 100%; height: auto; }
+        .mermaid-img-dark, .mermaid-img-light { display: block; max-width: 100%; height: auto; margin: 0 auto; border-radius: 8px; }
+        .mermaid-img-dark { display: none; }
+        [data-theme="dark"] .mermaid-img-dark { display: block; }
+        [data-theme="dark"] .mermaid-img-light { display: none; }
 
         /* Prev/Next navigation */
         .blog-nav-posts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
@@ -285,14 +291,6 @@
                     ? 'vendor/hljs-atom-one-dark.min.css'
                     : 'vendor/hljs-atom-one-light.min.css';
             }
-            function updateMermaidTheme(t) {
-                if (typeof mermaid === 'undefined') return;
-                mermaid.initialize({
-                    startOnLoad: false,
-                    theme: t === 'dark' ? 'dark' : 'default',
-                });
-                mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
-            }
             updateHljsTheme(htmlEl.getAttribute('data-theme'));
 
             document.getElementById('themeToggle').addEventListener('click', function() {
@@ -300,7 +298,6 @@
                 htmlEl.setAttribute('data-theme', t);
                 localStorage.setItem('theme', t);
                 updateHljsTheme(t);
-                updateMermaidTheme(t);
             });
 
             // Indent toggle
@@ -332,40 +329,6 @@
                     codeBlocks.forEach(function(block) { hljs.highlightElement(block); });
                 };
                 document.head.appendChild(hljsScript);
-            }
-
-            // Conditional mermaid rendering (only on pages with diagrams)
-            var mermaidEls = document.querySelectorAll('.mermaid');
-            if (mermaidEls.length > 0) {
-                var mermaidInitTheme = htmlEl.getAttribute('data-theme') || 'dark';
-                function mermaidFallback() {
-                    mermaidEls.forEach(function(el) {
-                        if (el.tagName === 'PRE') return;
-                        var pre = document.createElement('pre');
-                        var code = document.createElement('code');
-                        code.className = 'language-mermaid';
-                        code.textContent = el.textContent;
-                        pre.appendChild(code);
-                        el.parentNode.replaceChild(pre, el);
-                    });
-                }
-                var mermaidScript = document.createElement('script');
-                mermaidScript.src = 'vendor/mermaid.min.js';
-                mermaidScript.onload = function() {
-                    mermaid.initialize({
-                        startOnLoad: false,
-                        theme: mermaidInitTheme === 'dark' ? 'dark' : 'default',
-                    });
-                    mermaid.run({ nodes: mermaidEls }).catch(function(err) {
-                        console.error('Mermaid rendering failed:', err);
-                        mermaidFallback();
-                    });
-                };
-                mermaidScript.onerror = function() {
-                    console.error('Failed to load mermaid.js');
-                    mermaidFallback();
-                };
-                document.head.appendChild(mermaidScript);
             }
 
             // Code block language badge (top-left)
