@@ -382,9 +382,10 @@
             links.forEach(function(a) { linkMap[a.getAttribute('href').slice(1)] = a; });
             var ids = Object.keys(linkMap);
             var currentActive = null;
+            var clickLock = false;
             var observer = new IntersectionObserver(function(entries) {
                 entries.forEach(function(entry) {
-                    if (entry.isIntersecting) {
+                    if (entry.isIntersecting && !clickLock) {
                         var link = linkMap[entry.target.id];
                         if (link && !link.closest('.toc-group.collapsed')) {
                             if (currentActive) currentActive.classList.remove('active');
@@ -396,7 +397,7 @@
             }, { rootMargin: '-80px 0px -70% 0px' });
             ids.forEach(function(id) { var el = document.getElementById(id); if (el) observer.observe(el); });
 
-            // TOC link click: immediately set active
+            // TOC link click: set active and lock observer briefly
             links.forEach(function(a) {
                 a.addEventListener('click', function() {
                     var id = a.getAttribute('href').slice(1);
@@ -405,6 +406,8 @@
                         if (currentActive) currentActive.classList.remove('active');
                         link.classList.add('active');
                         currentActive = link;
+                        clickLock = true;
+                        setTimeout(function() { clickLock = false; }, 800);
                     }
                 });
             });
