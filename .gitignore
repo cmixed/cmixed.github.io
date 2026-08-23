@@ -2,3 +2,4 @@ node_modules
 dist
 assets
 .mimocode/
+blog/mermaid-cache
