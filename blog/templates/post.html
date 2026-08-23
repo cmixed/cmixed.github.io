@@ -162,6 +162,8 @@
         .blog-article-content th { background: var(--bg-secondary); font-weight: 600; white-space: nowrap; }
         .blog-article-content tr:nth-child(even) { background: rgba(var(--bg-rgb), 0.5); }
         .blog-article-content hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+        .blog-article-content .mermaid { display: flex; justify-content: center; margin: 1.5rem 0; overflow-x: auto; }
+        .blog-article-content .mermaid svg { max-width: 100%; height: auto; }
 
         /* Prev/Next navigation */
         .blog-nav-posts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
@@ -265,13 +267,21 @@
         (function() {
             var htmlEl = document.documentElement;
 
-            var hljsLink = document.getElementById('hljs-theme');
             function updateHljsTheme(t) {
                 var link = document.getElementById('hljs-theme');
                 if (!link) return;
                 link.href = t === 'dark'
                     ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
                     : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
+            }
+            function updateMermaidTheme(t) {
+                if (typeof mermaid === 'undefined') return;
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: t === 'dark' ? 'dark' : 'default',
+                    securityLevel: 'sandbox',
+                });
+                mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
             }
             updateHljsTheme(htmlEl.getAttribute('data-theme'));
 
@@ -280,6 +290,7 @@
                 htmlEl.setAttribute('data-theme', t);
                 localStorage.setItem('theme', t);
                 updateHljsTheme(t);
+                updateMermaidTheme(t);
             });
 
             // Indent toggle
@@ -297,23 +308,50 @@
             // Conditional syntax highlighting (~43KB saved when no code blocks)
             var codeBlocks = document.querySelectorAll('pre code');
             if (codeBlocks.length > 0) {
-                var currentTheme = htmlEl.getAttribute('data-theme') || 'dark';
+                var hljsInitTheme = htmlEl.getAttribute('data-theme') || 'dark';
                 var hljsCss = document.createElement('link');
                 hljsCss.rel = 'stylesheet';
-                hljsCss.href = currentTheme === 'dark'
+                hljsCss.href = hljsInitTheme === 'dark'
                     ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
                     : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
                 hljsCss.id = 'hljs-theme';
                 hljsCss.crossOrigin = 'anonymous';
                 document.head.appendChild(hljsCss);
-                var hljsLink = document.getElementById('hljs-theme');
-                var script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
-                script.crossOrigin = 'anonymous';
-                script.onload = function() {
+                var hljsScript = document.createElement('script');
+                hljsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+                hljsScript.crossOrigin = 'anonymous';
+                hljsScript.onload = function() {
                     codeBlocks.forEach(function(block) { hljs.highlightElement(block); });
                 };
-                document.head.appendChild(script);
+                document.head.appendChild(hljsScript);
+            }
+
+            // Conditional mermaid rendering (~600KB / ~200KB gzipped, only on pages with diagrams)
+            var mermaidEls = document.querySelectorAll('.mermaid');
+            if (mermaidEls.length > 0) {
+                var mermaidInitTheme = htmlEl.getAttribute('data-theme') || 'dark';
+                var mermaidScript = document.createElement('script');
+                mermaidScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js';
+                mermaidScript.crossOrigin = 'anonymous';
+                mermaidScript.onload = function() {
+                    mermaid.initialize({
+                        startOnLoad: false,
+                        theme: mermaidInitTheme === 'dark' ? 'dark' : 'default',
+                        securityLevel: 'sandbox',
+                    });
+                    mermaid.run({ nodes: mermaidEls });
+                };
+                mermaidScript.onerror = function() {
+                    mermaidEls.forEach(function(el) {
+                        var pre = document.createElement('pre');
+                        var code = document.createElement('code');
+                        code.className = 'language-mermaid';
+                        code.textContent = el.textContent;
+                        pre.appendChild(code);
+                        el.parentNode.replaceChild(pre, el);
+                    });
+                };
+                document.head.appendChild(mermaidScript);
             }
 
             // Code block language badge (top-left)
