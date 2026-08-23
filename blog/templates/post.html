@@ -396,6 +396,19 @@
             }, { rootMargin: '-80px 0px -70% 0px' });
             ids.forEach(function(id) { var el = document.getElementById(id); if (el) observer.observe(el); });
 
+            // TOC link click: immediately set active
+            links.forEach(function(a) {
+                a.addEventListener('click', function() {
+                    var id = a.getAttribute('href').slice(1);
+                    var link = linkMap[id];
+                    if (link) {
+                        if (currentActive) currentActive.classList.remove('active');
+                        link.classList.add('active');
+                        currentActive = link;
+                    }
+                });
+            });
+
             // Floating buttons
             var fabGroup = document.getElementById('fabGroup');
             window.addEventListener('scroll', function() {
