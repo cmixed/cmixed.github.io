@@ -26,7 +26,12 @@ interface BlogData {
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 const themeToggle = document.getElementById('themeToggle') as HTMLButtonElement;
@@ -183,7 +188,9 @@ renderProjects();
 
 function renderSkills(): void {
   const container = document.getElementById('skillsContainer') as HTMLElement;
-  container.innerHTML = (skills as string[]).map((s) => `<div class="skill-tag">${escapeHtml(s)}</div>`).join('');
+  container.innerHTML = (skills as string[])
+    .map((s) => `<div class="skill-tag">${escapeHtml(s)}</div>`)
+    .join('');
 }
 renderSkills();
 

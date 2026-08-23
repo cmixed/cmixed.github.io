@@ -47,6 +47,18 @@ marked.use({
       }
       return `<a href="${href}"${titleAttr}>${text}</a>`;
     },
+    code({ text, lang }: { text: string; lang?: string; escaped?: boolean }): string {
+      if (lang === 'mermaid') {
+        return `<div class="mermaid" role="img" aria-label="Mermaid diagram">${text}</div>`;
+      }
+      const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+      const langClass = lang ? ` class="language-${lang}"` : '';
+      return `<pre><code${langClass}>${escaped}</code></pre>`;
+    },
   },
   extensions: [
     {
@@ -151,7 +163,9 @@ async function addImageDimensions(html: string, assetsDir: string | null): Promi
         if (meta.width && meta.height) {
           return `<img${before}src="${src}" width="${meta.width}" height="${meta.height}"${after}>`;
         }
-      } catch { /* skip unreadable images */ }
+      } catch {
+        /* skip unreadable images */
+      }
       return full;
     })
   );
@@ -196,7 +210,9 @@ async function build(): Promise<void> {
     const raw = readFileSync(info.mdPath, 'utf-8');
     const { meta, body } = parseFrontmatter(raw);
     const htmlBase = await addImageDimensions(
-      (marked(body) as string).replace(/<table>/g, '<div class="table-wrapper"><table>').replace(/<\/table>/g, '</table></div>'),
+      (marked(body) as string)
+        .replace(/<table>/g, '<div class="table-wrapper"><table>')
+        .replace(/<\/table>/g, '</table></div>'),
       info.assetsDir
     );
     const readTime = estimateReadTime(body);
@@ -221,7 +237,11 @@ async function build(): Promise<void> {
     const htmlStandalone = htmlBase.replace(/\.\/(?=[^"']*\.avif)/g, `./${info.slug}/`);
 
     // Collect headings and add stable IDs based on text content
-    interface Heading { id: string; level: number; text: string; }
+    interface Heading {
+      id: string;
+      level: number;
+      text: string;
+    }
     const headings: Heading[] = [];
     const usedIds = new Map<string, number>();
     const htmlWithIds = htmlStandalone.replace(headingRe, (_match, level, text) => {
@@ -278,7 +298,9 @@ async function build(): Promise<void> {
 
     // Prepend article title as first TOC item (scrolls to top)
     const titleText = escapeXml(meta.title || info.slug);
-    tocHtml = `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` + tocHtml;
+    tocHtml =
+      `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` +
+      tocHtml;
 
     postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
 
@@ -288,14 +310,19 @@ async function build(): Promise<void> {
     }
   }
 
-  const pinned = posts.filter((p) => p.pinned).sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
-  const rest = posts.filter((p) => !p.pinned).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const pinned = posts
+    .filter((p) => p.pinned)
+    .sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
+  const rest = posts
+    .filter((p) => !p.pinned)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   posts.splice(0, posts.length, ...pinned, ...rest);
 
   // Add prev/next and generate final HTML
   const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
   for (let i = 0; i < posts.length; i++) {
-    posts[i].prev = i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
+    posts[i].prev =
+      i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
     posts[i].next = i > 0 ? { slug: posts[i - 1].slug, title: posts[i - 1].title } : null;
 
     const post = posts[i];
@@ -403,15 +430,19 @@ ${sitemapUrls}
 
   // Generate static blog list page
   const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
-  const tagsHtml = allTags.map((t) => `<a href="./?tag=${encodeURIComponent(t)}" class="blog-tag">${escapeXml(t)}</a>`).join('');
+  const tagsHtml = allTags
+    .map((t) => `<a href="./?tag=${encodeURIComponent(t)}" class="blog-tag">${escapeXml(t)}</a>`)
+    .join('');
   const postsHtml = posts
-    .map((p) => `
+    .map(
+      (p) => `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
             <div class="blog-page-card-title">${escapeXml(p.title)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
             <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)}</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
-        </a>`)
+        </a>`
+    )
     .join('');
   const indexHtml = indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml);
   writeFileSync(join(outDir, 'index.html'), indexHtml);
