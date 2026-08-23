@@ -86,11 +86,11 @@
         .toc-item a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
 
         /* Arrow (collapsible) & spacer (non-collapsible) */
-        .toc-arrow, .toc-spacer { width: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-        .toc-arrow { cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; }
+        .toc-arrow, .toc-spacer { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .toc-arrow { cursor: pointer; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 0.3rem 0; }
         .toc-arrow:hover { opacity: 1; }
-        .toc-arrow::after { content: ''; width: 0; height: 0; border-left: 4px solid currentColor; border-top: 3px solid transparent; border-bottom: 3px solid transparent; }
-        .toc-group.collapsed > .toc-item > .toc-arrow { transform: rotate(90deg); }
+        .toc-arrow::after { content: ''; display: block; width: 0; height: 0; border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform 0.2s; }
+        .toc-group.collapsed > .toc-item > .toc-arrow::after { transform: rotate(90deg); }
 
         /* Level-specific styling */
         .toc-item[data-level="2"] a { font-weight: 600; }
@@ -372,6 +372,7 @@
                             requestAnimationFrame(function() { children.style.maxHeight = '0px'; });
                         }
                         updateAncestorHeights(children);
+                        updateActiveLink();
                     });
                 }
             });
