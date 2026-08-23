@@ -49,7 +49,7 @@ marked.use({
     },
     code({ text, lang }: { text: string; lang?: string; escaped?: boolean }): string {
       if (lang === 'mermaid') {
-        return `<div class="mermaid" role="img" aria-label="Mermaid diagram">${text}</div>`;
+        return `<div class="mermaid" role="img" aria-label="Mermaid diagram">${text.trim()}</div>`;
       }
       const escaped = text
         .replace(/&/g, '&amp;')
