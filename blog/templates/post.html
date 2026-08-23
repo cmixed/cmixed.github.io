@@ -376,41 +376,58 @@
                 }
             });
 
-            // TOC scroll tracking with O(1) active toggle
+            // TOC scroll tracking — scroll listener with position check
             var links = document.querySelectorAll('#tocLinks a');
             var linkMap = {};
-            links.forEach(function(a) { linkMap[a.getAttribute('href').slice(1)] = a; });
-            var ids = Object.keys(linkMap);
+            var headingEls = [];
+            links.forEach(function(a) {
+                var id = a.getAttribute('href').slice(1);
+                linkMap[id] = a;
+                var el = document.getElementById(id);
+                if (el) headingEls.push({ id: id, el: el });
+            });
             var currentActive = null;
-            var clickLock = false;
-            var observer = new IntersectionObserver(function(entries) {
-                entries.forEach(function(entry) {
-                    if (entry.isIntersecting && !clickLock) {
-                        var link = linkMap[entry.target.id];
-                        if (link && !link.closest('.toc-group.collapsed')) {
-                            if (currentActive) currentActive.classList.remove('active');
-                            link.classList.add('active');
-                            currentActive = link;
-                        }
-                    }
-                });
-            }, { rootMargin: '-80px 0px -70% 0px' });
-            ids.forEach(function(id) { var el = document.getElementById(id); if (el) observer.observe(el); });
 
-            // TOC link click: set active and lock observer briefly
+            function updateActiveLink() {
+                var scrollY = window.scrollY + 100;
+                var active = headingEls[0];
+                for (var i = 0; i < headingEls.length; i++) {
+                    if (headingEls[i].el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+                        active = headingEls[i];
+                    }
+                }
+                if (active && linkMap[active.id] && !linkMap[active.id].closest('.toc-group.collapsed')) {
+                    if (currentActive !== linkMap[active.id]) {
+                        if (currentActive) currentActive.classList.remove('active');
+                        linkMap[active.id].classList.add('active');
+                        currentActive = linkMap[active.id];
+                    }
+                }
+            }
+
+            var scrollTimer = null;
+            window.addEventListener('scroll', function() {
+                if (scrollTimer) return;
+                scrollTimer = setTimeout(function() {
+                    scrollTimer = null;
+                    updateActiveLink();
+                }, 50);
+            }, { passive: true });
+
+            // TOC link click: set active immediately, scroll, then re-sync
             links.forEach(function(a) {
                 a.addEventListener('click', function() {
                     var id = a.getAttribute('href').slice(1);
-                    var link = linkMap[id];
-                    if (link) {
+                    if (linkMap[id]) {
                         if (currentActive) currentActive.classList.remove('active');
-                        link.classList.add('active');
-                        currentActive = link;
-                        clickLock = true;
-                        setTimeout(function() { clickLock = false; }, 800);
+                        linkMap[id].classList.add('active');
+                        currentActive = linkMap[id];
                     }
                 });
             });
+
+            // Initial sync (handles direct URL with hash)
+            updateActiveLink();
 
             // Floating buttons
             var fabGroup = document.getElementById('fabGroup');
