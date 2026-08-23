@@ -341,6 +341,17 @@
             var mermaidEls = document.querySelectorAll('.mermaid');
             if (mermaidEls.length > 0) {
                 var mermaidInitTheme = htmlEl.getAttribute('data-theme') || 'dark';
+                function mermaidFallback() {
+                    mermaidEls.forEach(function(el) {
+                        if (el.tagName === 'PRE') return;
+                        var pre = document.createElement('pre');
+                        var code = document.createElement('code');
+                        code.className = 'language-mermaid';
+                        code.textContent = el.textContent;
+                        pre.appendChild(code);
+                        el.parentNode.replaceChild(pre, el);
+                    });
+                }
                 var mermaidScript = document.createElement('script');
                 mermaidScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js';
                 mermaidScript.crossOrigin = 'anonymous';
@@ -349,17 +360,14 @@
                         startOnLoad: false,
                         theme: mermaidInitTheme === 'dark' ? 'dark' : 'default',
                     });
-                    mermaid.run({ nodes: mermaidEls });
+                    mermaid.run({ nodes: mermaidEls }).catch(function(err) {
+                        console.error('Mermaid rendering failed:', err);
+                        mermaidFallback();
+                    });
                 };
                 mermaidScript.onerror = function() {
-                    mermaidEls.forEach(function(el) {
-                        var pre = document.createElement('pre');
-                        var code = document.createElement('code');
-                        code.className = 'language-mermaid';
-                        code.textContent = el.textContent;
-                        pre.appendChild(code);
-                        el.parentNode.replaceChild(pre, el);
-                    });
+                    console.error('Failed to load mermaid.js from CDN');
+                    mermaidFallback();
                 };
                 document.head.appendChild(mermaidScript);
             }
