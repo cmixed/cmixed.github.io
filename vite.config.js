@@ -4,8 +4,16 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'dist',
-    cssMinify: 'esbuild',
-    minify: 'esbuild',
+    rolldownOptions: {
+      output: {
+        minify: {
+          compress: {
+            dropConsole: true,
+            dropDebugger: true,
+          },
+        },
+      },
+    },
   },
   css: {
     devSourcemap: false,
