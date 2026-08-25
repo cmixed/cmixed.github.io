@@ -67,12 +67,38 @@
             .blog-page { padding: 2rem 1.25rem; }
             .blog-page h1 { font-size: 1.4rem; }
         }
+        @media (max-width: 480px) {
+            .blog-page { padding: 1.5rem 1rem; }
+            .blog-page h1 { font-size: 1.25rem; }
+            .blog-page-sub { font-size: 0.85rem; }
+            .blog-page-card { padding: 1.25rem; }
+            .blog-page-card-title { font-size: 1rem; }
+            .blog-page-card-desc { font-size: 0.8rem; }
+            .blog-nav { padding: 0.75rem 1rem; }
+        }
+        @media (max-width: 360px) {
+            .blog-page h1 { font-size: 1.15rem; }
+            .blog-page-card-title { font-size: 0.95rem; }
+            .blog-nav-logo { font-size: 1rem; }
+        }
         @media (min-width: 1024px) {
             .blog-page { max-width: 1000px; }
             .blog-page-list { grid-template-columns: repeat(2, 1fr); }
         }
         @media (min-width: 1280px) { .blog-page { max-width: 1120px; } }
         @media (min-width: 1536px) { .blog-page { max-width: 1280px; } }
+        @media (min-width: 1920px) {
+            .blog-page { max-width: 1400px; padding: 4rem 3rem; }
+            .blog-page-card { padding: 2rem; }
+            .blog-page-card-title { font-size: 1.2rem; }
+        }
+        @media (min-width: 2560px) {
+            .blog-page { max-width: 1500px; padding: 5rem 4rem; }
+            .blog-page-list { gap: 1.5rem; }
+            .blog-page-card { padding: 2.5rem; }
+            .blog-page-card-title { font-size: 1.3rem; }
+            .blog-page-card-desc { font-size: 0.95rem; }
+        }
     </style>
 </head>
 <body>

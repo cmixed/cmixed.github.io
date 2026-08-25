@@ -1128,6 +1128,59 @@ footer {
     }
 }
 
+/* --- Desktop 5K / 2560x1600 laptop (≥2560px) --- */
+@media (min-width: 2560px) {
+    section {
+        max-width: 1500px;
+        padding: 7rem 4rem;
+    }
+
+    .hero::before {
+        width: 1200px;
+        height: 1200px;
+    }
+
+    .hero-content {
+        max-width: 1000px;
+    }
+
+    .hero h1 {
+        font-size: clamp(3.5rem, 5vw, 5.5rem);
+    }
+
+    .typewriter {
+        font-size: 1.4rem;
+    }
+
+    .projects-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem;
+    }
+
+    .project-card {
+        padding: 2.5rem;
+    }
+
+    .contact-container {
+        padding: 5rem 4rem;
+    }
+
+    .social-link {
+        width: 56px;
+        height: 56px;
+    }
+
+    .social-link svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .about-avatar img {
+        width: 180px;
+        height: 180px;
+    }
+}
+
 /* ===== Accessibility: reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
