@@ -230,10 +230,61 @@
                 z-index: 199;
             }
             body.toc-open .blog-toc-overlay { display: block; }
+            body.toc-open .blog-article-layout { grid-template-columns: 1fr; }
             .blog-nav-posts { grid-template-columns: 1fr; }
             .blog-article-content h1 { font-size: 1.4rem; }
             table { font-size: 0.8rem; }
             th, td { padding: 0.4rem 0.5rem; }
+        }
+        @media (max-width: 480px) {
+            .blog-article-layout { padding: 1.5rem 1rem; }
+            .blog-article-content h1 { font-size: 1.25rem; }
+            .blog-article-content h2 { font-size: 1.15rem; }
+            .blog-article-content h3 { font-size: 1rem; }
+            .blog-article-content pre { padding: 0.75rem; font-size: 0.8rem; }
+            .blog-nav { padding: 0.75rem 1rem; }
+            .blog-nav-post-title { font-size: 0.85rem; }
+        }
+        @media (max-width: 360px) {
+            .blog-article-content h1 { font-size: 1.15rem; }
+            .blog-article-content h2 { font-size: 1.05rem; }
+            .blog-nav-logo { font-size: 1rem; }
+        }
+
+        /* Desktop: auto-show TOC sidebar, hide toggle button */
+        @media (min-width: 1024px) {
+            .blog-toc { display: block; }
+            .blog-article-layout { grid-template-columns: 200px 1fr; max-width: 1000px; }
+            body.toc-open .blog-article-layout { grid-template-columns: 200px 1fr; }
+            #tocToggle { display: none; }
+        }
+        @media (min-width: 1280px) {
+            .blog-article-layout { max-width: 1120px; grid-template-columns: 220px 1fr; }
+            body.toc-open .blog-article-layout { grid-template-columns: 220px 1fr; }
+        }
+        @media (min-width: 1536px) {
+            .blog-article-layout { max-width: 1280px; }
+        }
+        @media (min-width: 1920px) {
+            .blog-article-layout { max-width: 1400px; padding: 4rem 3rem; grid-template-columns: 240px 1fr; }
+            body.toc-open .blog-article-layout { grid-template-columns: 240px 1fr; }
+            .blog-article-content { font-size: 1.05rem; }
+            .blog-article-content h1 { font-size: 1.8rem; }
+            .blog-article-content h2 { font-size: 1.45rem; }
+            .blog-article-content h3 { font-size: 1.2rem; }
+            .toc-item a { font-size: 0.85rem; }
+        }
+        @media (min-width: 2560px) {
+            .blog-article-layout { max-width: 1500px; padding: 5rem 4rem; grid-template-columns: 260px 1fr; }
+            body.toc-open .blog-article-layout { grid-template-columns: 260px 1fr; }
+            .blog-article-content { font-size: 1.1rem; line-height: 2; }
+            .blog-article-content h1 { font-size: 2rem; }
+            .blog-article-content h2 { font-size: 1.55rem; }
+            .blog-article-content h3 { font-size: 1.3rem; }
+            .blog-nav-post { padding: 1.25rem 1.5rem; }
+            .blog-nav-post-title { font-size: 1rem; }
+            .toc-item a { font-size: 0.9rem; }
+            .blog-toc { max-height: calc(100vh - 80px); }
         }
     </style>
 </head>
@@ -473,7 +524,7 @@
             });
             // Close mobile TOC via event delegation (click on link text, not arrow)
             document.getElementById('tocLinks').addEventListener('click', function(e) {
-                if (window.innerWidth <= 768 && e.target.tagName === 'A' && !e.target.closest('.toc-arrow')) {
+                if (window.innerWidth < 1024 && e.target.tagName === 'A' && !e.target.closest('.toc-arrow')) {
                     document.body.classList.remove('toc-open');
                     tocBtn.classList.remove('active');
                     localStorage.setItem('toc-open', 'false');
