@@ -251,22 +251,20 @@
             .blog-nav-logo { font-size: 1rem; }
         }
 
-        /* Desktop: auto-show TOC sidebar, hide toggle button */
+        /* Desktop: responsive TOC sidebar widths */
         @media (min-width: 1024px) {
-            .blog-toc { display: block; }
-            .blog-article-layout { grid-template-columns: 200px 1fr; max-width: 1000px; }
+            .blog-article-layout { max-width: 1000px; }
             body.toc-open .blog-article-layout { grid-template-columns: 200px 1fr; }
-            #tocToggle { display: none; }
         }
         @media (min-width: 1280px) {
-            .blog-article-layout { max-width: 1120px; grid-template-columns: 220px 1fr; }
+            .blog-article-layout { max-width: 1120px; }
             body.toc-open .blog-article-layout { grid-template-columns: 220px 1fr; }
         }
         @media (min-width: 1536px) {
             .blog-article-layout { max-width: 1280px; }
         }
         @media (min-width: 1920px) {
-            .blog-article-layout { max-width: 1400px; padding: 4rem 3rem; grid-template-columns: 240px 1fr; }
+            .blog-article-layout { max-width: 1400px; padding: 4rem 3rem; }
             body.toc-open .blog-article-layout { grid-template-columns: 240px 1fr; }
             .blog-article-content { font-size: 1.05rem; }
             .blog-article-content h1 { font-size: 1.8rem; }
@@ -275,7 +273,7 @@
             .toc-item a { font-size: 0.85rem; }
         }
         @media (min-width: 2560px) {
-            .blog-article-layout { max-width: 1500px; padding: 5rem 4rem; grid-template-columns: 260px 1fr; }
+            .blog-article-layout { max-width: 1500px; padding: 5rem 4rem; }
             body.toc-open .blog-article-layout { grid-template-columns: 260px 1fr; }
             .blog-article-content { font-size: 1.1rem; line-height: 2; }
             .blog-article-content h1 { font-size: 2rem; }
@@ -508,7 +506,7 @@
             var tocBtn = document.getElementById('tocToggle');
             var tocOverlay = document.getElementById('tocOverlay');
             var savedToc = localStorage.getItem('toc-open');
-            if (savedToc === 'true') {
+            if (savedToc === 'true' || (savedToc === null && window.innerWidth >= 1024)) {
                 document.body.classList.add('toc-open');
                 tocBtn.classList.add('active');
             }
