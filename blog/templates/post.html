@@ -215,7 +215,7 @@
             .blog-toc {
                 position: fixed; top: 0; left: 0;
                 width: 85vw; max-width: 320px;
-                height: 100dvh;
+                height: 100vh; height: 100dvh;
                 box-sizing: border-box;
                 padding: 4.5rem 1rem 1rem;
                 padding-bottom: env(safe-area-inset-bottom, 1rem);
@@ -502,6 +502,19 @@
             document.getElementById('backToTop').addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
             document.getElementById('goBottom').addEventListener('click', function() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); });
 
+            // TOC height: sync with visualViewport for mobile browser chrome changes
+            var blogToc = document.getElementById('blogToc');
+            function syncTocHeight() {
+                if (window.innerWidth >= 1024) return;
+                var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                blogToc.style.height = vh + 'px';
+            }
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', syncTocHeight, { passive: true });
+            }
+            window.addEventListener('resize', syncTocHeight, { passive: true });
+            syncTocHeight();
+
             // TOC toggle
             var tocBtn = document.getElementById('tocToggle');
             var tocOverlay = document.getElementById('tocOverlay');
@@ -514,6 +527,7 @@
                 document.body.classList.toggle('toc-open');
                 tocBtn.classList.toggle('active', document.body.classList.contains('toc-open'));
                 localStorage.setItem('toc-open', document.body.classList.contains('toc-open'));
+                syncTocHeight();
             });
             tocOverlay.addEventListener('click', function() {
                 document.body.classList.remove('toc-open');
