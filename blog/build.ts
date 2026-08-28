@@ -153,6 +153,9 @@ marked.use({
   renderer: {
     image({ href, title, text }: { href: string; title?: string | null; text: string }): string {
       const titleAttr = title ? ` title="${title}"` : '';
+      if (text) {
+        return `<figure class="blog-img-figure"><img src="${href}" alt="${text}"${titleAttr} loading="lazy" decoding="async"><figcaption>${text}</figcaption></figure>`;
+      }
       return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" decoding="async">`;
     },
     link({ href, title, text }: { href: string; title?: string | null; text: string }): string {
