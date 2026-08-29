@@ -143,6 +143,8 @@ interface PostData {
   tags: string[];
   description: string;
   readTime: number;
+  wordCount: number;
+  imageCount: number;
   pinned: boolean;
   prev?: { slug: string; title: string } | null;
   next?: { slug: string; title: string } | null;
@@ -251,6 +253,16 @@ export function estimateReadTime(body: string): number {
   return Math.max(1, Math.ceil(words / 400));
 }
 
+export function countWords(body: string): number {
+  const text = body.replace(/[#*`[\]()>!-]/g, '').replace(/\s+/g, ' ').trim();
+  return text.length;
+}
+
+export function countImages(html: string): number {
+  const matches = html.match(/<img\b/g);
+  return matches ? matches.length : 0;
+}
+
 export function escapeXml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -350,6 +362,8 @@ async function build(): Promise<void> {
       tags: Array.isArray(meta.tags) ? meta.tags : [],
       description: meta.description || '',
       readTime,
+      wordCount: countWords(body),
+      imageCount: countImages(htmlWithMermaid),
       pinned: meta.pinned === true,
     });
 
@@ -466,6 +480,8 @@ async function build(): Promise<void> {
       date: post.date,
       updated: post.updated,
       readTime: String(post.readTime),
+      wordCount: String(post.wordCount),
+      imageCount: String(post.imageCount),
       tags: post.tags.map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
       toc,
       content,
@@ -559,7 +575,7 @@ ${sitemapUrls}
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
             <div class="blog-page-card-title">${escapeXml(p.title)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
-            <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)}</div>
+            <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · ${p.wordCount} 字 · ${p.imageCount} 张图片</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
         </a>`
     )
