@@ -1,6 +1,6 @@
 ---
 title: 资源名称
-category: docs
+category: doc
 description: 资源的简短描述，会显示在详情页标题下方
 file: example.pdf
 # date: 2026-01-15  # 可留空，自动使用文件修改日期

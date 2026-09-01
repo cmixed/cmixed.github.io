@@ -22,14 +22,14 @@ interface ResourceData {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  docs: '📄',
-  tools: '🔧',
+  doc: '📄',
+  tool: '🔧',
   code: '💻',
 };
 
 const CATEGORY_NAMES: Record<string, string> = {
-  docs: '文档',
-  tools: '工具',
+  doc: '文档',
+  tool: '工具',
   code: '代码',
 };
 
@@ -49,7 +49,7 @@ function formatFileSize(bytes: number): string {
 
 function discoverResources(): ResourceData[] {
   const results: ResourceData[] = [];
-  const categories = ['docs', 'tools', 'code'];
+  const categories = ['doc', 'tool', 'code'];
 
   for (const category of categories) {
     const categoryDir = join(filesDir, category);
