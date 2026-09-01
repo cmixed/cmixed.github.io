@@ -171,10 +171,12 @@ function renderResources(resources: ResourceData[]): string {
                 <span class="nook-card-category">${icon} ${catName}</span>
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
-            <div class="nook-card-tags">${tags}</div>
-            <div class="nook-card-meta">
-                <span class="nook-card-info">${metaStr}</span>
-                ${fileBtn}
+            <div class="nook-card-footer">
+                <div class="nook-card-tags">${tags}</div>
+                <div class="nook-card-meta">
+                    <span class="nook-card-info">${metaStr}</span>
+                    ${fileBtn}
+                </div>
             </div>
         </a>`;
     })
