@@ -139,7 +139,7 @@ function renderResources(resources: ResourceData[]): string {
       const catName = CATEGORY_NAMES[r.category] || r.category;
       const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
       const fileBtn = r.file
-        ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-download" download onclick="event.stopPropagation()">下载 ${escapeXml(r.file.split('.').pop() || '')}</a>`
+        ? `<button class="nook-download" onclick="event.preventDefault();event.stopPropagation();window.open('files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}','_self')">下载 ${escapeXml(r.file.split('.').pop() || '')}</button>`
         : `<span class="nook-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
       const metaParts = [];
       if (r.size) metaParts.push(escapeXml(r.size));
