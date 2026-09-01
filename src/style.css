@@ -730,7 +730,8 @@ section {
     transition: border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 .blog-preview-card:hover {
@@ -745,10 +746,14 @@ section {
     margin-bottom: 0.3rem;
 }
 
+.blog-preview-card-footer {
+    margin-top: auto;
+    padding-top: 0.6rem;
+}
+
 .blog-preview-card-meta {
     font-size: 0.8rem;
     color: var(--text-muted);
-    margin-bottom: 0.4rem;
 }
 
 .blog-preview-card-desc {
@@ -761,7 +766,7 @@ section {
     display: flex;
     gap: 0.4rem;
     flex-wrap: wrap;
-    margin-top: 0.6rem;
+    margin-bottom: 0.4rem;
 }
 
 .blog-preview-card-tags span {
@@ -792,7 +797,8 @@ section {
     transition: border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: relative;
 }
 
@@ -830,10 +836,14 @@ section {
     white-space: nowrap;
 }
 
+.nook-preview-card-footer {
+    margin-top: auto;
+    padding-top: 0.6rem;
+}
+
 .nook-preview-card-meta {
     font-size: 0.8rem;
     color: var(--text-muted);
-    margin-bottom: 0.4rem;
 }
 
 .nook-preview-card-desc {
@@ -846,7 +856,7 @@ section {
     display: flex;
     gap: 0.4rem;
     flex-wrap: wrap;
-    margin-top: 0.6rem;
+    margin-bottom: 0.4rem;
 }
 
 .nook-preview-card-tags span {
