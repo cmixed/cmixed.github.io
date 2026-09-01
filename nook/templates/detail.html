@@ -59,6 +59,11 @@
             color: var(--text-muted); background: var(--bg-secondary);
         }
         .nook-detail-actions { margin-top: 1.5rem; }
+        .nook-detail-desc {
+            color: var(--text-dim); font-size: 0.95rem; line-height: 1.7;
+            margin: 1.5rem 0; padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
         .nook-detail-download {
             display: inline-flex; align-items: center; gap: 0.5rem;
             padding: 0.75rem 1.5rem; background: var(--primary); color: #fff;
@@ -170,6 +175,7 @@
                 {{downloadBtn}}
             </div>
         </div>
+        <div class="nook-detail-desc">{{descriptionHtml}}</div>
         <div class="nook-detail-content">{{content}}</div>
     </div>
 
