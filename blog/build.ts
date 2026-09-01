@@ -202,9 +202,9 @@ marked.use({
   ],
 });
 
-const postsDir = join(__dirname, 'posts');
+const postsDir = join(__dirname, 'post');
 const outDir = join(__dirname, '..', 'dist', 'blog');
-const templatesDir = join(__dirname, 'templates');
+const templatesDir = join(__dirname, 'template');
 
 export function renderTemplate(template: string, data: Record<string, string>): string {
   return Object.entries(data).reduce(

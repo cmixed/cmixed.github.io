@@ -204,7 +204,7 @@ function renderDetailPage(r: ResourceData): string {
     ? `<p class="nook-detail-desc">${escapeXml(r.description)}</p>`
     : '';
 
-  const tpl = readFileSync(join(__dirname, 'templates', 'detail.html'), 'utf-8');
+  const tpl = readFileSync(join(__dirname, 'template', 'detail.html'), 'utf-8');
   const pinMark = r.pin ? '📌 ' : '';
   return tpl
     .replace(/\{\{title\}\}/g, pinMark + escapeXml(r.title))
@@ -287,7 +287,40 @@ async function build(): Promise<void> {
   }));
   writeFileSync(join(outDir, 'data.json'), JSON.stringify({ resources: dataJson, categories }, null, 2));
 
-  console.log(`✓ ${resources.length} resources, ${categories.length} categories`);
+  // Generate RSS feed
+  const rssItems = resources
+    .sort((a, b) => {
+      if (a.pin !== b.pin) return a.pin ? -1 : 1;
+      return b.date.localeCompare(a.date);
+    })
+    .map(
+      (r) => `
+    <item>
+        <title>${escapeXml(r.title)}</title>
+        <link>https://cmixed.github.io/nook/${encodeURIComponent(r.id)}.html</link>
+        <description>${escapeXml(r.description)}</description>
+        <pubDate>${new Date(r.date).toUTCString()}</pubDate>
+        <guid>https://cmixed.github.io/nook/${encodeURIComponent(r.id)}.html</guid>
+    </item>`
+    )
+    .join('');
+
+  const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+    <title>cmixed 资源小窝</title>
+    <link>https://cmixed.github.io/nook/</link>
+    <atom:link href="https://cmixed.github.io/nook/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>实用工具、文档与代码资源</description>
+    <language>zh-cn</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    ${rssItems}
+</channel>
+</rss>`;
+
+  writeFileSync(join(outDir, 'feed.xml'), rss);
+
+  console.log(`✓ ${resources.length} resources, ${categories.length} categories, RSS feed`);
 }
 
 // Only run build when executed directly, not when imported

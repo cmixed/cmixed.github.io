@@ -6,6 +6,6 @@ export default defineConfig(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['dist/', 'node_modules/', 'blog/posts/']
+    ignores: ['dist/', 'node_modules/', 'blog/post/']
   }
 );
