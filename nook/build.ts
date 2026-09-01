@@ -13,6 +13,8 @@ interface ResourceData {
   title: string;
   category: string;
   file: string | null;
+  url: string;
+  pin: boolean;
   size: string;
   date: string;
   tags: string[];
@@ -25,12 +27,14 @@ const CATEGORY_ICONS: Record<string, string> = {
   doc: '📄',
   tool: '🔧',
   code: '💻',
+  website: '🌐',
 };
 
 const CATEGORY_NAMES: Record<string, string> = {
   doc: '文档',
   tool: '工具',
   code: '代码',
+  website: '网站',
 };
 
 function truncateText(text: string, maxLen: number): string {
@@ -49,7 +53,7 @@ function formatFileSize(bytes: number): string {
 
 function discoverResources(): ResourceData[] {
   const results: ResourceData[] = [];
-  const categories = ['doc', 'tool', 'code'];
+  const categories = ['doc', 'tool', 'code', 'website'];
 
   for (const category of categories) {
     const categoryDir = join(filesDir, category);
@@ -73,6 +77,8 @@ function discoverResources(): ResourceData[] {
       const raw = readFileSync(mdPath, 'utf-8');
       const { meta, body } = parseFrontmatter(raw);
       const description = (meta.description as string) || truncateText(body, 120);
+      const resourceUrl = (meta.url as string) || '';
+      const isPinned = meta.pin === true || meta.pin === 'true';
 
       let filePath: string | null = null;
       let fileSize = '';
@@ -88,6 +94,8 @@ function discoverResources(): ResourceData[] {
         } catch {
           console.warn(`  ⚠ File not found: ${entry.name}/${meta.file}`);
         }
+      } else if (resourceUrl) {
+        fileSize = '外部链接';
       }
       if (!resourceDate) {
         try {
@@ -103,6 +111,8 @@ function discoverResources(): ResourceData[] {
         title: meta.title || entry.name,
         category: meta.category || category,
         file: filePath,
+        url: resourceUrl,
+        pin: isPinned,
         size: fileSize,
         date: resourceDate,
         tags: Array.isArray(meta.tags) ? meta.tags : [],
@@ -113,7 +123,10 @@ function discoverResources(): ResourceData[] {
     }
   }
 
-  results.sort((a, b) => b.date.localeCompare(a.date));
+  results.sort((a, b) => {
+    if (a.pin !== b.pin) return a.pin ? -1 : 1;
+    return b.date.localeCompare(a.date);
+  });
   return results;
 }
 
@@ -138,17 +151,23 @@ function renderResources(resources: ResourceData[]): string {
       const icon = CATEGORY_ICONS[r.category] || '📦';
       const catName = CATEGORY_NAMES[r.category] || r.category;
       const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
-      const fileBtn = r.file
-        ? `<button class="nook-download" onclick="event.preventDefault();event.stopPropagation();window.open('files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}','_self')">下载 ${escapeXml(r.file.split('.').pop() || '')}</button>`
-        : `<span class="nook-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
+      let fileBtn: string;
+      if (r.url) {
+        fileBtn = `<button class="nook-download nook-btn-website" onclick="event.preventDefault();event.stopPropagation();window.open('${escapeXml(r.url)}','_blank','noopener')">访问网站 →</button>`;
+      } else if (r.file) {
+        fileBtn = `<button class="nook-download" onclick="event.preventDefault();event.stopPropagation();window.open('files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}','_self')">下载 ${escapeXml(r.file.split('.').pop() || '')}</button>`;
+      } else {
+        fileBtn = `<span class="nook-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
+      }
       const metaParts = [];
       if (r.size) metaParts.push(escapeXml(r.size));
       if (r.date) metaParts.push(escapeXml(r.date));
       const metaStr = metaParts.join(' · ');
+      const pinMark = r.pin ? '📌 ' : '';
 
-      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item" data-category="${escapeXml(r.category)}">
+      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}">
             <div class="nook-card-header">
-                <div class="nook-card-title">${escapeXml(r.title)}</div>
+                <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
                 <span class="nook-card-category">${icon} ${catName}</span>
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
@@ -170,17 +189,23 @@ function renderDetailPage(r: ResourceData): string {
   if (r.size) metaParts.push(escapeXml(r.size));
   if (r.date) metaParts.push(escapeXml(r.date));
   const metaStr = metaParts.join(' · ');
-  const downloadBtn = r.file
-    ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`
-    : `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
+  let downloadBtn: string;
+  if (r.url) {
+    downloadBtn = `<a href="${escapeXml(r.url)}" class="nook-detail-download nook-btn-website" target="_blank" rel="noopener">访问网站 →</a>`;
+  } else if (r.file) {
+    downloadBtn = `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`;
+  } else {
+    downloadBtn = `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
+  }
   const content = marked.parse(r.body);
   const descriptionHtml = r.description
     ? `<p class="nook-detail-desc">${escapeXml(r.description)}</p>`
     : '';
 
   const tpl = readFileSync(join(__dirname, 'templates', 'detail.html'), 'utf-8');
+  const pinMark = r.pin ? '📌 ' : '';
   return tpl
-    .replace(/\{\{title\}\}/g, escapeXml(r.title))
+    .replace(/\{\{title\}\}/g, pinMark + escapeXml(r.title))
     .replace('{{description}}', escapeXml(r.description))
     .replace('{{slug}}', encodeURIComponent(r.id))
     .replace('{{categoryIcon}}', icon)
