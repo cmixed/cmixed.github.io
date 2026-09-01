@@ -67,7 +67,7 @@
 
         .nook-card {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 1.5rem; position: relative; display: block;
+            padding: 1.5rem; position: relative; display: flex; flex-direction: column;
             text-decoration: none; color: inherit;
             transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
             box-shadow: 0 4px 20px var(--shadow);
@@ -98,7 +98,7 @@
             border: 1px solid var(--border); border-radius: 3px;
             color: var(--text-muted); background: var(--bg-secondary);
         }
-        .nook-card-meta { display: flex; justify-content: space-between; align-items: center; }
+        .nook-card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
         .nook-card-info { font-size: 0.8rem; color: var(--text-muted); }
         .nook-download {
             display: inline-flex; align-items: center; gap: 0.4rem;
