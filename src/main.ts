@@ -221,7 +221,7 @@ async function loadBlogPreview(): Promise<void> {
       .map(
         (p) => `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card">
-                <div class="blog-preview-card-title">${escapeHtml(p.title)}</div>
+                <div class="blog-preview-card-title">${p.pinned ? '📌 ' : ''}${escapeHtml(p.title)}</div>
                 <div class="blog-preview-card-tags">
                     ${p.tags.map((t) => `<span>${escapeHtml(t)}</span>`).join('')}
                 </div>
