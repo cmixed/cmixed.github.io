@@ -46,7 +46,8 @@
         .nook-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
         .nook-nav a:hover { color: var(--primary); }
         .nook-nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); }
-        .nook-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+        .nook-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text-dim); }
+        .nook-nav-active { color: var(--text) !important; }
         .nook-nav-right { display: flex; align-items: center; gap: 1rem; }
 
         .nook-filter {
@@ -62,7 +63,7 @@
         .nook-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
         .nook-page-sub { color: var(--text-dim); margin-bottom: 2.5rem; }
         .nook-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
-        .nook-grid { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+        .nook-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 
         .nook-card {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
@@ -134,7 +135,6 @@
         }
         @media (min-width: 1024px) {
             .nook-page { max-width: 1000px; }
-            .nook-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (min-width: 1280px) { .nook-page { max-width: 1120px; } }
         @media (min-width: 1536px) { .nook-page { max-width: 1280px; } }
@@ -176,7 +176,8 @@
     <nav class="nook-nav">
         <div class="nook-nav-left">
             <a href="../" class="nook-nav-logo">&larr; cmixed</a>
-            <a href="./" class="nook-nav-title">资源小窝</a>
+            <a href="../blog/" class="nook-nav-title">博客</a>
+            <a href="./" class="nook-nav-title nook-nav-active">资源小窝</a>
         </div>
         <div class="nook-nav-right">
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">

@@ -96,8 +96,9 @@
         .blog-nav-title {
             font-weight: 600;
             font-size: 0.95rem;
-            color: var(--text);
+            color: var(--text-dim);
         }
+        .blog-nav-active { color: var(--text) !important; }
 
         .blog-nav-right {
             display: flex;
@@ -868,7 +869,8 @@
     <nav class="blog-nav">
         <div class="blog-nav-left">
             <a href="../" class="logo blog-nav-logo">&larr; cmixed</a>
-            <a href="./" class="blog-nav-title">博客</a>
+            <a href="./" class="blog-nav-title blog-nav-active">博客</a>
+            <a href="../nook/" class="blog-nav-title">资源小窝</a>
         </div>
         <div class="blog-nav-right">
             <a href="feed.xml" title="RSS 订阅" class="blog-nav-rss">&#9741;</a>
