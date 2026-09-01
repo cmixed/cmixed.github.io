@@ -552,13 +552,16 @@ ${sitemapUrls}
     .join('');
   const postsHtml = posts
     .map(
-      (p) => `
-        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
-            <div class="blog-page-card-title">${escapeXml(p.title)}</div>
+      (p) => {
+        const pinMark = p.pinned ? '📌 ' : '';
+        return `
+        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
+            <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
             <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · ${p.wordCount} 字 · ${p.imageCount} 张图片</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
-        </a>`
+        </a>`;
+      }
     )
     .join('');
   const indexHtml = indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml);

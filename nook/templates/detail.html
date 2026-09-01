@@ -39,7 +39,8 @@
         .nook-detail-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
         .nook-detail-nav a:hover { color: var(--primary); }
         .nook-detail-nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); }
-        .nook-detail-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+        .nook-detail-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text-dim); }
+        .nook-detail-nav-active { color: var(--text) !important; }
         .nook-detail-nav-right { display: flex; align-items: center; gap: 1rem; }
 
         .nook-detail { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
@@ -152,7 +153,8 @@
     <nav class="nook-detail-nav">
         <div class="nook-detail-nav-left">
             <a href="../" class="nook-detail-nav-logo">&larr; cmixed</a>
-            <a href="./" class="nook-detail-nav-title">资源小窝</a>
+            <a href="../blog/" class="nook-detail-nav-title">博客</a>
+            <a href="./" class="nook-detail-nav-title nook-detail-nav-active">资源小窝</a>
         </div>
         <div class="nook-detail-nav-right">
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
