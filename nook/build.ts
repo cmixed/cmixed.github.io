@@ -174,6 +174,10 @@ function renderDetailPage(r: ResourceData): string {
     ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`
     : `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
   const content = marked.parse(r.body);
+  const firstParagraph = r.body.split('\n\n')[0] || '';
+  const descriptionHtml = firstParagraph
+    ? `<p class="nook-detail-desc">${escapeXml(firstParagraph)}</p>`
+    : '';
 
   const tpl = readFileSync(join(__dirname, 'templates', 'detail.html'), 'utf-8');
   return tpl
@@ -186,6 +190,7 @@ function renderDetailPage(r: ResourceData): string {
     .replace('{{date}}', '')
     .replace('{{tags}}', tags)
     .replace('{{downloadBtn}}', downloadBtn)
+    .replace('{{descriptionHtml}}', descriptionHtml)
     .replace('{{content}}', content);
 }
 
