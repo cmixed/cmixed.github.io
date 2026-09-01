@@ -1360,4 +1360,4 @@ html.reduce-motion .hero-content > * {
 .blog-nav-right, .nook-nav-right, .nook-detail-nav-right {
     display: flex; align-items: center; gap: 1rem;
 }
-.blog-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }
+.blog-nav-rss, .nook-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }

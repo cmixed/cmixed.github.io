@@ -32,7 +32,7 @@ async function processDirectory(dirPath: string): Promise<void> {
   }
 }
 
-const postsDir = join(__dirname, '..', 'blog', 'posts');
+const postsDir = join(__dirname, '..', 'blog', 'post');
 console.log('Converting PNG to AVIF...');
 await processDirectory(postsDir);
 console.log('Done!');
