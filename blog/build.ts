@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync, unlinkSync } from 'fs';
 import { join, basename } from 'path';
 import { marked } from 'marked';
+import { parseFrontmatter as parseFrontmatterBase, escapeXml } from '../src/lib/build-utils';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 import { execFile } from 'child_process';
@@ -120,7 +121,9 @@ function buildMermaidImgHtml(hash: string, w: number, h: number): string {
 </div>`;
 }
 
-interface PostMeta {
+export { escapeXml };
+
+interface PostMeta extends Record<string, unknown> {
   title?: string;
   date?: string;
   updated?: string;
@@ -128,6 +131,11 @@ interface PostMeta {
   description?: string;
   pinned?: boolean;
 }
+
+function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
+  return parseFrontmatterBase<PostMeta>(content);
+}
+export { parseFrontmatter };
 
 interface PostInfo {
   mdPath: string;
@@ -212,31 +220,6 @@ export function renderTemplate(template: string, data: Record<string, string>): 
   );
 }
 
-export function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
-  content = content.replace(/\r\n/g, '\n');
-  let match = content.match(/^---\n([\s\S]*?)\n\n?---\n([\s\S]*)$/);
-  if (!match) match = content.match(/^[^\n]*\n+---\n([\s\S]*?)\n\n?---\n([\s\S]*)$/);
-  if (!match) return { meta: {}, body: content };
-  const yaml = match[1],
-    body = match[2],
-    meta: PostMeta = {};
-  for (const line of yaml.split('\n')) {
-    const idx = line.indexOf(':');
-    if (idx === -1) continue;
-    const key = line.slice(0, idx).trim();
-    let val: string | string[] | boolean = line.slice(idx + 1).trim();
-    if (val === 'true') val = true;
-    else if (val === 'false') val = false;
-    else if (val.startsWith('[') && val.endsWith(']'))
-      val = val
-        .slice(1, -1)
-        .split(',')
-        .map((s) => s.trim());
-    (meta as Record<string, unknown>)[key] = val;
-  }
-  return { meta, body };
-}
-
 function copyDirSync(src: string, dest: string): void {
   mkdirSync(dest, { recursive: true });
   for (const entry of readdirSync(src, { withFileTypes: true })) {
@@ -261,15 +244,6 @@ export function countWords(body: string): number {
 export function countImages(html: string): number {
   const matches = html.match(/<img\b/g);
   return matches ? matches.length : 0;
-}
-
-export function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
 }
 
 function slugify(text: string): string {
