@@ -733,6 +733,7 @@ section {
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .blog-preview-card::before {
@@ -812,6 +813,7 @@ section {
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .nook-preview-card:hover {
