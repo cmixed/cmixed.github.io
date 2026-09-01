@@ -72,7 +72,7 @@ function discoverResources(): ResourceData[] {
 
       const raw = readFileSync(mdPath, 'utf-8');
       const { meta, body } = parseFrontmatter(raw);
-      const description = truncateText(body, 120);
+      const description = (meta.description as string) || truncateText(body, 120);
 
       let filePath: string | null = null;
       let fileSize = '';
@@ -174,9 +174,8 @@ function renderDetailPage(r: ResourceData): string {
     ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`
     : `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
   const content = marked.parse(r.body);
-  const firstParagraph = r.body.split('\n\n')[0] || '';
-  const descriptionHtml = firstParagraph
-    ? `<p class="nook-detail-desc">${escapeXml(firstParagraph)}</p>`
+  const descriptionHtml = r.description
+    ? `<p class="nook-detail-desc">${escapeXml(r.description)}</p>`
     : '';
 
   const tpl = readFileSync(join(__dirname, 'templates', 'detail.html'), 'utf-8');
