@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="cmixed 的技术博客 - C++、Rust、系统编程、AI 应用">
-    <meta name="color-scheme" content="dark light">
     <link rel="icon" type="image/png" sizes="32x32" href="../cm-32x32.png">
     <link rel="icon" type="image/png" href="../cm-192x192.png">
     <link rel="apple-touch-icon" href="../cm-192x192.png">
@@ -99,25 +98,6 @@
             .blog-page-card { padding: 2.5rem; }
             .blog-page-card-title { font-size: 1.3rem; }
             .blog-page-card-desc { font-size: 0.95rem; }
-        }
-
-        @media (hover: none) and (pointer: coarse) {
-            .blog-page-card:hover { transform: none; }
-            .blog-tag { min-height: 44px; padding: 0.5rem 1rem; }
-            .blog-sort-btn { min-height: 44px; padding: 0.5rem 1rem; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { transition-duration: 0.01ms !important; }
-        }
-        html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
-            transition-duration: 0.01ms !important;
-        }
-
-        @media print {
-            .blog-nav, .blog-sort, .blog-page-tags { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .blog-page-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
         }
     </style>
 </head>
