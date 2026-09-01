@@ -1335,3 +1335,29 @@ html.reduce-motion .hero-content > * {
     section { break-inside: avoid; }
     .about-avatar img { filter: none; }
 }
+
+/* ===== SHARED NAV STYLES ===== */
+.blog-nav, .nook-nav, .nook-detail-nav {
+    position: sticky; top: 0; width: 100%; padding: 1rem 2rem;
+    background: rgba(var(--bg-rgb), 0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.blog-nav-left, .nook-nav-left, .nook-detail-nav-left {
+    display: flex; align-items: center; gap: 1.5rem;
+}
+.blog-nav a, .nook-nav a, .nook-detail-nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s;
+}
+.blog-nav a:hover, .nook-nav a:hover, .nook-detail-nav a:hover { color: var(--primary); }
+.blog-nav-logo, .nook-nav-logo, .nook-detail-nav-logo {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary);
+}
+.blog-nav-title, .nook-nav-title, .nook-detail-nav-title {
+    font-weight: 600; font-size: 0.95rem; color: var(--text-dim);
+}
+.blog-nav-active, .nook-nav-active, .nook-detail-nav-active { color: var(--text) !important; }
+.blog-nav-right, .nook-nav-right, .nook-detail-nav-right {
+    display: flex; align-items: center; gap: 1rem;
+}
+.blog-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }
