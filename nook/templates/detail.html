@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <script>
+        var t = localStorage.getItem('theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+        else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'light');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{description}}">
+    <meta name="color-scheme" content="dark light">
+    <meta property="og:title" content="{{title}} · cmixed 资源小窝">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://cmixed.github.io/nook/{{slug}}.html">
+    <meta property="og:image" content="https://cmixed.github.io/og-image.svg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="cmixed 资源小窝">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{title}} · cmixed 资源小窝">
+    <meta name="twitter:description" content="{{description}}">
+    <link rel="icon" type="image/png" sizes="32x32" href="../nook-32x32.png">
+    <link rel="icon" type="image/png" href="../nook-192x192.png">
+    <link rel="apple-touch-icon" href="../nook-192x192.png">
+    <link rel="stylesheet" href="style.css">
+    <title>{{title}} · 资源小窝</title>
+    <style>
+        body { padding-top: 0; transition: background 0.3s, color 0.3s; }
+
+        .nook-detail-nav {
+            position: sticky; top: 0; width: 100%; padding: 1rem 2rem;
+            background: rgba(var(--bg-rgb), 0.9); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .nook-detail-nav-left { display: flex; align-items: center; gap: 1.5rem; }
+        .nook-detail-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .nook-detail-nav a:hover { color: var(--primary); }
+        .nook-detail-nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); }
+        .nook-detail-nav-title { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+        .nook-detail-nav-right { display: flex; align-items: center; gap: 1rem; }
+
+        .nook-detail { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
+        .nook-detail-header { margin-bottom: 2rem; }
+        .nook-detail-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.75rem; }
+        .nook-detail-meta { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+        .nook-detail-category {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.2rem 0.6rem; background: var(--primary-dim);
+            color: var(--primary); border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+        }
+        .nook-detail-info { font-size: 0.85rem; color: var(--text-muted); }
+        .nook-detail-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .nook-detail-tags span {
+            font-size: 0.75rem; padding: 0.2rem 0.6rem;
+            border: 1px solid var(--border); border-radius: 4px;
+            color: var(--text-muted); background: var(--bg-secondary);
+        }
+        .nook-detail-actions { margin-top: 1.5rem; }
+        .nook-detail-download {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.75rem 1.5rem; background: var(--primary); color: #fff;
+            border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500;
+            text-decoration: none; transition: background 0.3s, transform 0.3s, color 0.3s;
+        }
+        .nook-detail-download:hover { background: transparent; color: var(--primary); transform: translateY(-2px); }
+
+        .nook-detail-content {
+            color: var(--text); font-size: 1rem; line-height: 1.8;
+            border-top: 1px solid var(--border); padding-top: 2rem;
+        }
+        .nook-detail-content h1 { font-size: 1.5rem; font-weight: 700; margin: 2rem 0 1rem; }
+        .nook-detail-content h2 { font-size: 1.3rem; font-weight: 700; margin: 1.75rem 0 0.75rem; }
+        .nook-detail-content h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+        .nook-detail-content p { margin-bottom: 1rem; }
+        .nook-detail-content ul, .nook-detail-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        .nook-detail-content li { margin-bottom: 0.5rem; }
+        .nook-detail-content code {
+            background: var(--bg-secondary); padding: 0.15rem 0.4rem;
+            border-radius: 4px; font-size: 0.9em;
+        }
+        .nook-detail-content pre {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem;
+        }
+        .nook-detail-content pre code { background: none; padding: 0; }
+        .nook-detail-content a { color: var(--primary); text-decoration: underline; }
+        .nook-detail-content a:hover { opacity: 0.8; }
+        .nook-detail-content blockquote {
+            border-left: 3px solid var(--primary); padding-left: 1rem;
+            color: var(--text-dim); margin-bottom: 1rem;
+        }
+        .nook-detail-content strong { font-weight: 600; }
+
+        .nook-detail-back {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            color: var(--text-dim); text-decoration: none; font-size: 0.9rem;
+            margin-bottom: 2rem; transition: color 0.3s;
+        }
+        .nook-detail-back:hover { color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .nook-detail { padding: 2rem 1.25rem; }
+            .nook-detail-title { font-size: 1.4rem; }
+        }
+        @media (max-width: 480px) {
+            .nook-detail { padding: 1.5rem 1rem; }
+            .nook-detail-title { font-size: 1.25rem; }
+            .nook-detail-nav { padding: 0.75rem 1rem; }
+            .nook-detail-content { font-size: 0.95rem; }
+        }
+        @media (min-width: 1024px) { .nook-detail { max-width: 900px; } }
+        @media (min-width: 1280px) { .nook-detail { max-width: 1000px; } }
+        @media (min-width: 1920px) {
+            .nook-detail { max-width: 1100px; padding: 4rem 3rem; }
+            .nook-detail-title { font-size: 2rem; }
+        }
+        @media (min-width: 2560px) {
+            .nook-detail { max-width: 1200px; padding: 5rem 4rem; }
+            .nook-detail-title { font-size: 2.2rem; }
+            .nook-detail-content { font-size: 1.05rem; }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .nook-detail-download { min-height: 48px; padding: 0.8rem 1.5rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: 0.01ms !important; }
+        }
+        html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+            transition-duration: 0.01ms !important;
+        }
+
+        @media print {
+            .nook-detail-nav, .nook-detail-actions, .nook-detail-back { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .nook-detail-content { border-top: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nook-detail-nav">
+        <div class="nook-detail-nav-left">
+            <a href="../" class="nook-detail-nav-logo">&larr; cmixed</a>
+            <a href="./" class="nook-detail-nav-title">资源小窝</a>
+        </div>
+        <div class="nook-detail-nav-right">
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <div class="theme-toggle-slider">
+                    <span class="theme-icon moon-icon">&#9684;</span>
+                    <span class="theme-icon sun-icon">&#9685;</span>
+                </div>
+            </button>
+        </div>
+    </nav>
+
+    <div class="nook-detail">
+        <a href="./" class="nook-detail-back">&larr; 返回资源列表</a>
+        <div class="nook-detail-header">
+            <h1 class="nook-detail-title">{{title}}</h1>
+            <div class="nook-detail-meta">
+                <span class="nook-detail-category">{{categoryIcon}} {{categoryName}}</span>
+                <span class="nook-detail-info">{{size}} · {{date}}</span>
+            </div>
+            <div class="nook-detail-tags">{{tags}}</div>
+            <div class="nook-detail-actions">
+                {{downloadBtn}}
+            </div>
+        </div>
+        <div class="nook-detail-content">{{content}}</div>
+    </div>
+
+    <script>
+        (function() {
+            var htmlEl = document.documentElement;
+            var saved = localStorage.getItem('theme');
+            if (saved) htmlEl.setAttribute('data-theme', saved);
+            else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) htmlEl.setAttribute('data-theme', 'light');
+
+            document.getElementById('themeToggle').addEventListener('click', function() {
+                var t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                htmlEl.setAttribute('data-theme', t);
+                localStorage.setItem('theme', t);
+            });
+        })();
+    </script>
+</body>
+</html>
