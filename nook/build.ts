@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, stat
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { parseFrontmatter, escapeXml } from '../src/lib/build-utils';
+import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const filesDir = join(__dirname, 'files');
@@ -16,6 +17,7 @@ interface ResourceData {
   date: string;
   tags: string[];
   description: string;
+  body: string;
   dirPath: string;
 }
 
@@ -105,6 +107,7 @@ function discoverResources(): ResourceData[] {
         date: resourceDate,
         tags: Array.isArray(meta.tags) ? meta.tags : [],
         description,
+        body,
         dirPath,
       });
     }
@@ -136,14 +139,14 @@ function renderResources(resources: ResourceData[]): string {
       const catName = CATEGORY_NAMES[r.category] || r.category;
       const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
       const fileBtn = r.file
-        ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-download" download>下载 ${escapeXml(r.file.split('.').pop() || '')}</a>`
+        ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-download" download onclick="event.stopPropagation()">下载 ${escapeXml(r.file.split('.').pop() || '')}</a>`
         : `<span class="nook-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
       const metaParts = [];
       if (r.size) metaParts.push(escapeXml(r.size));
       if (r.date) metaParts.push(escapeXml(r.date));
       const metaStr = metaParts.join(' · ');
 
-      return `<article class="nook-card fade-in-item" data-category="${escapeXml(r.category)}">
+      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item" data-category="${escapeXml(r.category)}">
             <div class="nook-card-header">
                 <div class="nook-card-title">${escapeXml(r.title)}</div>
                 <span class="nook-card-category">${icon} ${catName}</span>
@@ -154,9 +157,36 @@ function renderResources(resources: ResourceData[]): string {
                 <span class="nook-card-info">${metaStr}</span>
                 ${fileBtn}
             </div>
-        </article>`;
+        </a>`;
     })
     .join('');
+}
+
+function renderDetailPage(r: ResourceData): string {
+  const icon = CATEGORY_ICONS[r.category] || '📦';
+  const catName = CATEGORY_NAMES[r.category] || r.category;
+  const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
+  const metaParts = [];
+  if (r.size) metaParts.push(escapeXml(r.size));
+  if (r.date) metaParts.push(escapeXml(r.date));
+  const metaStr = metaParts.join(' · ');
+  const downloadBtn = r.file
+    ? `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`
+    : `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
+  const content = marked.parse(r.body);
+
+  const tpl = readFileSync(join(__dirname, 'templates', 'detail.html'), 'utf-8');
+  return tpl
+    .replace(/\{\{title\}\}/g, escapeXml(r.title))
+    .replace('{{description}}', escapeXml(r.description))
+    .replace('{{slug}}', encodeURIComponent(r.id))
+    .replace('{{categoryIcon}}', icon)
+    .replace('{{categoryName}}', catName)
+    .replace('{{size}}', metaStr)
+    .replace('{{date}}', '')
+    .replace('{{tags}}', tags)
+    .replace('{{downloadBtn}}', downloadBtn)
+    .replace('{{content}}', content);
 }
 
 async function build(): Promise<void> {
@@ -171,6 +201,12 @@ async function build(): Promise<void> {
   const template = readFileSync(join(__dirname, 'index.html'), 'utf-8');
   const html = template.replace('{{filters}}', filtersHtml).replace('{{resources}}', resourcesHtml);
   writeFileSync(join(outDir, 'index.html'), html);
+
+  // Generate detail pages
+  for (const r of resources) {
+    const detailHtml = renderDetailPage(r);
+    writeFileSync(join(outDir, `${r.id}.html`), detailHtml);
+  }
 
   // Copy 404 page
   const notFoundSrc = join(__dirname, '404.html');
