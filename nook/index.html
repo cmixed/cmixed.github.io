@@ -64,11 +64,11 @@
         .nook-card.fade-in-item.visible { opacity: 1; transform: translateY(0); }
         .nook-card::before {
             content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 3px; background: var(--primary);
-            transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+            width: 100%; height: 2px; background: var(--primary);
+            transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
         }
         .nook-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 40px var(--shadow); }
-        .nook-card:hover::before { transform: scaleX(1); }
+        .nook-card:hover::before { transform: scaleX(1); height: 4px; }
 
         .nook-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; }
         .nook-card-title { font-weight: 700; font-size: 1.1rem; color: var(--text); }
@@ -96,7 +96,7 @@
         }
         .nook-download:hover { background: transparent; color: var(--primary); transform: translateY(-1px); }
         .nook-card-pin { border-color: var(--primary-dim); }
-        .nook-card-pin::before { transform: scaleX(1); opacity: 0.3; }
+        .nook-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
         .nook-btn-website { background: var(--bg-secondary); color: var(--primary); border: 1px solid var(--primary); }
         .nook-btn-website:hover { background: var(--primary); color: #fff; }
 

@@ -738,8 +738,8 @@ section {
 
 .blog-preview-card::before {
     content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 3px; background: var(--primary);
-    transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+    width: 100%; height: 2px; background: var(--primary);
+    transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
 }
 
 .blog-preview-card:hover {
@@ -748,10 +748,10 @@ section {
     box-shadow: 0 4px 20px var(--shadow);
 }
 
-.blog-preview-card:hover::before { transform: scaleX(1); }
+.blog-preview-card:hover::before { transform: scaleX(1); height: 4px; }
 
 .blog-preview-card-pin { border-color: var(--primary-dim); }
-.blog-preview-card-pin::before { transform: scaleX(1); opacity: 0.3; }
+.blog-preview-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
 
 .blog-preview-card-title {
     font-weight: 700;
@@ -816,18 +816,22 @@ section {
     overflow: hidden;
 }
 
+.nook-preview-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 100%; height: 2px; background: var(--primary);
+    transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
+}
+
 .nook-preview-card:hover {
     border-color: var(--primary);
     transform: translateY(-2px);
     box-shadow: 0 4px 20px var(--shadow);
 }
 
+.nook-preview-card:hover::before { transform: scaleX(1); height: 4px; }
+
 .nook-preview-card-pin { border-color: var(--primary-dim); }
-.nook-preview-card-pin::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 3px; background: var(--primary);
-    transform: scaleX(1); transform-origin: left; opacity: 0.3;
-}
+.nook-preview-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
 
 .nook-preview-card-header {
     display: flex;
