@@ -777,8 +777,88 @@ section {
     margin-top: 2rem;
 }
 
+/* ===== NOOK PREVIEW ===== */
+.nook-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.nook-preview-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    transition: border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.nook-preview-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px var(--shadow);
+}
+
+.nook-preview-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.3rem;
+}
+
+.nook-preview-card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.nook-preview-card-category {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.45rem;
+    background: var(--primary-dim);
+    color: var(--primary);
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.nook-preview-card-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.nook-preview-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+
+.nook-preview-card-tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+}
+
+.nook-preview-card-tags span {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-muted);
+}
+
+.nook-preview-more {
+    text-align: center;
+    margin-top: 2rem;
+}
+
 @media (max-width: 768px) {
     .blog-preview-grid {
+        grid-template-columns: 1fr;
+    }
+    .nook-preview-grid {
         grid-template-columns: 1fr;
     }
 }
