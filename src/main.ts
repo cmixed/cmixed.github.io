@@ -25,6 +25,19 @@ interface BlogData {
   allTags: string[];
 }
 
+interface NookResource {
+  id: string;
+  title: string;
+  category: string;
+  file: string | null;
+  url: string;
+  pin: boolean;
+  size: string;
+  date: string;
+  tags: string[];
+  description: string;
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -224,6 +237,44 @@ async function loadBlogPreview(): Promise<void> {
 }
 loadBlogPreview();
 
+// Nook preview on main page
+async function loadNookPreview(): Promise<void> {
+  try {
+    const base = import.meta.env.MODE === 'production' ? './' : '/';
+    const res = await fetch(base + 'nook/data.json');
+    const data = await res.json();
+    const unpinned = data.resources.filter((r: NookResource) => !r.pin);
+    const preview = unpinned.slice(0, 6);
+    const grid = document.getElementById('nookPreviewGrid') as HTMLElement;
+    const CATEGORY_ICONS: Record<string, string> = { doc: '📄', tool: '🔧', code: '💻', website: '🌐' };
+    const CATEGORY_NAMES: Record<string, string> = { doc: '文档', tool: '工具', code: '代码', website: '网站' };
+    grid.innerHTML = preview
+      .map(
+        (r: NookResource) => {
+          const icon = CATEGORY_ICONS[r.category] || '📦';
+          const catName = CATEGORY_NAMES[r.category] || r.category;
+          return `
+            <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card">
+                <div class="nook-preview-card-header">
+                    <div class="nook-preview-card-title">${escapeHtml(r.title)}</div>
+                    <span class="nook-preview-card-category">${icon} ${catName}</span>
+                </div>
+                <div class="nook-preview-card-meta">${escapeHtml(r.size)} · ${escapeHtml(r.date)}</div>
+                <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>
+                <div class="nook-preview-card-tags">
+                    ${r.tags.map((t: string) => `<span>${escapeHtml(t)}</span>`).join('')}
+                </div>
+            </a>
+        `;
+        }
+      )
+      .join('');
+  } catch {
+    (document.getElementById('nookPreviewGrid') as HTMLElement).innerHTML = '';
+  }
+}
+loadNookPreview();
+
 const observerOptions: IntersectionObserverInit = {
   threshold: 0.05,
   rootMargin: '0px 0px -30px 0px',
@@ -240,7 +291,7 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, observerOptions);
 
-document.querySelectorAll('#skills, #projects, #blog-preview').forEach((section) => {
+document.querySelectorAll('#skills, #projects, #blog-preview, #nook-preview').forEach((section) => {
   section.querySelectorAll('.project-card, .skill-tag').forEach((el) => {
     el.classList.add('fade-in-item');
   });

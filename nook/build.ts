@@ -276,6 +276,8 @@ async function build(): Promise<void> {
     title: r.title,
     category: r.category,
     file: r.file,
+    url: r.url,
+    pin: r.pin,
     size: r.size,
     date: r.date,
     tags: r.tags,
