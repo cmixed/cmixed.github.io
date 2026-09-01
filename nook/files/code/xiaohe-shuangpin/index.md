@@ -1,6 +1,7 @@
 ---
 title: 小鹤双拼注册表
 category: code
+description: Windows 系统下启用小鹤双拼方案的注册表文件，适用于微软输入法
 file: 小鹤双拼.reg
 tags: [Windows, 输入法, 双拼]
 ---
