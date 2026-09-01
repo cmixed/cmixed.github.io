@@ -220,7 +220,7 @@ async function loadBlogPreview(): Promise<void> {
     grid.innerHTML = preview
       .map(
         (p) => `
-            <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card">
+            <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}">
                 <div class="blog-preview-card-title">${p.pinned ? '📌 ' : ''}${escapeHtml(p.title)}</div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
