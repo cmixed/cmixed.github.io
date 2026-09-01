@@ -7,6 +7,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { tmpdir } from 'os';
 import { randomBytes, createHash } from 'crypto';
+import { parseFrontmatter as parseFrontmatterBase, escapeXml } from '../src/lib/build-utils';
 
 const execFileAsync = promisify(execFile);
 
@@ -212,30 +213,19 @@ export function renderTemplate(template: string, data: Record<string, string>): 
   );
 }
 
-export function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
-  content = content.replace(/\r\n/g, '\n');
-  let match = content.match(/^---\n([\s\S]*?)\n\n?---\n([\s\S]*)$/);
-  if (!match) match = content.match(/^[^\n]*\n+---\n([\s\S]*?)\n\n?---\n([\s\S]*)$/);
-  if (!match) return { meta: {}, body: content };
-  const yaml = match[1],
-    body = match[2],
-    meta: PostMeta = {};
-  for (const line of yaml.split('\n')) {
-    const idx = line.indexOf(':');
-    if (idx === -1) continue;
-    const key = line.slice(0, idx).trim();
-    let val: string | string[] | boolean = line.slice(idx + 1).trim();
-    if (val === 'true') val = true;
-    else if (val === 'false') val = false;
-    else if (val.startsWith('[') && val.endsWith(']'))
-      val = val
-        .slice(1, -1)
-        .split(',')
-        .map((s) => s.trim());
-    (meta as Record<string, unknown>)[key] = val;
-  }
-  return { meta, body };
+interface PostMeta extends Record<string, unknown> {
+  title?: string;
+  date?: string;
+  updated?: string;
+  tags?: string[];
+  description?: string;
+  pinned?: boolean;
 }
+
+function parseFrontmatter(content: string): { meta: PostMeta; body: string } {
+  return parseFrontmatterBase<PostMeta>(content);
+}
+export { parseFrontmatter, escapeXml };
 
 function copyDirSync(src: string, dest: string): void {
   mkdirSync(dest, { recursive: true });
@@ -261,15 +251,6 @@ export function countWords(body: string): number {
 export function countImages(html: string): number {
   const matches = html.match(/<img\b/g);
   return matches ? matches.length : 0;
-}
-
-export function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
 }
 
 function slugify(text: string): string {
