@@ -249,7 +249,7 @@ async function loadNookPreview(): Promise<void> {
       if (a.pin !== b.pin) return a.pin ? -1 : 1;
       return b.date.localeCompare(a.date);
     });
-    const preview = sorted.slice(0, 6);
+    const preview = sorted.slice(0, 8);
     const grid = document.getElementById('nookPreviewGrid') as HTMLElement;
     const CATEGORY_ICONS: Record<string, string> = { doc: '📄', tool: '🔧', code: '💻', website: '🌐' };
     const CATEGORY_NAMES: Record<string, string> = { doc: '文档', tool: '工具', code: '代码', website: '网站' };
