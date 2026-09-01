@@ -5,7 +5,7 @@ import { parseFrontmatter, escapeXml } from '../src/lib/build-utils';
 import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const filesDir = join(__dirname, 'files');
+const filesDir = join(__dirname, 'file');
 const outDir = join(__dirname, '..', 'dist', 'nook');
 
 interface ResourceData {
@@ -155,7 +155,7 @@ function renderResources(resources: ResourceData[]): string {
       if (r.url) {
         fileBtn = `<button class="nook-download nook-btn-website" onclick="event.preventDefault();event.stopPropagation();window.open('${escapeXml(r.url)}','_blank','noopener')">访问网站 →</button>`;
       } else if (r.file) {
-        fileBtn = `<button class="nook-download" onclick="event.preventDefault();event.stopPropagation();window.open('files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}','_self')">下载 ${escapeXml(r.file.split('.').pop() || '')}</button>`;
+        fileBtn = `<button class="nook-download" onclick="event.preventDefault();event.stopPropagation();window.open('file/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}','_self')">下载 ${escapeXml(r.file.split('.').pop() || '')}</button>`;
       } else {
         fileBtn = `<span class="nook-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
       }
@@ -193,7 +193,7 @@ function renderDetailPage(r: ResourceData): string {
   if (r.url) {
     downloadBtn = `<a href="${escapeXml(r.url)}" class="nook-detail-download nook-btn-website" target="_blank" rel="noopener">访问网站 →</a>`;
   } else if (r.file) {
-    downloadBtn = `<a href="files/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`;
+    downloadBtn = `<a href="file/${encodeURIComponent(r.id)}/${encodeURIComponent(r.file)}" class="nook-detail-download" download>下载 ${escapeXml(r.file)}</a>`;
   } else {
     downloadBtn = `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
   }
@@ -261,7 +261,7 @@ async function build(): Promise<void> {
   for (const r of resources) {
     if (!r.file) continue;
     const srcFile = join(r.dirPath, r.file);
-    const destDir = join(outDir, 'files', r.id);
+    const destDir = join(outDir, 'file', r.id);
     mkdirSync(destDir, { recursive: true });
     try {
       copyFileSync(srcFile, join(destDir, r.file));
