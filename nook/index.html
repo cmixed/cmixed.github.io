@@ -106,6 +106,10 @@
             cursor: pointer; transition: background 0.3s, transform 0.3s, color 0.3s;
         }
         .nook-download:hover { background: transparent; color: var(--primary); transform: translateY(-1px); }
+        .nook-card-pin { border-color: var(--primary-dim); }
+        .nook-card-pin::before { transform: scaleX(1); opacity: 0.3; }
+        .nook-btn-website { background: var(--bg-secondary); color: var(--primary); border: 1px solid var(--primary); }
+        .nook-btn-website:hover { background: var(--primary); color: #fff; }
 
         .nook-empty { text-align: center; padding: 4rem 2rem; color: var(--text-dim); }
         .nook-empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
