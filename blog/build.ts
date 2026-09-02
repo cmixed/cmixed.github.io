@@ -316,7 +316,7 @@ async function build(): Promise<void> {
   // Process posts
   const postInfos = discoverPosts();
   const posts: PostData[] = [];
-  const postHtmlMap: Map<string, { toc: string; content: string }> = new Map();
+  const postHtmlMap: Map<string, { toc: string; content: string; tocCollapsed: boolean }> = new Map();
   const headingRe = /<h([1234])>(.*?)<\/h\1>/g;
 
   for (const info of postInfos) {
@@ -370,6 +370,7 @@ async function build(): Promise<void> {
     });
 
     // Build nested TOC: h1 (top, no arrow) > h2 (arrow, collapsible) > h3 (arrow if has h4) > h4
+    const tocCollapsed = headings.length > 100;
     let tocHtml = '';
     const openGroups: number[] = []; // stack of open heading levels
 
@@ -390,7 +391,8 @@ async function build(): Promise<void> {
         closeTo(2);
         const hasH3Children = i + 1 < headings.length && headings[i + 1].level >= 3;
         if (hasH3Children) {
-          tocHtml += `<div class="toc-group"><div class="toc-item"><span class="toc-arrow"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div><div class="toc-children">`;
+          const collapsed = tocCollapsed ? ' collapsed' : '';
+          tocHtml += `<div class="toc-group${collapsed}"><div class="toc-item"><span class="toc-arrow"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div><div class="toc-children">`;
           openGroups.push(2);
         } else {
           tocHtml += `<div class="toc-item"><span class="toc-spacer"></span><a href="#${h.id}" data-level="2" class="toc-link">${h.text}</a></div>`;
@@ -417,7 +419,7 @@ async function build(): Promise<void> {
       `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` +
       tocHtml;
 
-    postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds });
+    postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds, tocCollapsed });
 
     // Copy assets
     if (info.assetsDir) {
@@ -441,7 +443,7 @@ async function build(): Promise<void> {
     posts[i].next = i > 0 ? { slug: posts[i - 1].slug, title: posts[i - 1].title } : null;
 
     const post = posts[i];
-    const { toc, content } = postHtmlMap.get(post.slug)!;
+    const { toc, content, tocCollapsed } = postHtmlMap.get(post.slug)!;
 
     let prevNextHtml = '';
     if (post.prev) {
@@ -466,6 +468,7 @@ async function build(): Promise<void> {
       tags: post.tags.map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
       toc,
       content,
+      tocCollapsed: tocCollapsed ? ' toc-collapsed' : '',
       prevNext: prevNextHtml,
     });
     writeFileSync(join(outDir, `${post.slug}.html`), postHtml);
