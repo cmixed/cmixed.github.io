@@ -259,6 +259,12 @@ async function build(): Promise<void> {
     console.warn('  ⚠ Could not copy CSS from dist/assets/');
   }
 
+  // Copy theme.js from dist root
+  const themeSrc = join(__dirname, '..', 'dist', 'theme.js');
+  try {
+    copyFileSync(themeSrc, join(outDir, 'theme.js'));
+  } catch { /* theme.js is optional */ }
+
   // Copy resource files
   for (const r of resources) {
     if (!r.file) continue;

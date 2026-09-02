@@ -2,11 +2,7 @@
 <html lang="zh-CN" data-theme="dark">
 
 <head>
-    <script>
-        var t = localStorage.getItem('theme');
-        if (t) document.documentElement.setAttribute('data-theme', t);
-        else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'light');
-    </script>
+    <script src="../theme.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{description}}">
@@ -869,10 +865,13 @@
             updateHljsTheme(htmlEl.getAttribute('data-theme'));
 
             document.getElementById('themeToggle').addEventListener('click', function () {
-                var t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                htmlEl.setAttribute('data-theme', t);
-                localStorage.setItem('theme', t);
+                var t = window.toggleTheme();
                 updateHljsTheme(t);
+            });
+
+            matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function (e) {
+                if (!localStorage.getItem('theme'))
+                    updateHljsTheme(e.matches ? 'dark' : 'light');
             });
 
             // Indent toggle

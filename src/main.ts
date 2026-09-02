@@ -52,42 +52,25 @@ const html = document.documentElement;
 const statusText = document.getElementById('statusText') as HTMLElement;
 const footerStatus = document.getElementById('footerStatus') as HTMLElement;
 
-const savedTheme = localStorage.getItem('theme');
-const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-if (savedTheme) {
-  html.setAttribute('data-theme', savedTheme);
-  updateThemeText(savedTheme);
-} else if (!systemPrefersDark) {
-  html.setAttribute('data-theme', 'light');
-  updateThemeText('light');
-}
-
-themeToggle.addEventListener('click', () => {
-  const currentTheme = html.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-  document.body.classList.add('theme-transitioning');
-
-  html.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  updateThemeText(newTheme);
-
-  setTimeout(() => {
-    document.body.classList.remove('theme-transitioning');
-  }, 300);
-});
-
 function updateThemeText(theme: string): void {
   statusText.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
   footerStatus.textContent = theme === 'light' ? '© 2026 cmixed · Light' : '© 2026 cmixed · Dark';
 }
 
+updateThemeText(html.getAttribute('data-theme') || 'dark');
+
+themeToggle.addEventListener('click', () => {
+  document.body.classList.add('theme-transitioning');
+  const newTheme = window.toggleTheme();
+  updateThemeText(newTheme);
+  setTimeout(() => {
+    document.body.classList.remove('theme-transitioning');
+  }, 300);
+});
+
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
   if (!localStorage.getItem('theme')) {
-    const newTheme = e.matches ? 'dark' : 'light';
-    html.setAttribute('data-theme', newTheme);
-    updateThemeText(newTheme);
+    updateThemeText(e.matches ? 'dark' : 'light');
   }
 });
 
