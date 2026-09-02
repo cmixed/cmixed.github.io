@@ -206,6 +206,26 @@ const postsDir = join(__dirname, 'post');
 const outDir = join(__dirname, '..', 'dist', 'blog');
 const templatesDir = join(__dirname, 'template');
 
+function splitIntoSections(html: string): string {
+  const sectionRe = /(<h[12][\s>])/g;
+  const parts: string[] = [];
+  let lastEnd = 0;
+  let match;
+  while ((match = sectionRe.exec(html)) !== null) {
+    if (match.index > lastEnd) {
+      parts.push(html.slice(lastEnd, match.index));
+    }
+    lastEnd = match.index;
+  }
+  if (lastEnd < html.length) {
+    parts.push(html.slice(lastEnd));
+  }
+  if (parts.length <= 1) return html;
+  return parts
+    .map((p) => `<section class="blog-section">${p}</section>`)
+    .join('');
+}
+
 export function renderTemplate(template: string, data: Record<string, string>): string {
   return Object.entries(data).reduce(
     (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), value),
@@ -419,7 +439,7 @@ async function build(): Promise<void> {
       `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` +
       tocHtml;
 
-    postHtmlMap.set(info.slug, { toc: tocHtml, content: htmlWithIds, tocCollapsed });
+    postHtmlMap.set(info.slug, { toc: tocHtml, content: splitIntoSections(htmlWithIds), tocCollapsed });
 
     // Copy assets
     if (info.assetsDir) {
