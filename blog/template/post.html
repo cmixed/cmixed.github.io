@@ -870,8 +870,7 @@
             });
 
             matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function (e) {
-                if (!localStorage.getItem('theme'))
-                    updateHljsTheme(e.matches ? 'dark' : 'light');
+                updateHljsTheme(e.matches ? 'dark' : 'light');
             });
 
             // Indent toggle

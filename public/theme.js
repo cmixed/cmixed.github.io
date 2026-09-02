@@ -5,8 +5,7 @@
   else if (!matchMedia('(prefers-color-scheme:dark)').matches)
     h.setAttribute('data-theme', 'light');
   matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function (e) {
-    if (!localStorage.getItem('theme'))
-      h.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    h.setAttribute('data-theme', e.matches ? 'dark' : 'light');
   });
   window.toggleTheme = function () {
     var t = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';

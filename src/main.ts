@@ -61,17 +61,18 @@ updateThemeText(html.getAttribute('data-theme') || 'dark');
 
 themeToggle.addEventListener('click', () => {
   document.body.classList.add('theme-transitioning');
-  const newTheme = window.toggleTheme();
-  updateThemeText(newTheme);
-  setTimeout(() => {
-    document.body.classList.remove('theme-transitioning');
-  }, 300);
+  try {
+    const newTheme = window.toggleTheme();
+    updateThemeText(newTheme);
+  } finally {
+    setTimeout(() => {
+      document.body.classList.remove('theme-transitioning');
+    }, 300);
+  }
 });
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  if (!localStorage.getItem('theme')) {
-    updateThemeText(e.matches ? 'dark' : 'light');
-  }
+  updateThemeText(e.matches ? 'dark' : 'light');
 });
 
 const a11yToggle = document.getElementById('a11yToggle') as HTMLButtonElement;
