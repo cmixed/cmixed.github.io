@@ -71,8 +71,6 @@
             max-height: calc(100vh - 100px);
             overflow-y: auto;
             padding-right: 1rem;
-            content-visibility: auto;
-            contain-intrinsic-size: auto 400px;
         }
 
         body.toc-open .blog-toc {
@@ -513,8 +511,6 @@
             margin-top: 3rem;
             padding-top: 2rem;
             border-top: 1px solid var(--border);
-            content-visibility: auto;
-            contain-intrinsic-size: auto 200px;
         }
 
         .blog-nav-post {
@@ -993,12 +989,14 @@
 
             function expandTocGroup(link) {
                 if (!document.body.classList.contains('toc-collapsed')) return;
-                var group = link.closest('.toc-group.collapsed');
-                while (group) {
-                    var children = group.querySelector(':scope > .toc-children');
-                    if (children) children.style.maxHeight = 'none';
-                    group.classList.remove('collapsed');
-                    group = group.parentElement ? group.parentElement.closest('.toc-group.collapsed') : null;
+                var el = link;
+                while (el) {
+                    if (el.classList && el.classList.contains('toc-group') && el.classList.contains('collapsed')) {
+                        var children = el.querySelector(':scope > .toc-children');
+                        if (children) children.style.maxHeight = 'none';
+                        el.classList.remove('collapsed');
+                    }
+                    el = el.parentElement;
                 }
             }
 
