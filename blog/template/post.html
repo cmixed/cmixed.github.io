@@ -1004,7 +1004,22 @@
                 if (currentActive) currentActive.classList.remove('active');
                 linkMap[id].classList.add('active');
                 currentActive = linkMap[id];
-                expandTocGroup(linkMap[id]);
+                if (document.body.classList.contains('toc-collapsed')) {
+                    // Collapse all groups that are NOT ancestors of the new link
+                    var ancestors = [];
+                    var el = linkMap[id];
+                    while (el) {
+                        if (el.classList && el.classList.contains('toc-group')) ancestors.push(el);
+                        el = el.parentElement;
+                    }
+                    document.querySelectorAll('.toc-group').forEach(function (g) {
+                        if (ancestors.indexOf(g) === -1 && !g.classList.contains('collapsed')) {
+                            g.classList.add('collapsed');
+                        }
+                    });
+                    // Expand ancestors of the new link
+                    expandTocGroup(linkMap[id]);
+                }
             }
 
             if ('IntersectionObserver' in window) {
