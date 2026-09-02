@@ -577,6 +577,12 @@ ${sitemapUrls}
   if (cssFiles.length > 0)
     writeFileSync(join(outDir, 'style.css'), readFileSync(join(cssDir, cssFiles[0]), 'utf-8'));
 
+  // Copy theme.js from dist root
+  const themeSrc = join(__dirname, '..', 'dist', 'theme.js');
+  try {
+    copyFileSync(themeSrc, join(outDir, 'theme.js'));
+  } catch { /* theme.js is optional */ }
+
   // Copy vendor scripts (self-hosted highlight.js, mermaid.js)
   const vendorDir = join(__dirname, 'vendor');
   if (statSync(vendorDir).isDirectory()) {

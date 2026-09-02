@@ -11,6 +11,7 @@
     <link rel="alternate" type="application/rss+xml" title="cmixed 博客 RSS" href="feed.xml">
     <title>博客 · cmixed</title>
     <link rel="stylesheet" href="style.css">
+    <script src="../theme.js"></script>
     <style>
         body { padding-top: 0; transition: background 0.3s, color 0.3s; }
 
@@ -149,15 +150,8 @@
 
     <script>
         (function() {
-            var htmlEl = document.documentElement;
-            var saved = localStorage.getItem('theme');
-            if (saved) htmlEl.setAttribute('data-theme', saved);
-            else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) htmlEl.setAttribute('data-theme', 'light');
-
             document.getElementById('themeToggle').addEventListener('click', function() {
-                var t = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                htmlEl.setAttribute('data-theme', t);
-                localStorage.setItem('theme', t);
+                window.toggleTheme();
             });
 
             // Pre-compute card tag arrays
