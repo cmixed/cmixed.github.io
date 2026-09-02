@@ -986,6 +986,7 @@
                 if (el) headingEls.push({ id: id, el: el });
             });
             var currentActive = null;
+            var allTocGroups = null;
 
             function expandTocGroup(link) {
                 if (!document.body.classList.contains('toc-collapsed')) return;
@@ -1005,19 +1006,19 @@
                 linkMap[id].classList.add('active');
                 currentActive = linkMap[id];
                 if (document.body.classList.contains('toc-collapsed')) {
-                    // Collapse all groups that are NOT ancestors of the new link
-                    var ancestors = [];
+                    if (!allTocGroups) allTocGroups = Array.from(document.querySelectorAll('.toc-group'));
+                    var ancestors = new Set();
                     var el = linkMap[id];
                     while (el) {
-                        if (el.classList && el.classList.contains('toc-group')) ancestors.push(el);
+                        if (el.classList && el.classList.contains('toc-group')) ancestors.add(el);
                         el = el.parentElement;
                     }
-                    document.querySelectorAll('.toc-group').forEach(function (g) {
-                        if (ancestors.indexOf(g) === -1 && !g.classList.contains('collapsed')) {
+                    for (var i = 0; i < allTocGroups.length; i++) {
+                        var g = allTocGroups[i];
+                        if (!ancestors.has(g) && !g.classList.contains('collapsed')) {
                             g.classList.add('collapsed');
                         }
-                    });
-                    // Expand ancestors of the new link
+                    }
                     expandTocGroup(linkMap[id]);
                 }
             }
