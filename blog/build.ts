@@ -468,7 +468,7 @@ async function build(): Promise<void> {
       tags: post.tags.map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
       toc,
       content,
-      tocCollapsed: tocCollapsed ? ' toc-collapsed' : '',
+      tocCollapsed: tocCollapsed ? ' class="toc-collapsed"' : '',
       prevNext: prevNextHtml,
     });
     writeFileSync(join(outDir, `${post.slug}.html`), postHtml);

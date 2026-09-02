@@ -199,7 +199,7 @@
         }
 
         .toc-group.collapsed>.toc-children {
-            max-height: 0 !important;
+            max-height: 0;
             overflow: hidden;
         }
 
@@ -992,8 +992,6 @@
                 var el = link;
                 while (el) {
                     if (el.classList && el.classList.contains('toc-group') && el.classList.contains('collapsed')) {
-                        var children = el.querySelector(':scope > .toc-children');
-                        if (children) children.style.maxHeight = 'none';
                         el.classList.remove('collapsed');
                     }
                     el = el.parentElement;
