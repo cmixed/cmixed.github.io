@@ -8,9 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "blog": "tsx blog/build.ts",
+    "blog": "tsx blog/build-hljs.ts && tsx blog/build.ts",
     "nook": "tsx nook/build.ts",
-    "build": "tsc --noEmit && tsx scripts/optimize-images.ts && vite build && tsx blog/build.ts && tsx nook/build.ts",
+    "build": "tsc --noEmit && tsx scripts/optimize-images.ts && vite build && tsx blog/build-hljs.ts && tsx blog/build.ts && tsx nook/build.ts",
     "preview": "vite preview",
     "lint": "eslint src/ blog/build.ts nook/build.ts",
     "lint:fix": "eslint src/ blog/build.ts nook/build.ts --fix",

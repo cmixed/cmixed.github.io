@@ -71,6 +71,8 @@
             max-height: calc(100vh - 100px);
             overflow-y: auto;
             padding-right: 1rem;
+            content-visibility: auto;
+            contain-intrinsic-size: auto 400px;
         }
 
         body.toc-open .blog-toc {
@@ -511,6 +513,8 @@
             margin-top: 3rem;
             padding-top: 2rem;
             border-top: 1px solid var(--border);
+            content-visibility: auto;
+            contain-intrinsic-size: auto 200px;
         }
 
         .blog-nav-post {
@@ -806,7 +810,7 @@
     </style>
 </head>
 
-<body>
+<body{{tocCollapsed}}>
     <nav class="blog-nav">
         <div class="blog-nav-left">
             <a href="../" class="logo blog-nav-logo">&larr; cmixed</a>
@@ -960,12 +964,22 @@
                             requestAnimationFrame(function () { children.style.maxHeight = '0px'; });
                         }
                         updateAncestorHeights(children);
-                        updateActiveLink();
+                        // Re-sync active TOC link after collapse/expand
+                        if (headingEls.length > 0) {
+                            var scrollY = window.scrollY + 100;
+                            var active = headingEls[0];
+                            for (var j = 0; j < headingEls.length; j++) {
+                                if (headingEls[j].el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+                                    active = headingEls[j];
+                                }
+                            }
+                            setActiveLink(active.id);
+                        }
                     });
                 }
             });
 
-            // TOC scroll tracking — scroll listener with position check
+            // TOC scroll tracking — IntersectionObserver
             var links = document.querySelectorAll('#tocLinks a');
             var linkMap = {};
             var headingEls = [];
@@ -977,46 +991,64 @@
             });
             var currentActive = null;
 
-            function updateActiveLink() {
-                var scrollY = window.scrollY + 100;
-                var active = headingEls[0];
-                for (var i = 0; i < headingEls.length; i++) {
-                    if (headingEls[i].el.getBoundingClientRect().top + window.scrollY <= scrollY) {
-                        active = headingEls[i];
-                    }
-                }
-                if (active && linkMap[active.id] && !linkMap[active.id].closest('.toc-group.collapsed')) {
-                    if (currentActive !== linkMap[active.id]) {
-                        if (currentActive) currentActive.classList.remove('active');
-                        linkMap[active.id].classList.add('active');
-                        currentActive = linkMap[active.id];
-                    }
+            function expandTocGroup(link) {
+                if (!document.body.classList.contains('toc-collapsed')) return;
+                var group = link.closest('.toc-group.collapsed');
+                while (group) {
+                    var children = group.querySelector(':scope > .toc-children');
+                    if (children) children.style.maxHeight = 'none';
+                    group.classList.remove('collapsed');
+                    group = group.parentElement ? group.parentElement.closest('.toc-group.collapsed') : null;
                 }
             }
 
-            var scrollTimer = null;
-            window.addEventListener('scroll', function () {
-                if (scrollTimer) return;
-                scrollTimer = setTimeout(function () {
-                    scrollTimer = null;
-                    updateActiveLink();
-                }, 50);
-            }, { passive: true });
+            function setActiveLink(id) {
+                if (!linkMap[id]) return;
+                if (currentActive === linkMap[id]) return;
+                if (currentActive) currentActive.classList.remove('active');
+                linkMap[id].classList.add('active');
+                currentActive = linkMap[id];
+                expandTocGroup(linkMap[id]);
+            }
+
+            if ('IntersectionObserver' in window) {
+                var headingObserver = new IntersectionObserver(function (entries) {
+                    for (var i = entries.length - 1; i >= 0; i--) {
+                        if (entries[i].isIntersecting) {
+                            setActiveLink(entries[i].target.id);
+                            return;
+                        }
+                    }
+                }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+                headingEls.forEach(function (h) { headingObserver.observe(h.el); });
+            } else {
+                var scrollTimer = null;
+                window.addEventListener('scroll', function () {
+                    if (scrollTimer) return;
+                    scrollTimer = setTimeout(function () {
+                        scrollTimer = null;
+                        var scrollY = window.scrollY + 100;
+                        var active = headingEls[0];
+                        for (var i = 0; i < headingEls.length; i++) {
+                            if (headingEls[i].el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+                                active = headingEls[i];
+                            }
+                        }
+                        if (active) setActiveLink(active.id);
+                    }, 50);
+                }, { passive: true });
+            }
 
             // TOC link click: set active immediately, scroll, then re-sync
             links.forEach(function (a) {
                 a.addEventListener('click', function () {
                     var id = a.getAttribute('href').slice(1);
-                    if (linkMap[id]) {
-                        if (currentActive) currentActive.classList.remove('active');
-                        linkMap[id].classList.add('active');
-                        currentActive = linkMap[id];
-                    }
+                    setActiveLink(id);
                 });
             });
 
             // Initial sync (handles direct URL with hash)
-            updateActiveLink();
+            if (headingEls.length > 0) setActiveLink(headingEls[0].id);
 
             // Floating buttons
             var fabGroup = document.getElementById('fabGroup');
