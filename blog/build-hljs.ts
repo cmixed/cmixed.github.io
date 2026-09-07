@@ -90,8 +90,8 @@ window.hljs = hljs;
   writeFileSync(tmpFile, bundleCode);
 
   try {
-    execFileSync('npx', [
-      'esbuild', tmpFile,
+    execFileSync('pnpm', [
+      'exec', 'esbuild', tmpFile,
       '--bundle',
       '--format=iife',
       '--minify',
