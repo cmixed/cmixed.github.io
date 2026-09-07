@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/setup@v1
@@ -28,7 +28,7 @@ jobs:
       - run: pnpm run test
 
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
     steps:
@@ -47,7 +47,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [check, build]
     steps:
       - uses: actions/deploy-pages@v5
