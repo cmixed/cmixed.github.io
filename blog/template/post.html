@@ -281,12 +281,8 @@
             scroll-margin-top: 90px;
         }
 
-        body.indent .blog-article-content>p:not(:has(> img:only-child)) {
+        body.indent .blog-article-content p:not(:has(> img:only-child)):not(:first-child) {
             text-indent: 2em;
-        }
-
-        body.indent .blog-article-content>p:first-child {
-            text-indent: 0;
         }
 
         .blog-article-content h5,
