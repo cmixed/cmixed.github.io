@@ -22,7 +22,6 @@ jobs:
       - uses: pnpm/setup@v1
         with:
           runtime: node@24
-          cache: true
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
       - run: pnpm run typecheck
