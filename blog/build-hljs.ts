@@ -14,7 +14,7 @@ interface LangInfo {
 }
 
 const LANG_MAP: Record<string, LangInfo> = {
-  cpp: { hljsName: 'cpp', modulePath: 'highlight.js/lib/languages/cpp.js' },
+  cpp: { hljsName: 'cpp', modulePath: 'highlight.js/lib/languages/cpp' },
   assembly: { hljsName: 'x86asm', modulePath: 'highlight.js/lib/languages/x86asm' },
   text: { hljsName: 'plaintext', modulePath: 'highlight.js/lib/languages/plaintext' },
   plaintext: { hljsName: 'plaintext', modulePath: 'highlight.js/lib/languages/plaintext' },
@@ -94,7 +94,6 @@ window.hljs = hljs;
       'esbuild', tmpFile,
       '--bundle',
       '--format=iife',
-      '--global-name=hljs',
       '--minify',
       '--outfile=' + outPath,
     ], { stdio: 'inherit' });

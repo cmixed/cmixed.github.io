@@ -228,7 +228,7 @@ function splitIntoSections(html: string): string {
 
 export function renderTemplate(template: string, data: Record<string, string>): string {
   return Object.entries(data).reduce(
-    (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), value),
+    (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), () => value),
     template
   );
 }
