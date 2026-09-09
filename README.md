@@ -6,6 +6,7 @@
 
 ## 技术栈
 
+- **包管理器**：pnpm 12
 - **构建工具**：Vite 8 + Rolldown（Rust 驱动的打包器）
 - **语言**：TypeScript 6
 - **样式**：原生 CSS，支持深色/浅色主题
@@ -45,16 +46,16 @@
 
 ```bash
 # 安装依赖
-npm install
+pnpm install
 
 # 启动开发服务器
-npm run dev
+pnpm dev
 ```
 
 ## 构建
 
 ```bash
-npm run build
+pnpm build
 ```
 
 构建产物输出到 `dist/` 目录，包含主站、博客和资源小窝。
@@ -63,21 +64,25 @@ npm run build
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev` | 启动开发服务器 |
-| `npm run build` | 完整生产构建 |
-| `npm run blog` | 仅构建博客 |
-| `npm run nook` | 仅构建资源小窝 |
-| `npm run lint` | ESLint 检查 |
-| `npm run lint:fix` | ESLint 自动修复 |
-| `npm run format` | Prettier 格式化 |
-| `npm run format:check` | Prettier 格式检查 |
-| `npm run typecheck` | TypeScript 类型检查 |
-| `npm run test` | 运行测试 |
-| `npm run optimize-images` | PNG → AVIF 图片转换 |
+| `pnpm dev` | 启动开发服务器 |
+| `pnpm build` | 完整生产构建 |
+| `pnpm blog` | 仅构建博客 |
+| `pnpm nook` | 仅构建资源小窝 |
+| `pnpm lint` | ESLint 检查 |
+| `pnpm lint:fix` | ESLint 自动修复 |
+| `pnpm format` | Prettier 格式化 |
+| `pnpm format:check` | Prettier 格式检查 |
+| `pnpm typecheck` | TypeScript 类型检查 |
+| `pnpm test` | 运行测试 |
+| `pnpm optimize-images` | PNG → AVIF 图片转换 |
 
 ## 部署
 
-推送 `main` 分支后，GitHub Actions 自动执行 lint → typecheck → test → build → deploy 到 GitHub Pages。
+推送 `main` 分支后，GitHub Actions 自动执行：
+
+1. **check**：lint → typecheck → test
+2. **build**：构建产物
+3. **deploy**：部署到 GitHub Pages
 
 ## License
 
