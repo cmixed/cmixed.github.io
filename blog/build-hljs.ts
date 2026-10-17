@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, unlinkSync } from 'fs';
-import { join, basename } from 'path';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
 
@@ -50,7 +50,10 @@ function scanLanguages(): Set<string> {
     } else if (entry.isDirectory()) {
       const dirPath = join(postsDir, entry.name);
       for (const f of readdirSync(dirPath)) {
-        if (f.endsWith('.md')) { mdPath = join(dirPath, f); break; }
+        if (f.endsWith('.md')) {
+          mdPath = join(dirPath, f);
+          break;
+        }
       }
     }
     if (!mdPath) continue;
@@ -90,15 +93,17 @@ window.hljs = hljs;
   writeFileSync(tmpFile, bundleCode);
 
   try {
-    execFileSync('pnpm', [
-      'exec', 'esbuild', tmpFile,
-      '--bundle',
-      '--format=iife',
-      '--minify',
-      '--outfile=' + outPath,
-    ], { stdio: 'inherit' });
+    execFileSync(
+      'pnpm',
+      ['exec', 'esbuild', tmpFile, '--bundle', '--format=iife', '--minify', '--outfile=' + outPath],
+      { stdio: 'inherit' }
+    );
   } finally {
-    try { unlinkSync(tmpFile); } catch { /* ignore */ }
+    try {
+      unlinkSync(tmpFile);
+    } catch {
+      /* ignore */
+    }
   }
 }
 

@@ -1,4 +1,6 @@
-export function parseFrontmatter<T extends Record<string, unknown>>(content: string): { meta: T; body: string } {
+export function parseFrontmatter<T extends Record<string, unknown>>(
+  content: string
+): { meta: T; body: string } {
   content = content.replace(/\r\n/g, '\n');
   let match = content.match(/^---\n([\s\S]*?)\n\n?---\n([\s\S]*)$/);
   if (!match) match = content.match(/^[^\n]*\n+---\n([\s\S]*?)\n\n?---\n([\s\S]*)$/);

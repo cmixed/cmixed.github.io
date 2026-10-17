@@ -1,4 +1,12 @@
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync, unlinkSync } from 'fs';
+import {
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  mkdirSync,
+  copyFileSync,
+  statSync,
+  unlinkSync,
+} from 'fs';
 import { join, basename } from 'path';
 import { marked } from 'marked';
 import { fileURLToPath } from 'url';
@@ -29,18 +37,32 @@ async function renderMermaidPng(def: string, theme: string): Promise<Buffer> {
     const binPath = join(__dirname, '..', 'node_modules', '.bin', 'mmdc');
     const puppeteerConfig = join(__dirname, 'puppeteer-config.json');
     await execFileAsync(binPath, [
-      '-i', inputFile,
-      '-o', outputFile,
-      '-t', theme === 'dark' ? 'dark' : 'default',
-      '-b', 'transparent',
-      '-s', String(DPR),
+      '-i',
+      inputFile,
+      '-o',
+      outputFile,
+      '-t',
+      theme === 'dark' ? 'dark' : 'default',
+      '-b',
+      'transparent',
+      '-s',
+      String(DPR),
       '--quiet',
-      '--puppeteerConfigFile', puppeteerConfig,
+      '--puppeteerConfigFile',
+      puppeteerConfig,
     ]);
     return readFileSync(outputFile);
   } finally {
-    try { unlinkSync(inputFile); } catch { /* ignore */ }
-    try { unlinkSync(outputFile); } catch { /* ignore */ }
+    try {
+      unlinkSync(inputFile);
+    } catch {
+      /* ignore */
+    }
+    try {
+      unlinkSync(outputFile);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -196,7 +218,7 @@ marked.use({
         if (match) return { type: 'highlight', raw: match[0], text: match[1] };
       },
       renderer(token: unknown): string {
-        return `<mark>${marked.parseInline((token as { text: string }).text)}</mark>`;
+        return `<mark>${marked.parseInline((token as { text: string }).text, { async: false })}</mark>`;
       },
     },
   ],
@@ -221,9 +243,7 @@ function splitIntoSections(html: string): string {
     parts.push(html.slice(lastEnd));
   }
   if (parts.length <= 1) return html;
-  return parts
-    .map((p) => `<section class="blog-section">${p}</section>`)
-    .join('');
+  return parts.map((p) => `<section class="blog-section">${p}</section>`).join('');
 }
 
 export function renderTemplate(template: string, data: Record<string, string>): string {
@@ -264,7 +284,10 @@ export function estimateReadTime(body: string): number {
 }
 
 export function countWords(body: string): number {
-  const text = body.replace(/[#*`[\]()>!-]/g, '').replace(/\s+/g, ' ').trim();
+  const text = body
+    .replace(/[#*`[\]()>!-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   return text.length;
 }
 
@@ -336,7 +359,8 @@ async function build(): Promise<void> {
   // Process posts
   const postInfos = discoverPosts();
   const posts: PostData[] = [];
-  const postHtmlMap: Map<string, { toc: string; content: string; tocCollapsed: boolean }> = new Map();
+  const postHtmlMap: Map<string, { toc: string; content: string; tocCollapsed: boolean }> =
+    new Map();
   const headingRe = /<h([1234])>(.*?)<\/h\1>/g;
 
   for (const info of postInfos) {
@@ -439,7 +463,11 @@ async function build(): Promise<void> {
       `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` +
       tocHtml;
 
-    postHtmlMap.set(info.slug, { toc: tocHtml, content: splitIntoSections(htmlWithIds), tocCollapsed });
+    postHtmlMap.set(info.slug, {
+      toc: tocHtml,
+      content: splitIntoSections(htmlWithIds),
+      tocCollapsed,
+    });
 
     // Copy assets
     if (info.assetsDir) {
@@ -574,18 +602,16 @@ ${sitemapUrls}
     .map((t) => `<a href="./?tag=${encodeURIComponent(t)}" class="blog-tag">${escapeXml(t)}</a>`)
     .join('');
   const postsHtml = posts
-    .map(
-      (p) => {
-        const pinMark = p.pinned ? '📌 ' : '';
-        return `
+    .map((p) => {
+      const pinMark = p.pinned ? '📌 ' : '';
+      return `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
             <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
             <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · ${p.wordCount} 字 · ${p.imageCount} 张图片</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
         </a>`;
-      }
-    )
+    })
     .join('');
   const indexHtml = indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml);
   writeFileSync(join(outDir, 'index.html'), indexHtml);
@@ -604,7 +630,9 @@ ${sitemapUrls}
   const themeSrc = join(__dirname, '..', 'dist', 'theme.js');
   try {
     copyFileSync(themeSrc, join(outDir, 'theme.js'));
-  } catch { /* theme.js is optional */ }
+  } catch {
+    /* theme.js is optional */
+  }
 
   // Copy vendor scripts (self-hosted highlight.js, mermaid.js)
   const vendorDir = join(__dirname, 'vendor');
