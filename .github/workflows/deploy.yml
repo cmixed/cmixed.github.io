@@ -34,6 +34,8 @@ jobs:
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: voidzero-dev/setup-vp@v1.21.2
         with:
           node-version: '24'
