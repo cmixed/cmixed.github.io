@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
-import { parseFrontmatter, escapeXml } from '../src/lib/build-utils';
+import { parseFrontmatter as parseFrontmatterBase, escapeXml } from '../src/lib/build-utils';
 import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -23,6 +23,21 @@ interface ResourceData {
   dirPath: string;
 }
 
+interface ResourceMeta extends Record<string, unknown> {
+  title?: string;
+  category?: string;
+  file?: string;
+  url?: string;
+  pin?: boolean | string;
+  date?: string;
+  tags?: string[];
+  description?: string;
+}
+
+function parseFrontmatter(content: string): { meta: ResourceMeta; body: string } {
+  return parseFrontmatterBase<ResourceMeta>(content);
+}
+
 const CATEGORY_ICONS: Record<string, string> = {
   doc: '📄',
   tool: '🔧',
@@ -38,7 +53,10 @@ const CATEGORY_NAMES: Record<string, string> = {
 };
 
 function truncateText(text: string, maxLen: number): string {
-  const clean = text.replace(/[#*`[\]()>!-]/g, '').replace(/\s+/g, ' ').trim();
+  const clean = text
+    .replace(/[#*`[\]()>!-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (clean.length <= maxLen) return clean;
   return clean.slice(0, maxLen) + '...';
 }
@@ -199,7 +217,7 @@ function renderDetailPage(r: ResourceData): string {
   } else {
     downloadBtn = `<span class="nook-detail-download" style="opacity:0.5;cursor:not-allowed">文件缺失</span>`;
   }
-  const content = marked.parse(r.body);
+  const content = marked.parse(r.body, { async: false });
   const descriptionHtml = r.description
     ? `<p class="nook-detail-desc">${escapeXml(r.description)}</p>`
     : '';
@@ -263,7 +281,9 @@ async function build(): Promise<void> {
   const themeSrc = join(__dirname, '..', 'dist', 'theme.js');
   try {
     copyFileSync(themeSrc, join(outDir, 'theme.js'));
-  } catch { /* theme.js is optional */ }
+  } catch {
+    /* theme.js is optional */
+  }
 
   // Copy resource files
   for (const r of resources) {
@@ -291,7 +311,10 @@ async function build(): Promise<void> {
     tags: r.tags,
     description: r.description,
   }));
-  writeFileSync(join(outDir, 'data.json'), JSON.stringify({ resources: dataJson, categories }, null, 2));
+  writeFileSync(
+    join(outDir, 'data.json'),
+    JSON.stringify({ resources: dataJson, categories }, null, 2)
+  );
 
   // Generate RSS feed
   const rssItems = resources

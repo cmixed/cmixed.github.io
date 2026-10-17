@@ -9,9 +9,7 @@ async function convertToAvif(inputPath: string): Promise<void> {
   const { dir, name } = parse(inputPath);
   const outputPath = join(dir, `${name}.avif`);
 
-  await sharp(inputPath)
-    .avif({ quality: 80 })
-    .toFile(outputPath);
+  await sharp(inputPath).avif({ quality: 80 }).toFile(outputPath);
 
   const inputSize = statSync(inputPath).size;
   const outputSize = statSync(outputPath).size;

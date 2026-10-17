@@ -221,7 +221,7 @@ async function loadBlogPreview(): Promise<void> {
     (document.getElementById('blogPreviewGrid') as HTMLElement).innerHTML = '';
   }
 }
-loadBlogPreview();
+void loadBlogPreview();
 
 // Nook preview on main page
 async function loadNookPreview(): Promise<void> {
@@ -235,15 +235,24 @@ async function loadNookPreview(): Promise<void> {
     });
     const preview = sorted.slice(0, 8);
     const grid = document.getElementById('nookPreviewGrid') as HTMLElement;
-    const CATEGORY_ICONS: Record<string, string> = { doc: '📄', tool: '🔧', code: '💻', website: '🌐' };
-    const CATEGORY_NAMES: Record<string, string> = { doc: '文档', tool: '工具', code: '代码', website: '网站' };
+    const CATEGORY_ICONS: Record<string, string> = {
+      doc: '📄',
+      tool: '🔧',
+      code: '💻',
+      website: '🌐',
+    };
+    const CATEGORY_NAMES: Record<string, string> = {
+      doc: '文档',
+      tool: '工具',
+      code: '代码',
+      website: '网站',
+    };
     grid.innerHTML = preview
-      .map(
-        (r: NookResource) => {
-          const icon = CATEGORY_ICONS[r.category] || '📦';
-          const catName = CATEGORY_NAMES[r.category] || r.category;
-          const pinMark = r.pin ? '📌 ' : '';
-          return `
+      .map((r: NookResource) => {
+        const icon = CATEGORY_ICONS[r.category] || '📦';
+        const catName = CATEGORY_NAMES[r.category] || r.category;
+        const pinMark = r.pin ? '📌 ' : '';
+        return `
             <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}">
                 <div class="nook-preview-card-header">
                     <div class="nook-preview-card-title">${pinMark}${escapeHtml(r.title)}</div>
@@ -258,14 +267,13 @@ async function loadNookPreview(): Promise<void> {
                 </div>
             </a>
         `;
-        }
-      )
+      })
       .join('');
   } catch {
     (document.getElementById('nookPreviewGrid') as HTMLElement).innerHTML = '';
   }
 }
-loadNookPreview();
+void loadNookPreview();
 
 const observerOptions: IntersectionObserverInit = {
   threshold: 0.05,

@@ -6,16 +6,17 @@
 
 ## 技术栈
 
+- **工具链**：Vite+（`vp` CLI，统一 Vite 8 / Rolldown / Oxlint / Oxfmt / Vitest）
+- **构建**：Vite 8 + Rolldown（Rust 驱动的打包器）
 - **包管理器**：pnpm 12
-- **构建工具**：Vite 8 + Rolldown（Rust 驱动的打包器）
 - **语言**：TypeScript 6
 - **样式**：原生 CSS，支持深色/浅色主题
 - **Markdown**：marked（自定义扩展，支持 `==高亮==` 语法）
 - **图表**：Mermaid（构建时预渲染为 AVIF 图片）
 - **图片处理**：sharp（PNG → AVIF 转换）
 - **语法高亮**：highlight.js（按需构建，仅包含实际使用的语言）
-- **测试**：Vitest
-- **Lint**：ESLint + Prettier
+- **测试**：Vitest（由 Vite+ 提供）
+- **Lint / 格式化**：Oxlint + Oxfmt（由 Vite+ 提供）
 
 ## 主要特性
 
@@ -62,26 +63,28 @@ pnpm build
 
 ## 可用命令
 
+Vite+ 提供 `vp` CLI。全局安装后可直接运行 `vp dev`、`vp check`；未全局安装时用 `pnpm exec vp ...` 调用。项目脚本封装了常用流程：
+
 | 命令 | 说明 |
 |------|------|
-| `pnpm dev` | 启动开发服务器 |
-| `pnpm build` | 完整生产构建 |
+| `pnpm dev` | 启动开发服务器（`vp dev`） |
+| `pnpm build` | 完整构建：图片优化 + 主站 + 博客 + 资源小窝 |
 | `pnpm blog` | 仅构建博客 |
 | `pnpm nook` | 仅构建资源小窝 |
-| `pnpm lint` | ESLint 检查 |
-| `pnpm lint:fix` | ESLint 自动修复 |
-| `pnpm format` | Prettier 格式化 |
-| `pnpm format:check` | Prettier 格式检查 |
+| `pnpm check` | 格式 + Lint + 类型检查（`vp check`） |
+| `pnpm check:fix` | 自动修复格式与 lint 问题 |
+| `pnpm lint` | Oxlint 检查 |
+| `pnpm format` | Oxfmt 格式化 |
 | `pnpm typecheck` | TypeScript 类型检查 |
-| `pnpm test` | 运行测试 |
+| `pnpm test` | 运行测试（`vp test run`） |
 | `pnpm optimize-images` | PNG → AVIF 图片转换 |
 
 ## 部署
 
-推送 `main` 分支后，GitHub Actions 自动执行：
+推送 `main` 分支后，GitHub Actions 使用 [`setup-vp`](https://github.com/voidzero-dev/setup-vp) 自动执行：
 
-1. **check**：lint → typecheck → test
-2. **build**：构建产物
+1. **check**：`vp check` → `vp test`
+2. **build**：`vp run build`（图片优化 + 主站 + 博客 + 资源小窝）
 3. **deploy**：部署到 GitHub Pages
 
 ## License

@@ -5,3 +5,4 @@ assets
 .mimocode/
 blog/mermaid-cache
 package-lock.json
+.vitest/
