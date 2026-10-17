@@ -1,7 +1,11 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
-import { parseFrontmatter as parseFrontmatterBase, escapeXml } from '../src/lib/build-utils';
+import {
+  parseFrontmatter as parseFrontmatterBase,
+  escapeXml,
+  getGitLastModified,
+} from '../src/lib/build-utils';
 import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -100,7 +104,8 @@ function discoverResources(): ResourceData[] {
 
       let filePath: string | null = null;
       let fileSize = '';
-      let resourceDate = meta.date || '';
+      // 日期：frontmatter > 最后一次 git 提交 > 资源文件/正文 mtime
+      let resourceDate = meta.date || getGitLastModified(mdPath) || '';
       if (meta.file) {
         try {
           const fileStat = statSync(join(dirPath, meta.file));

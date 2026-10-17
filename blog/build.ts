@@ -15,7 +15,12 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { tmpdir } from 'os';
 import { randomBytes, createHash } from 'crypto';
-import { parseFrontmatter as parseFrontmatterBase, escapeXml } from '../src/lib/build-utils';
+import {
+  parseFrontmatter as parseFrontmatterBase,
+  escapeXml,
+  getGitLastModified,
+  toYmd,
+} from '../src/lib/build-utils';
 
 const execFileAsync = promisify(execFile);
 
@@ -374,16 +379,15 @@ async function build(): Promise<void> {
     const htmlBase = await addImageDimensions(htmlWithMermaid, info.assetsDir);
     const readTime = estimateReadTime(body);
 
-    // Get file modification time
-    const fileStats = statSync(info.mdPath);
-    const mtime = fileStats.mtime;
-    const defaultUpdated = `${mtime.getFullYear()}-${String(mtime.getMonth() + 1).padStart(2, '0')}-${String(mtime.getDate()).padStart(2, '0')}`;
+    // 最后修改日期：frontmatter > 最后一次 git 提交 > 文件 mtime
+    const updated =
+      meta.updated || getGitLastModified(info.mdPath) || toYmd(statSync(info.mdPath).mtime);
 
     posts.push({
       slug: info.slug,
       title: meta.title || info.slug,
       date: meta.date || '未知日期',
-      updated: meta.updated || defaultUpdated,
+      updated,
       tags: Array.isArray(meta.tags) ? meta.tags : [],
       description: meta.description || '',
       readTime,
