@@ -9,41 +9,41 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #00d4aa;
+            --primary: #a8541a;
             /* accent 作「前景」（文字/图标）用 */
-            --primary-text: #00d4aa;
-            --bg: #0a0f0d;
-            --text: #e0f2f1;
-            --text-dim: #80cbc4;
-            --text-muted: #4a6b66;
-            --border: rgba(0, 212, 170, 0.2);
+            --primary-text: #e8b06a;
+            --bg: #140f0b;
+            --text: #f4ebde;
+            --text-dim: #c9b59d;
+            --text-muted: #a89478;
+            --border: rgba(214, 180, 140, 0.20);
 
-            /* --- Mica Alt 材质：accent 着色（青绿） --- */
-            --mica-chrome: rgba(9, 35, 29, 0.92);
-            --mica-surface: rgba(9, 35, 29, 0.72);
-            /* 按钮等交互元素：抬升一层并带青绿 accent 色相 */
-            --mica-raised: rgba(0, 212, 170, 0.16);
+            /* --- Mica Alt 材质：accent 着色（暖橙） --- */
+            --mica-chrome: rgba(46, 34, 25, 0.92);
+            --mica-surface: rgba(46, 34, 25, 0.90);
+            /* 按钮等交互元素：抬升一层并带暖橙 accent 色相 */
+            --mica-raised: rgba(232, 176, 106, 0.14);
             --mica-noise-opacity: 0.05;
             /* 页级洗色 + 抖动（底色极暗，色带更明显，抖动层尤其必要） */
-            --mica-wash-0: rgba(0, 212, 170, 0.03); /* 满屏纱 */
-            --mica-wash-1: rgba(0, 212, 170, 0.07);
-            --mica-wash-2: rgba(0, 150, 200, 0.05);
-            --mica-wash-3: rgba(0, 212, 170, 0.04);
+            --mica-wash-0: rgba(232, 176, 106, 0.02); /* 满屏纱 */
+            --mica-wash-1: rgba(232, 176, 106, 0.08);
+            --mica-wash-2: rgba(255, 255, 255, 0.03);
+            --mica-wash-3: rgba(168, 84, 26, 0.06);
             /* 静态「受光」：顶部柔光 + 四周暗角（零每帧成本，与主站同规格） */
-            --mica-light-top: rgba(0, 212, 170, 0.05);
-            --mica-vignette: rgba(0, 0, 0, 0.22);
+            --mica-light-top: rgba(232, 176, 106, 0.05);
+            --mica-vignette: rgba(0, 0, 0, 0.18);
             /* 时段柔光：由页面底部的小脚本按本地时间设 html[data-daylight]；必须默认有值，
                否则 html::before 的整条 background-image 会因引用未定义变量而失效 */
             --mica-daylight: transparent;
             --nav-h: 58px;
             --mica-dither-opacity: 0.03;
-            --dot: rgba(0, 212, 170, 0.16);
+            --dot: rgba(226, 196, 152, 0.14);
             --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
-        html[data-daylight='dawn'] { --mica-daylight: rgba(0, 180, 160, 0.05); }
+        html[data-daylight='dawn'] { --mica-daylight: rgba(232, 176, 106, 0.05); }
         html[data-daylight='day'] { --mica-daylight: transparent; }
-        html[data-daylight='dusk'] { --mica-daylight: rgba(0, 200, 190, 0.07); }
-        html[data-daylight='night'] { --mica-daylight: rgba(0, 120, 180, 0.08); }
+        html[data-daylight='dusk'] { --mica-daylight: rgba(214, 120, 60, 0.06); }
+        html[data-daylight='night'] { --mica-daylight: rgba(90, 130, 170, 0.055); }
         /* 洗色层：视口锚定，静态合成一次 */
         html::before {
             content: '';
@@ -177,7 +177,7 @@
             font-size: clamp(5rem, 15vw, 10rem);
             font-weight: 900;
             color: var(--primary-text);
-            text-shadow: 0 0 40px rgba(0, 212, 170, 0.3);
+            text-shadow: 0 0 40px rgba(232, 176, 106, 0.3);
             line-height: 1;
         }
         .msg {
