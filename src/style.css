@@ -25,6 +25,8 @@
 
     /* --- 导航栏尺度（全站统一，窄屏由 :root 覆盖） --- */
     --nav-logo-size: 1.25rem;
+    /* 导航高度：导航栏本体与「漂移光层」的顶部偏移共用同一来源 */
+    --nav-h: 58px;
 
     /* --- Mica Alt 材质（暗色）：accent 着色 + 分层结构 ---
        同一条规则：面板比底色「更暖」。底色 #0f172a 是冷蓝（暖度 R-B≈-29），
@@ -44,6 +46,22 @@
     --mica-wash-1: rgba(82, 94, 84, 0.11); /* 鼠尾草绿 · 左上 */
     --mica-wash-2: rgba(74, 106, 168, 0.07); /* 冷靛蓝 · 右下 */
     --mica-wash-3: rgba(64, 120, 106, 0.06); /* 青绿 · 右上 */
+    /* 静态「受光」：顶部一道柔光 + 四周暗角，让页面有光的方向感（零每帧成本） */
+    --mica-light-top: rgba(82, 94, 84, 0.06);
+    --mica-vignette: rgba(0, 0, 0, 0.16);
+    /* 时段柔光：theme.js 按本地时间设 html[data-daylight]，这里必须始终有值——
+       html::before 的 background-image 引用了它，未定义会让整条声明失效（洗色一起消失） */
+    --mica-daylight: transparent;
+    /* --- 动态光源 ---
+       漂移层（body::after）只做 transform：translate 2% 级 + rotate 1° 级，
+       75 秒一个循环（触屏放慢到 150 秒），看起来像光源在缓慢游移而不是贴图在滑。 */
+    --mica-glow-1: rgba(82, 94, 84, 0.13); /* 鼠尾草绿光斑 */
+    --mica-glow-2: rgba(74, 106, 168, 0.09); /* 冷靛蓝光斑 */
+    --mica-glow-3: rgba(64, 120, 106, 0.08); /* 青绿光斑 */
+    /* 滚动联动位移（暗色全幅，浅色减半） */
+    --mica-depth: -2.4%;
+    /* 导航玻璃掠光（仅切主题 / 开合抽屉时扫一次） */
+    --mica-sheen: rgba(255, 255, 255, 0.07);
     /* 抖动强度：把暗色渐变的 8bit 色带打散（嫌有台阶就调到 0.045） */
     --mica-dither-opacity: 0.03;
     /* 点阵背景：暗色下用浅蓝灰才看得见 */
@@ -84,10 +102,31 @@
     --mica-wash-1: rgba(217, 119, 6, 0.035); /* 琥珀 · 左上 */
     --mica-wash-2: rgba(150, 120, 90, 0.025); /* 暖褐 · 右下 */
     --mica-wash-3: rgba(180, 130, 60, 0.025); /* 金棕 · 右上 */
+    /* 静态「受光」：浅色下"光从上方来"表现为顶部更亮 + 暖棕暗角 */
+    --mica-light-top: rgba(255, 255, 255, 0.30);
+    --mica-vignette: rgba(120, 90, 50, 0.10);
+    /* 动态光源（浅色下色团更淡，否则噪点压不住色带） */
+    --mica-glow-1: rgba(217, 119, 6, 0.07);
+    --mica-glow-2: rgba(150, 120, 90, 0.06);
+    --mica-glow-3: rgba(180, 130, 60, 0.06);
+    /* 浅色底本来就亮，滚动位移减半，避免局部比暖色面板还亮 */
+    --mica-depth: -1.2%;
+    /* 浅色导航是饱和暖沙，白高光才看得见 */
+    --mica-sheen: rgba(255, 255, 255, 0.35);
     /* 灰色噪声会压低暖色的饱和度，浅色下减半以免茶色发灰 */
     --mica-dither-opacity: 0.02;
     --dot: rgba(150, 110, 70, 0.26); /* 暖茶棕，浅底上才看得清 */
 }
+
+/* 时段柔光：theme.js 在 <head> 里按本地小时设一次 html[data-daylight]，
+   之后完全静态（零每帧成本）。选择器比 :root 更具体，所以能覆盖默认值。 */
+html[data-daylight='dawn'] { --mica-daylight: rgba(190, 140, 90, 0.05); }
+html[data-daylight='day'] { --mica-daylight: transparent; }
+html[data-daylight='dusk'] { --mica-daylight: rgba(200, 110, 60, 0.07); }
+html[data-daylight='night'] { --mica-daylight: rgba(74, 106, 168, 0.08); }
+[data-theme='light'][data-daylight='dawn'] { --mica-daylight: rgba(217, 119, 6, 0.04); }
+[data-theme='light'][data-daylight='dusk'] { --mica-daylight: rgba(200, 110, 60, 0.05); }
+[data-theme='light'][data-daylight='night'] { --mica-daylight: rgba(74, 106, 168, 0.045); }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
@@ -1333,7 +1372,7 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     /* 固定高度：各页内容高度不同（logo 行高、导航项内边距、文章页里的
        .fab-btn 等）会让导航栏从 49px 到 72px 不等，这里统一钉死，
        窄屏只改左右内边距，高度不变。 */
-    height: 58px; box-sizing: border-box; padding: 0 2rem;
+    height: var(--nav-h); box-sizing: border-box; padding: 0 2rem;
     background: var(--mica-chrome);
     -webkit-backdrop-filter: var(--mica-nav-glass); backdrop-filter: var(--mica-nav-glass);
     border-bottom: 1px solid var(--border); z-index: 100;
@@ -1385,7 +1424,7 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
        避免固定高度下内容溢出后被 overflow-x: clip 裁掉。 */
     .blog-nav-rss, .nook-nav-rss { display: none; }
     nav, .blog-nav, .nook-nav, .nook-detail-nav {
-        height: auto; min-height: 58px; flex-wrap: wrap; row-gap: 0.25rem;
+        height: auto; min-height: var(--nav-h); flex-wrap: wrap; row-gap: 0.25rem;
     }
 }
 
@@ -1434,11 +1473,19 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 
 /* ===== MICA ALT MATERIAL ===== */
 /* 仿 Windows 11 Mica Alt：accent 着色 + 两层结构（「标题栏层」比「正文层」更实）+ 细颗粒。
-   页级背景 = 静态洗色（两种色相）+ 抖动噪点；洗色是渐变，暗色下必然有 8bit 色带，
-   所以必须用 html::after 的噪点层做抖动来打散（这是色带唯一的根治手段）。
+   页级背景 = 静态洗色（两种色相）+ 静态受光/暗角 + 抖动噪点；洗色是渐变，
+   暗色下必然有 8bit 色带，所以必须用 html::after 的噪点层做抖动来打散（这是色带唯一的根治手段）。
    backdrop-filter 只用于导航栏与移动端抽屉，且不带 saturate；
    卡片一律使用静态颗粒，零每帧开销。
-   洗色 / 抖动层挂在 html 上（不是 body），避开已占用的 body.nav-open::before。 */
+   洗色 / 抖动层挂在 html 上（不是 body），避开已占用的 body.nav-open::before。
+
+   --- 动态光源（3 层，全部只动 transform / opacity，纯合成器开销）---
+   D 受光层：html::before 里的顶部柔光 + 暗角 + 时段柔光，完全静态。
+   A/C 漂移层：body::after，translate + 极慢 rotate（A）+ 随滚动的纵向位移（C）。
+              刻意压在抖动层之下（色带照样被抖动打散），顶边正好从导航下沿开始，
+              且纵向位移只往上（滑到导航背后）——
+              这样页面中部永远不会露出「光到这里就断了」的硬边。
+   E 掠光层：nav::after，只在切主题 / 开合抽屉时扫一次（周期扫会像加载条）。 */
 
 /* 洗色层：视口锚定（fixed），静态合成一次，滚动零成本 */
 html::before {
@@ -1448,10 +1495,101 @@ html::before {
     z-index: -2;
     pointer-events: none;
     background-image:
+        /* D：顶部受光（光从上方来） */
+        linear-gradient(180deg, var(--mica-light-top), transparent 34%),
+        /* D：时段柔光（按本地时间换色相，见 html[data-daylight] 的 token） */
+        radial-gradient(110rem 66rem at 68% -12%, var(--mica-daylight), transparent 72%),
         radial-gradient(120rem 70rem at 50% 30%, var(--mica-wash-0), transparent 72%),
         radial-gradient(46rem 32rem at 10% 26%, var(--mica-wash-1), transparent 60%),
         radial-gradient(42rem 30rem at 88% 74%, var(--mica-wash-2), transparent 60%),
-        radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%);
+        radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%),
+        /* D：四周暗角，把视线收回中间 */
+        radial-gradient(130% 92% at 50% 118%, var(--mica-vignette), transparent 62%);
+}
+
+/* A/C 漂移层：一层光斑，整体缓慢游移 + 随滚动轻微上移。
+   z-index -2 与 html::before 同级，但 body 在 html 之后 → 本层压在洗色之上；
+   html::after 是 -1，噪点仍在最上面，所以移动的渐变照样被抖动打散。
+   inset: -8% 是给 translate/rotate 留的余量（否则漂到边缘会露边）；
+   top 让出导航高度，保证导航采样区静止。 */
+body::after {
+    content: '';
+    position: fixed;
+    left: -8%;
+    right: -8%;
+    top: var(--nav-h);
+    bottom: -8%;
+    z-index: -2;
+    pointer-events: none;
+    background-image:
+        radial-gradient(46rem 34rem at 24% 32%, var(--mica-glow-1), transparent 62%),
+        radial-gradient(40rem 30rem at 78% 66%, var(--mica-glow-2), transparent 60%),
+        radial-gradient(34rem 26rem at 58% 12%, var(--mica-glow-3), transparent 62%);
+    animation: mica-drift 75s ease-in-out infinite;
+}
+
+/* 0% 与 100% 必须完全相同且为中性值：
+   prefers-reduced-motion 的全局规则会把动画压成「单次 0.01ms」，
+   落在终点时正好等于零位移，不会把背景永久偏到某个角落。
+   纵向位移刻意全部 ≤ 0（只往上，不往下）：
+   层的顶边要么正好在导航下沿、要么滑到导航背后，这样永远不会在页面中部
+   露出一条「光到这里就断了」的硬边。 */
+@keyframes mica-drift {
+    0%,
+    100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    25% { transform: translate3d(-2.2%, -1.6%, 0) rotate(0.8deg); }
+    50% { transform: translate3d(1.6%, -0.6%, 0) rotate(-0.6deg); }
+    75% { transform: translate3d(-0.8%, -1%, 0) rotate(0.4deg); }
+}
+
+/* C：光照随滚动轻微上移，给页面纵向深度。
+   静止时不产生任何帧 → 空闲零开销；不支持 scroll-timeline 的浏览器就保持 A 的漂移。
+   animation-composition: add 让两个动画都作用在 transform 上（互相叠加而不是覆盖）。 */
+@supports (animation-timeline: scroll()) {
+    body::after {
+        animation-name: mica-drift, mica-depth;
+        animation-duration: 75s, 1s;
+        animation-timing-function: ease-in-out, linear;
+        animation-iteration-count: infinite, 1;
+        animation-timeline: auto, scroll(root);
+        animation-composition: add;
+    }
+
+    @keyframes mica-depth {
+        from { transform: translate3d(0, 0, 0); }
+        to { transform: translate3d(0, var(--mica-depth), 0); }
+    }
+}
+
+/* E 掠光层：导航玻璃偶尔「受光」。
+   动的是 transform/opacity（不是 background-position，后者每次都重绘）；
+   层只有导航那么高，且画在 backdrop-filter 之后 → 不引起重新模糊。
+   高光带用 background-size 压到导航宽度的 22%，再整层 translateX：
+   从 -25%（完全在左侧之外）扫到 105%（完全在右侧之外），全场只扫一次。
+   标记由 theme.js 在切主题时挂上（data-sheen），抽屉开合直接复用 body.nav-open。 */
+nav::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    background-image: linear-gradient(104deg, transparent 0%, var(--mica-sheen) 50%, transparent 100%);
+    background-size: 22% 100%;
+    background-repeat: no-repeat;
+    transform: translateX(-25%);
+}
+
+@keyframes nav-sheen {
+    from { opacity: 0; transform: translateX(-25%); }
+    18% { opacity: 1; }
+    82% { opacity: 1; }
+    to { opacity: 0; transform: translateX(105%); }
+}
+
+html[data-sheen] nav::after,
+body.nav-open nav::after {
+    animation: nav-sheen 1.15s cubic-bezier(0.33, 0, 0.2, 1);
 }
 
 /* 抖动层：极淡噪点压在洗色之上，把色带打散 */
@@ -1542,18 +1680,33 @@ html::after {
         --mica-noise-opacity: 0;
     }
 
-    html::before, html::after { display: none; }
+    html::before, html::after, body::after { display: none; }
 }
 
-/* 触屏设备：降低模糊半径以省电 */
+/* 系统要求降低动效：漂移与掠光全部停掉（漂移回落到中性 keyframe，完全静止） */
+@media (prefers-reduced-motion: reduce) {
+    body::after { animation: none; }
+    nav::after { animation: none; opacity: 0; }
+}
+
+/* 触屏设备：降低模糊半径以省电，漂移也放慢到 150s
+   （必须写成两值列表：单值会被重复应用到列表里的每个动画上） */
 @media (hover: none) and (pointer: coarse) {
     :root { --mica-nav-glass: blur(8px); }
+
+    body::after { animation-duration: 150s, 1s; }
 }
+
+/* 移动端抽屉铺满全屏时暂停漂移：
+   抽屉自带 backdrop-filter，底下的光斑一直在动会让它每帧重模糊整屏。 */
+body.nav-open::after { animation-play-state: paused; }
 
 /* 打印：去掉颗粒与洗色，避免纸上出现灰噪点与色块 */
 @media print {
     html::before,
     html::after,
+    body::after,
+    nav::after,
     .stats-box::after,
     .project-card::after,
     .blog-preview-card::after,

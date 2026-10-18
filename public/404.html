@@ -29,10 +29,21 @@
             --mica-wash-1: rgba(0, 212, 170, 0.07);
             --mica-wash-2: rgba(0, 150, 200, 0.05);
             --mica-wash-3: rgba(0, 212, 170, 0.04);
+            /* 静态「受光」：顶部柔光 + 四周暗角（零每帧成本，与主站同规格） */
+            --mica-light-top: rgba(0, 212, 170, 0.05);
+            --mica-vignette: rgba(0, 0, 0, 0.22);
+            /* 时段柔光：由页面底部的小脚本按本地时间设 html[data-daylight]；必须默认有值，
+               否则 html::before 的整条 background-image 会因引用未定义变量而失效 */
+            --mica-daylight: transparent;
+            --nav-h: 58px;
             --mica-dither-opacity: 0.03;
             --dot: rgba(0, 212, 170, 0.16);
             --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
+        html[data-daylight='dawn'] { --mica-daylight: rgba(0, 180, 160, 0.05); }
+        html[data-daylight='day'] { --mica-daylight: transparent; }
+        html[data-daylight='dusk'] { --mica-daylight: rgba(0, 200, 190, 0.07); }
+        html[data-daylight='night'] { --mica-daylight: rgba(0, 120, 180, 0.08); }
         /* 洗色层：视口锚定，静态合成一次 */
         html::before {
             content: '';
@@ -41,10 +52,16 @@
             z-index: -2;
             pointer-events: none;
             background-image:
+                /* 顶部受光 */
+                linear-gradient(180deg, var(--mica-light-top), transparent 34%),
+                /* 时段柔光 */
+                radial-gradient(110rem 66rem at 68% -12%, var(--mica-daylight), transparent 72%),
                 radial-gradient(120rem 70rem at 50% 30%, var(--mica-wash-0), transparent 72%),
                 radial-gradient(46rem 32rem at 10% 26%, var(--mica-wash-1), transparent 60%),
                 radial-gradient(42rem 30rem at 88% 74%, var(--mica-wash-2), transparent 60%),
-                radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%);
+                radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%),
+                /* 四周暗角 */
+                radial-gradient(130% 92% at 50% 118%, var(--mica-vignette), transparent 62%);
         }
         /* 抖动层：把洗色的 8bit 色带打散 */
         html::after {
@@ -80,7 +97,7 @@
             gap: 1rem;
             width: 100%;
             /* 与主站导航同规格：58px 固定高度 + 左右 2rem 内边距 */
-            height: 58px;
+            height: var(--nav-h);
             box-sizing: border-box;
             padding: 0 2rem;
             background: var(--mica-chrome);
@@ -209,5 +226,15 @@
             <div class="status">SYSTEM: PAGE_NOT_FOUND | STATUS: LOST_SIGNAL</div>
         </div>
     </div>
+    <script>
+        // 与主站同一套时段柔光（本页是独立单页，没有加载主题脚本）
+        (function () {
+            var h = new Date().getHours();
+            document.documentElement.setAttribute(
+                'data-daylight',
+                h < 6 ? 'night' : h < 9 ? 'dawn' : h < 17 ? 'day' : h < 20 ? 'dusk' : 'night'
+            );
+        })();
+    </script>
 </body>
 </html>
