@@ -20,11 +20,42 @@
             --mica-chrome: rgba(9, 35, 29, 0.92);
             --mica-surface: rgba(9, 35, 29, 0.72);
             --mica-noise-opacity: 0.05;
+            /* 页级洗色 + 抖动（底色极暗，色带更明显，抖动层尤其必要） */
+            --mica-wash-1: rgba(0, 212, 170, 0.07);
+            --mica-wash-2: rgba(0, 150, 200, 0.05);
+            --mica-wash-3: rgba(0, 212, 170, 0.04);
+            --mica-dither-opacity: 0.03;
+            --dot: rgba(0, 212, 170, 0.1);
             --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        /* 洗色层：视口锚定，静态合成一次 */
+        html::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background-image:
+                radial-gradient(46rem 32rem at 10% 26%, var(--mica-wash-1), transparent 60%),
+                radial-gradient(42rem 30rem at 88% 74%, var(--mica-wash-2), transparent 60%),
+                radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%);
+        }
+        /* 抖动层：把洗色的 8bit 色带打散 */
+        html::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image: var(--mica-noise);
+            background-size: 160px 160px;
+            opacity: var(--mica-dither-opacity);
         }
         body {
             font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
             background: var(--bg);
+            background-image: radial-gradient(var(--dot) 0.7px, transparent 1.2px);
+            background-size: 26px 26px;
             color: var(--text);
             min-height: 100vh;
             display: flex;

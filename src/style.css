@@ -26,6 +26,14 @@
     --mica-surface: rgba(43, 54, 65, 0.72); /* 卡片：正文层，略淡 */
     --mica-nav-glass: blur(12px); /* 置为 none 可彻底关掉导航模糊 */
     --mica-noise-opacity: 0.05;
+    /* 页级洗色：两种色相，避免整页纯色显得单调 */
+    --mica-wash-1: rgba(82, 94, 84, 0.11); /* 鼠尾草绿 · 左上 */
+    --mica-wash-2: rgba(74, 106, 168, 0.07); /* 冷靛蓝 · 右下 */
+    --mica-wash-3: rgba(64, 120, 106, 0.06); /* 青绿 · 右上 */
+    /* 抖动强度：把暗色渐变的 8bit 色带打散（嫌有台阶就调到 0.045） */
+    --mica-dither-opacity: 0.03;
+    /* 点阵背景：暗色下用浅蓝灰才看得见 */
+    --dot: rgba(148, 163, 184, 0.13);
     --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -47,6 +55,12 @@
     --mica-chrome: rgba(241, 221, 196, 0.92);
     --mica-surface: rgba(241, 221, 196, 0.80);
     --mica-noise-opacity: 0.04;
+    /* 页级洗色：暖色系，比暗色更淡以保正文对比度 */
+    --mica-wash-1: rgba(217, 119, 6, 0.06); /* 琥珀 · 左上 */
+    --mica-wash-2: rgba(150, 120, 90, 0.05); /* 暖褐 · 右下 */
+    --mica-wash-3: rgba(180, 130, 60, 0.05); /* 金棕 · 右上 */
+    --mica-dither-opacity: 0.03;
+    --dot: rgba(120, 100, 80, 0.14);
 }
 
 body {
@@ -58,8 +72,8 @@ body {
     overflow-x: hidden;
     transition: background var(--transition-speed), color var(--transition-speed);
     -webkit-font-smoothing: antialiased;
-    background-image: radial-gradient(var(--border) 0.5px, transparent 0.5px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(var(--dot) 0.7px, transparent 1.2px);
+    background-size: 26px 26px;
 }
 
 /* ===== NAV ===== */
@@ -975,10 +989,10 @@ footer {
 }
 
 /* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* 隐藏原生滚动条：固定定位的导航栏才能铺到窗口最右（否则右边会缺滚动条槽那么一块）。
+   滚动仍可用滚轮 / 键盘 / 触控板，阅读位置由顶部 .scroll-progress 进度条反馈。 */
+html { scrollbar-width: none; } /* Firefox 64+ / Chromium 121+ */
+html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
 
 /* ===== TRANSITIONS ===== */
 .theme-transitioning { pointer-events: none; }
@@ -1441,9 +1455,36 @@ html.reduce-motion .hero-content > * {
 
 /* ===== MICA ALT MATERIAL ===== */
 /* 仿 Windows 11 Mica Alt：accent 着色 + 两层结构（「标题栏层」比「正文层」更实）+ 细颗粒。
-   不使用背景光晕（避免暗色渐变色带与在导航栏下方形成可见矩形）。
+   页级背景 = 静态洗色（两种色相）+ 抖动噪点；洗色是渐变，暗色下必然有 8bit 色带，
+   所以必须用 html::after 的噪点层做抖动来打散（这是色带唯一的根治手段）。
    backdrop-filter 只用于导航栏与移动端抽屉，且不带 saturate；
-   卡片一律使用静态颗粒，零每帧开销。 */
+   卡片一律使用静态颗粒，零每帧开销。
+   洗色 / 抖动层挂在 html 上（不是 body），避开已占用的 body.nav-open::before。 */
+
+/* 洗色层：视口锚定（fixed），静态合成一次，滚动零成本 */
+html::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background-image:
+        radial-gradient(46rem 32rem at 10% 26%, var(--mica-wash-1), transparent 60%),
+        radial-gradient(42rem 30rem at 88% 74%, var(--mica-wash-2), transparent 60%),
+        radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%);
+}
+
+/* 抖动层：极淡噪点压在洗色之上，把色带打散 */
+html::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: var(--mica-noise);
+    background-size: 160px 160px;
+    opacity: var(--mica-dither-opacity);
+}
 
 /* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
 .stats-box,
@@ -1495,6 +1536,8 @@ html.reduce-motion .hero-content > * {
         --mica-surface: var(--bg-card);
         --mica-noise-opacity: 0;
     }
+
+    html::before, html::after { display: none; }
 }
 
 /* 触屏设备：降低模糊半径以省电 */
@@ -1502,8 +1545,10 @@ html.reduce-motion .hero-content > * {
     :root { --mica-nav-glass: blur(8px); }
 }
 
-/* 打印：去掉颗粒，避免纸上出现灰噪点 */
+/* 打印：去掉颗粒与洗色，避免纸上出现灰噪点与色块 */
 @media print {
+    html::before,
+    html::after,
     .stats-box::after,
     .project-card::after,
     .blog-preview-card::after,
