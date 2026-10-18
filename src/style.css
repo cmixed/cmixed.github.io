@@ -1379,3 +1379,46 @@ html.reduce-motion .hero-content > * {
     display: flex; align-items: center; gap: 1rem;
 }
 .blog-nav-rss, .nook-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }
+
+/* ===== SHARED SEARCH ===== */
+/* Blog / nook list pages share one search component (see public/search.js). */
+.search-bar {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0 0.9rem; margin-bottom: 1rem;
+    transition: border-color 0.3s, background 0.3s;
+}
+.search-bar:focus-within { border-color: var(--primary); }
+.search-bar:focus-within .search-icon { color: var(--primary); }
+.search-icon {
+    flex: none; width: 1rem; height: 1rem;
+    color: var(--text-muted); fill: currentColor;
+    transition: color 0.3s;
+}
+.search-input {
+    flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+    color: var(--text); font-family: inherit; font-size: 0.9rem; padding: 0.7rem 0;
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
+.search-clear {
+    flex: none; border: none; background: transparent; color: var(--text-muted);
+    font-size: 1.15rem; line-height: 1; cursor: pointer; padding: 0.2rem 0.35rem;
+    border-radius: 4px; transition: color 0.3s, background 0.3s;
+}
+.search-clear:hover { color: var(--primary); background: var(--primary-dim); }
+.search-count { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1.5rem; }
+.search-empty { text-align: center; padding: 4rem 2rem; color: var(--text-dim); }
+.search-empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+.search-empty p { font-size: 0.9rem; }
+
+/* 触屏设备：加大点击区 */
+@media (hover: none) and (pointer: coarse) {
+    .search-input { font-size: 1rem; padding: 0.85rem 0; }
+    .search-clear { min-width: 44px; min-height: 44px; }
+}
+
+/* 打印时隐藏搜索相关元素 */
+@media print {
+    .search-bar, .search-count, .search-empty { display: none !important; }
+}

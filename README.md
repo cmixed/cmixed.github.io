@@ -23,6 +23,7 @@
 - 纯原生 JavaScript，无框架依赖，轻量高效
 - 自定义 Markdown 博客引擎，支持目录、分页、RSS
 - 自定义资源下载中心（nook）
+- 博客与资源列表支持实时搜索（标题 / 摘要 / 标签 / 分类，可与标签、分类筛选叠加）
 - 图片 AVIF 优先策略，Mermaid 图表构建时预渲染
 - 深色/浅色主题切换（localStorage 持久化）
 - 完整 SEO 支持：OpenGraph、JSON-LD 结构化数据、Sitemap、RSS
