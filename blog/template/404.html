@@ -1,19 +1,59 @@
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
 <head>
-    <script src="../theme.js"></script>
+    <script src="/theme.js"></script>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <title>404 · 博客 | cmixed</title>
-    <link rel="stylesheet" href="style.css">
-    <style>body{padding-top:0;display:flex;align-items:center;justify-content:center;min-height:80vh;padding:2rem}
-    .e404{text-align:center;max-width:420px;width:100%;background:var(--mica-surface);
-    border:1px solid var(--border);border-radius:16px;padding:3.5rem 2.5rem;
-    box-shadow:0 4px 30px var(--shadow)}
-    .e404 h1{font-size:5rem;color:var(--primary);margin-bottom:.5rem}
-    .e404 p{color:var(--text-dim);margin-bottom:1.5rem}</style>
+    <link rel="stylesheet" href="/blog/style.css">
+    <style>
+        /* 导航 + 居中面板：导航与全站同规格（见 style.css「SHARED NAV STYLES」）。
+           本页会被 /blog/** 下的任意 404 命中，所以资源与链接一律用根路径（/…），
+           不依赖当前 URL 的层级。 */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            transition: background 0.3s, color 0.3s;
+        }
+        main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .e404 {
+            text-align: center; max-width: 420px; width: 100%;
+            background: var(--mica-surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 3.5rem 2.5rem;
+            box-shadow: 0 4px 30px var(--shadow);
+        }
+        .e404 h1 { font-size: 5rem; color: var(--primary-text); margin-bottom: .5rem; }
+        .e404 p { color: var(--text-dim); margin-bottom: 1.5rem; }
+    </style>
 </head>
 <body>
-    <div class="e404"><h1>404</h1><p>文章不存在或已被移除</p><a href="../" class="btn">返回首页</a></div>
+    <nav class="blog-nav">
+        <div class="blog-nav-left">
+            <a href="/" class="logo">&larr; cmixed</a>
+            <a href="/blog/" class="blog-nav-title">博客</a>
+            <a href="/nook/" class="blog-nav-title">资源小窝</a>
+        </div>
+        <div class="blog-nav-right">
+            <a href="/blog/feed.xml" title="RSS 订阅" class="blog-nav-rss">&#9741;</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <div class="theme-toggle-slider">
+                    <span class="theme-icon moon-icon">&#9684;</span>
+                    <span class="theme-icon sun-icon">&#9685;</span>
+                </div>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="e404"><h1>404</h1><p>文章不存在或已被移除</p><a href="/" class="btn">返回首页</a></div>
+    </main>
+
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', function () {
+            window.toggleTheme();
+        });
+    </script>
 </body>
 </html>

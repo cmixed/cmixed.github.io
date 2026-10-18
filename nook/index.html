@@ -24,7 +24,7 @@
     <link rel="alternate" type="application/rss+xml" title="cmixed 资源小窝 RSS" href="feed.xml">
     <title>资源小窝 · cmixed</title>
     <style>
-        body { padding-top: 0; transition: background 0.3s, color 0.3s; min-height: 100vh; min-height: 100dvh; }
+        body { transition: background 0.3s, color 0.3s; min-height: 100vh; min-height: 100dvh; }
 
         .scroll-progress {
             position: fixed; top: 0; left: 0; height: 2px; width: 100%;
@@ -40,7 +40,7 @@
             transition: background 0.3s, border-color 0.3s, color 0.3s;
             text-decoration: none; display: inline-block;
         }
-        .nook-filter:hover, .nook-filter.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
+        .nook-filter:hover, .nook-filter.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary-text); }
 
         .nook-page { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
         .nook-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
@@ -70,8 +70,8 @@
         .nook-card-title { font-weight: 700; font-size: 1.1rem; color: var(--text); }
         .nook-card-category {
             display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.2rem 0.6rem; background: var(--primary-dim);
-            color: var(--primary); border-radius: 4px; font-size: 0.75rem; font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem; font-weight: 600;
             white-space: nowrap;
         }
         .nook-card-desc { color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem; }
@@ -79,8 +79,6 @@
         .nook-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .nook-card-tags span {
             font-size: 0.7rem; padding: 0.15rem 0.45rem;
-            border: 1px solid var(--border); border-radius: 3px;
-            color: var(--text-muted); background: var(--mica-surface);
         }
         .nook-card-meta { display: flex; justify-content: space-between; align-items: center; }
         .nook-card-info { font-size: 0.8rem; color: var(--text-muted); }
@@ -90,10 +88,10 @@
             border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 500;
             cursor: pointer; transition: background 0.3s, transform 0.3s, color 0.3s;
         }
-        .nook-download:hover { background: transparent; color: var(--primary); transform: translateY(-1px); }
+        .nook-download:hover { background: transparent; color: var(--primary-text); transform: translateY(-1px); }
         .nook-card-pin { border-color: var(--primary-dim); }
         .nook-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
-        .nook-btn-website { background: var(--mica-surface); color: var(--primary); border: 1px solid var(--primary); }
+        .nook-btn-website { background: var(--mica-raised); color: var(--primary-text); border: 1px solid var(--primary); }
         .nook-btn-website:hover { background: var(--primary); color: #fff; }
 
         .nook-empty { text-align: center; padding: 4rem 2rem; color: var(--text-dim); }
@@ -110,12 +108,10 @@
             .nook-page-sub { font-size: 0.85rem; }
             .nook-card-title { font-size: 1rem; }
             .nook-card-desc { font-size: 0.8rem; }
-            .nook-nav { padding: 0.75rem 1rem; }
         }
         @media (max-width: 360px) {
             .nook-page h1 { font-size: 1.15rem; }
             .nook-card-title { font-size: 0.95rem; }
-            .nook-nav-logo { font-size: 1rem; }
         }
         @media (min-width: 1024px) {
             .nook-page { max-width: 1000px; }
@@ -144,12 +140,9 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition-duration: 0.01ms !important; }
         }
-        html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
-            transition-duration: 0.01ms !important;
-        }
 
         @media print {
-            .nook-nav, .nook-filters, .nook-download { display: none !important; }
+            .nook-filters, .nook-download { display: none !important; }
             body { background: white !important; color: black !important; }
             .nook-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
         }
@@ -159,7 +152,7 @@
     <div class="scroll-progress" id="scrollProgress"></div>
     <nav class="nook-nav">
         <div class="nook-nav-left">
-            <a href="../" class="logo nook-nav-logo">&larr; cmixed</a>
+            <a href="../" class="logo">&larr; cmixed</a>
             <a href="../blog/" class="nook-nav-title">博客</a>
             <a href="./" class="nook-nav-title nook-nav-active">资源小窝</a>
         </div>
