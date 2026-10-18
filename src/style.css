@@ -21,14 +21,11 @@
     --shadow: rgba(0, 0, 0, 0.3);
     --transition-speed: 0.3s;
 
-    /* --- Mica 材质（暗色） --- */
-    --mica-rgb: 37, 51, 74;
-    --mica-alpha: 0.65;
-    --mica-surface: rgba(var(--mica-rgb), var(--mica-alpha));
-    --mica-blur: blur(14px) saturate(1.4);
+    /* --- Mica Alt 材质（暗色）：accent 着色 + 两层结构 --- */
+    --mica-chrome: rgba(43, 54, 65, 0.90); /* 导航 / 抽屉：「标题栏层」，更实 */
+    --mica-surface: rgba(43, 54, 65, 0.72); /* 卡片：正文层，略淡 */
+    --mica-nav-glass: blur(12px); /* 置为 none 可彻底关掉导航模糊 */
     --mica-noise-opacity: 0.05;
-    --mica-glow-1: rgba(82, 94, 84, 0.10);
-    --mica-glow-2: rgba(82, 94, 84, 0.06);
     --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -46,13 +43,10 @@
     --border: rgba(150, 120, 90, 0.2);
     --shadow: rgba(60, 40, 20, 0.08);
 
-    /* --- Mica 材质（浅色，alpha 更高以保正文对比度） --- */
-    --mica-rgb: 245, 239, 230;
-    --mica-alpha: 0.72;
-    --mica-surface: rgba(var(--mica-rgb), var(--mica-alpha));
+    /* --- Mica Alt 材质（浅色）：accent 着色更淡以保正文对比度 --- */
+    --mica-chrome: rgba(241, 221, 196, 0.92);
+    --mica-surface: rgba(241, 221, 196, 0.80);
     --mica-noise-opacity: 0.04;
-    --mica-glow-1: rgba(217, 119, 6, 0.07);
-    --mica-glow-2: rgba(150, 120, 90, 0.06);
 }
 
 body {
@@ -62,8 +56,6 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     overflow-x: hidden;
-    /* Mica：把 body 变成层叠上下文，保证 body::after 的负 z-index 收在内部 */
-    isolation: isolate;
     transition: background var(--transition-speed), color var(--transition-speed);
     -webkit-font-smoothing: antialiased;
     background-image: radial-gradient(var(--border) 0.5px, transparent 0.5px);
@@ -76,9 +68,9 @@ nav {
     top: 0;
     width: 100%;
     padding: 1rem 2rem;
-    background: rgba(var(--bg-rgb), 0.72);
-    -webkit-backdrop-filter: var(--mica-blur);
-    backdrop-filter: var(--mica-blur);
+    background: var(--mica-chrome);
+    -webkit-backdrop-filter: var(--mica-nav-glass);
+    backdrop-filter: var(--mica-nav-glass);
     border-bottom: 1px solid var(--border);
     z-index: 100;
     display: flex;
@@ -1050,9 +1042,9 @@ footer {
         max-width: 320px;
         height: 100dvh;
         height: 100vh;
-        background: var(--mica-surface);
-        -webkit-backdrop-filter: var(--mica-blur);
-        backdrop-filter: var(--mica-blur);
+        background: var(--mica-chrome);
+        -webkit-backdrop-filter: var(--mica-nav-glass);
+        backdrop-filter: var(--mica-nav-glass);
         border-left: 1px solid var(--border);
         flex-direction: column;
         justify-content: center;
@@ -1380,8 +1372,8 @@ html.reduce-motion .hero-content > * {
 /* ===== SHARED NAV STYLES ===== */
 .blog-nav, .nook-nav, .nook-detail-nav {
     position: sticky; top: 0; width: 100%; padding: 1rem 2rem;
-    background: rgba(var(--bg-rgb), 0.72);
-    -webkit-backdrop-filter: var(--mica-blur); backdrop-filter: var(--mica-blur);
+    background: var(--mica-chrome);
+    -webkit-backdrop-filter: var(--mica-nav-glass); backdrop-filter: var(--mica-nav-glass);
     border-bottom: 1px solid var(--border); z-index: 100;
     display: flex; justify-content: space-between; align-items: center;
 }
@@ -1447,22 +1439,11 @@ html.reduce-motion .hero-content > * {
     .search-bar, .search-count, .search-empty { display: none !important; }
 }
 
-/* ===== MICA MATERIAL ===== */
-/* 仿 Mica 材质：静态光晕 + 半透明着色 + 细颗粒。
-   backdrop-filter 只用于导航栏与移动端抽屉（全站 2~3 个合成层）；
+/* ===== MICA ALT MATERIAL ===== */
+/* 仿 Windows 11 Mica Alt：accent 着色 + 两层结构（「标题栏层」比「正文层」更实）+ 细颗粒。
+   不使用背景光晕（避免暗色渐变色带与在导航栏下方形成可见矩形）。
+   backdrop-filter 只用于导航栏与移动端抽屉，且不带 saturate；
    卡片一律使用静态颗粒，零每帧开销。 */
-
-/* 静态光晕：固定定位图层，合成一次，滚动零成本（不用 background-attachment: fixed） */
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-        radial-gradient(60rem 40rem at 12% 8%, var(--mica-glow-1), transparent 60%),
-        radial-gradient(50rem 36rem at 88% 82%, var(--mica-glow-2), transparent 60%);
-}
 
 /* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
 .stats-box,
@@ -1501,30 +1482,28 @@ body::after {
 /* 不支持 backdrop-filter：退回近似不透明表面 */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     :root {
+        --mica-chrome: var(--bg-card);
         --mica-surface: var(--bg-card);
-        --mica-blur: none;
+        --mica-nav-glass: none;
     }
 }
 
 /* 系统要求降低透明度 */
 @media (prefers-reduced-transparency: reduce) {
     :root {
+        --mica-chrome: var(--bg-card);
         --mica-surface: var(--bg-card);
         --mica-noise-opacity: 0;
     }
-
-    body::after { display: none; }
 }
 
 /* 触屏设备：降低模糊半径以省电 */
 @media (hover: none) and (pointer: coarse) {
-    :root { --mica-blur: blur(8px) saturate(1.3); }
+    :root { --mica-nav-glass: blur(8px); }
 }
 
-/* 打印：去掉颗粒与光晕，避免纸上出现灰噪点 */
+/* 打印：去掉颗粒，避免纸上出现灰噪点 */
 @media print {
-    body::after { display: none !important; }
-
     .stats-box::after,
     .project-card::after,
     .blog-preview-card::after,
