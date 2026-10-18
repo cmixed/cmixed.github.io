@@ -187,8 +187,12 @@ function renderResources(resources: ResourceData[]): string {
       if (r.date) metaParts.push(escapeXml(r.date));
       const metaStr = metaParts.join(' · ');
       const pinMark = r.pin ? '📌 ' : '';
+      // 客户端搜索的匹配源：标题 + 摘要 + 分类 + 标签（仅元数据，不含正文）
+      const searchKey = [r.title, r.description, r.category, catName, ...r.tags]
+        .join(' ')
+        .toLowerCase();
 
-      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}">
+      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}" data-search="${escapeXml(searchKey)}">
             <div class="nook-card-header">
                 <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
                 <span class="nook-card-category">${icon} ${catName}</span>
@@ -288,6 +292,14 @@ async function build(): Promise<void> {
     copyFileSync(themeSrc, join(outDir, 'theme.js'));
   } catch {
     /* theme.js is optional */
+  }
+
+  // Copy shared search script from dist root
+  const searchSrc = join(__dirname, '..', 'dist', 'search.js');
+  try {
+    copyFileSync(searchSrc, join(outDir, 'search.js'));
+  } catch {
+    /* search.js is optional */
   }
 
   // Copy resource files

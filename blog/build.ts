@@ -608,8 +608,10 @@ ${sitemapUrls}
   const postsHtml = posts
     .map((p) => {
       const pinMark = p.pinned ? '📌 ' : '';
+      // 客户端搜索的匹配源：标题 + 摘要 + 标签（仅元数据，不含正文）
+      const searchKey = [p.title, p.description, ...p.tags].join(' ').toLowerCase();
       return `
-        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}">
+        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
             <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
             <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · ${p.wordCount} 字 · ${p.imageCount} 张图片</div>
@@ -636,6 +638,14 @@ ${sitemapUrls}
     copyFileSync(themeSrc, join(outDir, 'theme.js'));
   } catch {
     /* theme.js is optional */
+  }
+
+  // Copy shared search script from dist root
+  const searchSrc = join(__dirname, '..', 'dist', 'search.js');
+  try {
+    copyFileSync(searchSrc, join(outDir, 'search.js'));
+  } catch {
+    /* search.js is optional */
   }
 
   // Copy vendor scripts (self-hosted highlight.js, mermaid.js)
