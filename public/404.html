@@ -16,12 +16,10 @@
             --text-muted: #4a6b66;
             --border: rgba(0, 212, 170, 0.2);
 
-            /* --- Mica 材质 --- */
-            --mica-rgb: 16, 28, 24;
-            --mica-alpha: 0.65;
-            --mica-surface: rgba(var(--mica-rgb), var(--mica-alpha));
+            /* --- Mica Alt 材质：accent 着色（青绿） --- */
+            --mica-chrome: rgba(9, 35, 29, 0.92);
+            --mica-surface: rgba(9, 35, 29, 0.72);
             --mica-noise-opacity: 0.05;
-            --mica-glow: rgba(0, 212, 170, 0.10);
             --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
         body {
@@ -34,18 +32,8 @@
             justify-content: center;
             text-align: center;
             padding: 2rem;
-            isolation: isolate;
         }
-        /* 静态光晕：固定定位图层，合成一次 */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: none;
-            background-image: radial-gradient(50rem 34rem at 50% 38%, var(--mica-glow), transparent 65%);
-        }
-        /* Mica 面板：颗粒置于内容之下 */
+        /* Mica Alt 面板：accent 着色 + 颗粒置于内容之下 */
         .panel {
             position: relative;
             isolation: isolate;
