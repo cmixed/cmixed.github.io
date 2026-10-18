@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="../theme.js"></script>
     <style>
-        body { padding-top: 0; transition: background 0.3s, color 0.3s; }
+        body { transition: background 0.3s, color 0.3s; }
 
         .blog-tag {
             padding: 0.3rem 0.8rem; background: var(--mica-surface);
@@ -22,7 +22,7 @@
             transition: background 0.3s, border-color 0.3s, color 0.3s;
             text-decoration: none; display: inline-block;
         }
-        .blog-tag:hover, .blog-tag.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
+        .blog-tag:hover, .blog-tag.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary-text); }
 
         .blog-page { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
         .blog-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
@@ -48,7 +48,6 @@
         .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
         .blog-page-card-tags span {
             font-size: 0.7rem; padding: 0.15rem 0.45rem;
-            border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); background: var(--mica-surface);
         }
         .blog-page-card-pin { border-color: var(--primary-dim); }
         .blog-page-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
@@ -58,7 +57,7 @@
             border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
             transition: background 0.3s, border-color 0.3s, color 0.3s;
         }
-        .blog-sort-btn:hover, .blog-sort-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
+        .blog-sort-btn:hover, .blog-sort-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary-text); }
 
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }
@@ -71,12 +70,10 @@
             .blog-page-card { padding: 1.25rem; }
             .blog-page-card-title { font-size: 1rem; }
             .blog-page-card-desc { font-size: 0.8rem; }
-            .blog-nav { padding: 0.75rem 1rem; }
         }
         @media (max-width: 360px) {
             .blog-page h1 { font-size: 1.15rem; }
             .blog-page-card-title { font-size: 0.95rem; }
-            .blog-nav-logo { font-size: 1rem; }
         }
         @media (min-width: 1024px) {
             .blog-page { max-width: 1000px; }
@@ -106,12 +103,9 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition-duration: 0.01ms !important; }
         }
-        html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
-            transition-duration: 0.01ms !important;
-        }
 
         @media print {
-            .blog-nav, .blog-sort, .blog-page-tags { display: none !important; }
+            .blog-sort, .blog-page-tags { display: none !important; }
             body { background: white !important; color: black !important; }
             .blog-page-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
         }
@@ -120,7 +114,7 @@
 <body>
     <nav class="blog-nav">
         <div class="blog-nav-left">
-            <a href="../" class="logo blog-nav-logo">&larr; cmixed</a>
+            <a href="../" class="logo">&larr; cmixed</a>
             <a href="./" class="blog-nav-title blog-nav-active">博客</a>
             <a href="../nook/" class="blog-nav-title">资源小窝</a>
         </div>

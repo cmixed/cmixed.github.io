@@ -112,12 +112,12 @@
         }
 
         .toc-item a:hover {
-            color: var(--primary);
+            color: var(--primary-text);
             border-left-color: var(--primary);
         }
 
         .toc-item a.active {
-            color: var(--primary);
+            color: var(--primary-text);
             border-left-color: var(--primary);
             font-weight: 600;
         }
@@ -233,6 +233,12 @@
             margin-bottom: 0.5rem;
         }
 
+        /* 文章标签：材质在 style.css 里统一，这里只给标签之间留出间距 */
+        .blog-article-tags .tag {
+            display: inline-block;
+            margin: 0 0.35rem 0.35rem 0;
+        }
+
         .blog-article-info {
             font-size: 0.8rem;
         }
@@ -330,10 +336,6 @@
             line-height: 1.4;
             font-weight: 600;
             font-family: 'JetBrains Mono', 'SF Mono', monospace;
-            color: var(--text-dim);
-            background: var(--mica-surface);
-            border: 1px solid var(--border);
-            border-radius: 4px;
             padding: 0.1rem 0.5rem;
             pointer-events: none;
         }
@@ -367,7 +369,7 @@
         }
 
         .blog-article-content a {
-            color: var(--primary);
+            color: var(--primary-text);
             text-decoration: none;
         }
 
@@ -400,7 +402,7 @@
 
         .blog-article-content mark {
             background: var(--primary-dim);
-            color: var(--primary);
+            color: var(--primary-text);
             padding: 0.1rem 0.3rem;
             border-radius: 3px;
         }
@@ -569,7 +571,7 @@
         .fab-btn {
             width: 40px;
             height: 40px;
-            background: var(--mica-surface);
+            background: var(--mica-raised);
             border: 1px solid var(--border);
             border-radius: 8px;
             display: flex;
@@ -584,13 +586,13 @@
 
         .fab-btn:hover {
             border-color: var(--primary);
-            color: var(--primary);
+            color: var(--primary-text);
         }
 
         .fab-btn.active {
             background: var(--primary-dim);
             border-color: var(--primary);
-            color: var(--primary);
+            color: var(--primary-text);
         }
 
         /* Mobile TOC overlay */
@@ -682,10 +684,6 @@
                 font-size: 0.8rem;
             }
 
-            .blog-nav {
-                padding: 0.75rem 1rem;
-            }
-
             .blog-nav-post-title {
                 font-size: 0.85rem;
             }
@@ -698,10 +696,6 @@
 
             .blog-article-content h2 {
                 font-size: 1.05rem;
-            }
-
-            .blog-nav-logo {
-                font-size: 1rem;
             }
         }
 
@@ -812,7 +806,7 @@
 <body{{tocCollapsed}}>
     <nav class="blog-nav">
         <div class="blog-nav-left">
-            <a href="../" class="logo blog-nav-logo">&larr; cmixed</a>
+            <a href="../" class="logo">&larr; cmixed</a>
             <a href="./" class="blog-nav-title blog-nav-active">博客</a>
             <a href="../nook/" class="blog-nav-title">资源小窝</a>
         </div>

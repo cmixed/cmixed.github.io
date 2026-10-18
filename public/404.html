@@ -10,6 +10,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #00d4aa;
+            /* accent 作「前景」（文字/图标）用 */
+            --primary-text: #00d4aa;
             --bg: #0a0f0d;
             --text: #e0f2f1;
             --text-dim: #80cbc4;
@@ -62,6 +64,69 @@
             background-size: 24px 24px;
             color: var(--text);
             min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* 导航栏：与主站同规格（58px / 左右 2rem / sticky / 同一材质层）。
+           本页是独立单页（可能被任意深度的 404 命中），因此都把地址写成根路径。 */
+        .topnav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+            /* 与主站导航同规格：58px 固定高度 + 左右 2rem 内边距 */
+            height: 58px;
+            box-sizing: border-box;
+            padding: 0 2rem;
+            background: var(--mica-chrome);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topnav .brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            color: var(--primary-text);
+            text-decoration: none;
+        }
+        .topnav-right { display: flex; align-items: center; gap: 1rem; }
+        .navitem {
+            position: relative;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.25rem 0;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .navitem::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 1.5px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        .navitem:hover { color: var(--primary-text); }
+        .navitem:hover::after { transform: scaleX(1); }
+        @media (max-width: 768px) {
+            .topnav { padding: 0 1.5rem; }
+            .topnav .brand { font-size: 1rem; }
+        }
+        @media (max-width: 480px) {
+            .topnav { padding: 0 1rem; }
+        }
+        .page {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -94,7 +159,7 @@
             font-family: 'Orbitron', 'JetBrains Mono', monospace;
             font-size: clamp(5rem, 15vw, 10rem);
             font-weight: 900;
-            color: var(--primary);
+            color: var(--primary-text);
             text-shadow: 0 0 40px rgba(0, 212, 170, 0.3);
             line-height: 1;
         }
@@ -108,7 +173,7 @@
             padding: 0.8rem 1.5rem;
             border: 1px solid var(--primary);
             background: var(--mica-raised);
-            color: var(--primary);
+            color: var(--primary-text);
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -128,11 +193,21 @@
     </style>
 </head>
 <body>
-    <div class="panel">
-        <div class="code">404</div>
-        <div class="msg">// 目标不存在，信号丢失</div>
-        <a href="https://cmixed.github.io" class="btn">返回基地</a>
-        <div class="status">SYSTEM: PAGE_NOT_FOUND | STATUS: LOST_SIGNAL</div>
+    <nav class="topnav">
+        <a href="/" class="brand">&larr; cmixed</a>
+        <div class="topnav-right">
+            <a href="/blog/" class="navitem">博客</a>
+            <a href="/nook/" class="navitem">资源小窝</a>
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="panel">
+            <div class="code">404</div>
+            <div class="msg">// 目标不存在，信号丢失</div>
+            <a href="/" class="btn">返回基地</a>
+            <div class="status">SYSTEM: PAGE_NOT_FOUND | STATUS: LOST_SIGNAL</div>
+        </div>
     </div>
 </body>
 </html>

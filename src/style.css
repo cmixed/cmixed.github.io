@@ -8,6 +8,8 @@
     --primary: #525e54;
     --primary-dim: rgba(82, 94, 84, 0.15);
     --primary-glow: rgba(82, 94, 84, 0.25);
+    /* accent 作「前景」（文字/图标）时用这个，--primary 本身太暗、只适合做填充与边框 */
+    --primary-text: #a8c3ac;
     --bg: #0f172a;
     --bg-rgb: 15, 23, 42;
     --bg-secondary: #1e293b;
@@ -21,6 +23,9 @@
     --shadow: rgba(0, 0, 0, 0.3);
     --transition-speed: 0.3s;
 
+    /* --- 导航栏尺度（全站统一，窄屏由 :root 覆盖） --- */
+    --nav-logo-size: 1.25rem;
+
     /* --- Mica Alt 材质（暗色）：accent 着色 + 分层结构 ---
        同一条规则：面板比底色「更暖」。底色 #0f172a 是冷蓝（暖度 R-B≈-29），
        面板改往 accent 鼠尾草色相偏（导航 R-B≈+3、卡片 R-B≈-7），
@@ -29,6 +34,9 @@
     --mica-surface: rgba(46, 52, 44, 0.72); /* 卡片：正文层，略淡 */
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
     --mica-raised: rgba(82, 94, 84, 0.26);
+    /* 卡片内的小标签（tag / 分类 / 状态）：填色比卡片明显一档，
+       再配 --primary 描边，保证在卡片上「看得出来是个标签」 */
+    --mica-chip: rgba(82, 94, 84, 0.55);
     --mica-nav-glass: blur(12px); /* 置为 none 可彻底关掉导航模糊 */
     --mica-noise-opacity: 0.05;
     /* 页级洗色：一张大暖纱 + 三团不同色相，避免整页纯色显得单调 */
@@ -47,6 +55,8 @@
     --primary: #d97706;
     --primary-dim: rgba(217, 119, 6, 0.1);
     --primary-glow: rgba(217, 119, 6, 0.15);
+    /* accent 作「前景」时用这个：明亮琥珀在浅底上对比不足，用琥珀 800 深色 */
+    --primary-text: #92400e;
     --bg: #f0e9df;
     --bg-rgb: 240, 233, 223;
     --bg-secondary: #e6ddd1;
@@ -65,6 +75,8 @@
     --mica-surface: rgba(253, 232, 199, 0.82); /* 卡片「正文层」：暖奶油，比底色暖且略亮 */
     /* 按钮等交互元素：最暖的一层，且与卡片/导航明确区分 */
     --mica-raised: rgba(217, 119, 6, 0.16);
+    /* 卡片内小标签：浅色下暖色面板对比天生偏弱，靠略深的填充 + 描边拉开区分度 */
+    --mica-chip: rgba(217, 119, 6, 0.22);
     --mica-noise-opacity: 0.04;
     /* 页级洗色：满屏暖纱（统一拉暖）+ 三团轻色相；色团刻意压低，
        以免底色在局部比面板还暖、破坏"面板更暖"的层级 */
@@ -83,6 +95,9 @@ body {
     color: var(--text);
     min-height: 100vh;
     min-height: 100dvh;
+    /* 横向溢出裁剪。这里必须是 hidden 而不是 clip：
+       hidden 会让 body 形成滚动容器，从而连 position: fixed 的移动端抽屉
+       也一起裁掉（否则抽屉停在 right:-100% 会把整页撑出横向滚动条）。 */
     overflow-x: hidden;
     transition: background var(--transition-speed), color var(--transition-speed);
     -webkit-font-smoothing: antialiased;
@@ -91,34 +106,22 @@ body {
 }
 
 /* ===== NAV ===== */
-nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    padding: 1rem 2rem;
-    background: var(--mica-chrome);
-    -webkit-backdrop-filter: var(--mica-nav-glass);
-    backdrop-filter: var(--mica-nav-glass);
-    border-bottom: 1px solid var(--border);
-    z-index: 100;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background var(--transition-speed), border-color var(--transition-speed);
-}
+/* 导航容器（主页 nav 与子页 .blog-nav/.nook-nav/.nook-detail-nav）
+   统一在文件末尾「SHARED NAV STYLES」定义，避免各页各写一套。 */
 
 .logo {
     font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-    font-size: 1.25rem;
+    font-size: var(--nav-logo-size);
     font-weight: 700;
-    color: var(--primary);
+    color: var(--primary-text);
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
 .nav-right {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .nav-links {
@@ -127,7 +130,9 @@ nav {
     list-style: none;
 }
 
-.nav-links a {
+/* 导航项：主页 .nav-links a 与子页 .xxx-nav-title 共用同一套尺度与状态 */
+.nav-links a,
+.blog-nav-title, .nook-nav-title, .nook-detail-nav-title {
     color: var(--text-dim);
     text-decoration: none;
     font-size: 0.9rem;
@@ -135,9 +140,12 @@ nav {
     transition: color 0.3s;
     padding: 0.25rem 0;
     position: relative;
+    /* 不允许换行：导航项被压窄时应该整体挪位，而不是把两个字拆成两行 */
+    white-space: nowrap;
 }
 
-.nav-links a::after {
+.nav-links a::after,
+.blog-nav-title::after, .nook-nav-title::after, .nook-detail-nav-title::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -149,11 +157,13 @@ nav {
     transition: transform 0.3s;
 }
 
-.nav-links a:hover {
-    color: var(--primary);
+.nav-links a:hover,
+.blog-nav-title:hover, .nook-nav-title:hover, .nook-detail-nav-title:hover {
+    color: var(--primary-text);
 }
 
-.nav-links a:hover::after {
+.nav-links a:hover::after,
+.blog-nav-title:hover::after, .nook-nav-title:hover::after, .nook-detail-nav-title:hover::after {
     transform: scaleX(1);
 }
 
@@ -260,49 +270,6 @@ body.nav-open::before {
 
 [data-theme="light"] .theme-toggle .moon-icon { opacity: 0; }
 [data-theme="light"] .theme-toggle .sun-icon { opacity: 1; }
-
-/* Accessibility toggle */
-.a11y-toggle {
-    position: relative;
-    width: 26px;
-    height: 26px;
-    background: var(--mica-raised);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: border-color var(--transition-speed), background var(--transition-speed);
-    -webkit-tap-highlight-color: transparent;
-    flex-shrink: 0;
-}
-
-.a11y-toggle:hover {
-    border-color: var(--primary);
-}
-
-.a11y-icon {
-    font-size: 13px;
-    color: var(--text-dim);
-    transition: color var(--transition-speed), transform 0.3s;
-    line-height: 1;
-}
-
-.a11y-toggle.active {
-    background: var(--primary-dim);
-    border-color: var(--primary);
-}
-
-.a11y-toggle.active .a11y-icon {
-    color: var(--primary);
-    transform: rotate(90deg);
-}
-
-/* ===== MAIN ===== */
-main {
-    padding-top: 80px;
-}
 
 /* ===== HERO ===== */
 .hero {
@@ -498,7 +465,7 @@ main {
 
 .btn:hover {
     border-color: var(--primary);
-    color: var(--primary);
+    color: var(--primary-text);
     box-shadow: 0 0 20px var(--primary-glow);
     transform: translateY(-2px);
 }
@@ -515,7 +482,7 @@ main {
 
 .btn-primary:hover {
     background: var(--mica-raised);
-    color: var(--primary);
+    color: var(--primary-text);
     box-shadow: 0 0 20px var(--primary-glow);
 }
 
@@ -620,7 +587,7 @@ section {
 }
 
 .stat-value {
-    color: var(--primary);
+    color: var(--primary-text);
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -646,7 +613,7 @@ section {
 .skill-tag:hover {
     background: var(--primary-dim);
     border-color: var(--primary);
-    color: var(--primary);
+    color: var(--primary-text);
     transform: translateY(-1px);
 }
 
@@ -712,9 +679,6 @@ section {
 .project-status {
     font-size: 0.7rem;
     padding: 0.2rem 0.6rem;
-    background: var(--primary-dim);
-    color: var(--primary);
-    border-radius: 4px;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -750,10 +714,8 @@ section {
 
 .tech-tag {
     font-size: 0.75rem;
-    color: var(--text-muted);
     padding: 0.2rem 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    /* 材质（填色/描边/文字色）统一在「MICA ALT MATERIAL」的小标签规则里 */
 }
 
 /* ===== BLOG PREVIEW ===== */
@@ -826,9 +788,6 @@ section {
 .blog-preview-card-tags span {
     font-size: 0.7rem;
     padding: 0.15rem 0.45rem;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--text-muted);
 }
 
 .blog-preview-more {
@@ -889,9 +848,6 @@ section {
 .nook-preview-card-category {
     font-size: 0.75rem;
     padding: 0.15rem 0.45rem;
-    background: var(--primary-dim);
-    color: var(--primary);
-    border-radius: 3px;
     white-space: nowrap;
 }
 
@@ -921,9 +877,6 @@ section {
 .nook-preview-card-tags span {
     font-size: 0.7rem;
     padding: 0.15rem 0.45rem;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--text-muted);
 }
 
 .nook-preview-more {
@@ -952,7 +905,7 @@ section {
 
 .email-display {
     font-size: 1.3rem;
-    color: var(--primary);
+    color: var(--primary-text);
     margin: 1.25rem 0;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -981,7 +934,7 @@ section {
 
 .social-link:hover {
     border-color: var(--primary);
-    color: var(--primary);
+    color: var(--primary-text);
     box-shadow: 0 0 15px var(--primary-glow);
     transform: translateY(-2px);
 }
@@ -1056,10 +1009,6 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
 @media (max-width: 768px) {
     .hamburger {
         display: flex;
-    }
-
-    nav {
-        padding: 1rem 1.5rem;
     }
 
     .nav-links {
@@ -1195,7 +1144,6 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
 
 /* --- Extra small (≤360px) --- */
 @media (max-width: 360px) {
-    .logo { font-size: 1rem; }
     .theme-toggle { width: 42px; height: 22px; }
     .theme-toggle-slider { width: 16px; height: 16px; }
     .hero h1 { font-size: 2rem; }
@@ -1360,29 +1308,9 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
     }
 }
 
-/* User-toggled reduced motion (via a11y button) */
-html.reduce-motion *,
-html.reduce-motion *::before,
-html.reduce-motion *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-}
-
-html.reduce-motion .hero::before {
-    animation: none;
-    opacity: 0.5;
-}
-
-html.reduce-motion .hero-content > * {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-}
-
 /* Print */
 @media print {
-    nav, .scroll-progress, .hamburger, .theme-toggle, .a11y-toggle,
+    nav, .scroll-progress, .hamburger, .theme-toggle,
     .fab-group, footer, .hero::before, .hero .typewriter, .cta-buttons,
     .blog-preview-more {
         display: none !important;
@@ -1398,31 +1326,68 @@ html.reduce-motion .hero-content > * {
 }
 
 /* ===== SHARED NAV STYLES ===== */
-.blog-nav, .nook-nav, .nook-detail-nav {
-    position: sticky; top: 0; width: 100%; padding: 1rem 2rem;
+/* 全站导航栏统一：主页 nav 与子页 .blog-nav/.nook-nav/.nook-detail-nav 共用
+   同一套定位、内边距、材质、边框与层级；导航项的 hover / 当前态见上方「NAV」段。 */
+nav, .blog-nav, .nook-nav, .nook-detail-nav {
+    position: sticky; top: 0; width: 100%;
+    /* 固定高度：各页内容高度不同（logo 行高、导航项内边距、文章页里的
+       .fab-btn 等）会让导航栏从 49px 到 72px 不等，这里统一钉死，
+       窄屏只改左右内边距，高度不变。 */
+    height: 58px; box-sizing: border-box; padding: 0 2rem;
     background: var(--mica-chrome);
     -webkit-backdrop-filter: var(--mica-nav-glass); backdrop-filter: var(--mica-nav-glass);
     border-bottom: 1px solid var(--border); z-index: 100;
+    /* 只裁 x 轴：关闭状态的移动端抽屉停在画面右侧之外，不裁会撑出横向滚动；
+       y 轴保持 visible，抽屉打开时仍是全高面板（见 ≤768px 的 .nav-links）。 */
+    overflow-x: clip;
+    overflow-y: visible;
     display: flex; justify-content: space-between; align-items: center;
+    transition: background var(--transition-speed), border-color var(--transition-speed);
 }
 .blog-nav-left, .nook-nav-left, .nook-detail-nav-left {
     display: flex; align-items: center; gap: 1.5rem;
 }
-.blog-nav a, .nook-nav a, .nook-detail-nav a {
-    color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s;
+/* 子页 logo：与主页 .logo 同字号同颜色。必须用 (0,2,0) 选择器，
+   否则会被「导航项」里的 .xxx-nav-title 或通用 a 规则压成小字。 */
+.blog-nav .logo, .nook-nav .logo, .nook-detail-nav .logo {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    font-size: var(--nav-logo-size); letter-spacing: 1px;
+    color: var(--primary-text); text-decoration: none; white-space: nowrap;
 }
-.blog-nav a:hover, .nook-nav a:hover, .nook-detail-nav a:hover { color: var(--primary); }
-.blog-nav-logo, .nook-nav-logo, .nook-detail-nav-logo {
-    font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary);
-}
-.blog-nav-title, .nook-nav-title, .nook-detail-nav-title {
-    font-weight: 600; font-size: 0.95rem; color: var(--text-dim);
-}
-.blog-nav-active, .nook-nav-active, .nook-detail-nav-active { color: var(--text) !important; }
+/* 当前页：与 hover 同一套视觉（亮色 + 加粗 + accent 下划线），不再用 !important */
+.blog-nav-active, .nook-nav-active, .nook-detail-nav-active { color: var(--text); font-weight: 600; }
+.blog-nav-active::after, .nook-nav-active::after, .nook-detail-nav-active::after { transform: scaleX(1); }
 .blog-nav-right, .nook-nav-right, .nook-detail-nav-right {
     display: flex; align-items: center; gap: 1rem;
 }
-.blog-nav-rss, .nook-nav-rss { color: var(--text-muted); font-size: 1.1rem; text-decoration: none; }
+.blog-nav-rss, .nook-nav-rss { color: var(--text-dim); font-size: 1.1rem; text-decoration: none; }
+.blog-nav-rss:hover, .nook-nav-rss:hover { color: var(--primary-text); }
+/* 文章阅读页导航里复用了 .fab-btn，必须收小一档：
+   原来的 40×40 把导航从 58px 撑到 72px（右下角浮动的 .fab-group 仍是 40px）。 */
+.blog-nav .fab-btn { width: 26px; height: 26px; border-radius: 6px; font-size: 0.85rem; }
+
+/* 导航内边距：全站同一断点，且只改左右（高度恒为 58px）。
+   窄屏同时收一收 logo / 间距 / 导航项字号：文章页导航里除了 logo 和导航项，
+   还塞了 RSS、首行缩进、目录、主题开关，390px 下必须精打细算。 */
+@media (max-width: 768px) {
+    nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 1.5rem; }
+}
+@media (max-width: 480px) {
+    nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 1rem; }
+    :root { --nav-logo-size: 1rem; }
+    .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.75rem; }
+    .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.85rem; }
+    /* 极窄屏让位：首行缩进开关从导航里撤掉（缩进偏好仍从 localStorage 生效） */
+    .blog-nav #indentToggle { display: none; }
+}
+@media (max-width: 360px) {
+    /* 再窄就撤掉 RSS 图标，并允许导航换行，
+       避免固定高度下内容溢出后被 overflow-x: clip 裁掉。 */
+    .blog-nav-rss, .nook-nav-rss { display: none; }
+    nav, .blog-nav, .nook-nav, .nook-detail-nav {
+        height: auto; min-height: 58px; flex-wrap: wrap; row-gap: 0.25rem;
+    }
+}
 
 /* ===== SHARED SEARCH ===== */
 /* Blog / nook list pages share one search component (see public/search.js). */
@@ -1433,7 +1398,7 @@ html.reduce-motion .hero-content > * {
     transition: border-color 0.3s, background 0.3s;
 }
 .search-bar:focus-within { border-color: var(--primary); }
-.search-bar:focus-within .search-icon { color: var(--primary); }
+.search-bar:focus-within .search-icon { color: var(--primary-text); }
 .search-icon {
     flex: none; width: 1rem; height: 1rem;
     color: var(--text-muted); fill: currentColor;
@@ -1450,7 +1415,7 @@ html.reduce-motion .hero-content > * {
     font-size: 1.15rem; line-height: 1; cursor: pointer; padding: 0.2rem 0.35rem;
     border-radius: 4px; transition: color 0.3s, background 0.3s;
 }
-.search-clear:hover { color: var(--primary); background: var(--primary-dim); }
+.search-clear:hover { color: var(--primary-text); background: var(--primary-dim); }
 .search-count { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1.5rem; }
 .search-empty { text-align: center; padding: 4rem 2rem; color: var(--text-dim); }
 .search-empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
@@ -1501,6 +1466,27 @@ html::after {
     opacity: var(--mica-dither-opacity);
 }
 
+/* 卡片 / 面板内的小标签（tag / 分类 / 状态 / 代码语言角标）统一材质：
+   填色比卡片明显一档 + accent 描边 + accent 文字，暗色下也一眼能看清。
+   各处的字号、内边距、字重仍由各自规则定义，这里只管「看得到」。 */
+.tech-tag,
+.project-status,
+.nook-preview-card-category,
+.blog-preview-card-tags span,
+.nook-preview-card-tags span,
+.blog-page-card-tags span,
+.nook-card-tags span,
+.nook-card-category,
+.nook-detail-tags span,
+.nook-detail-category,
+.blog-article-tags .tag,
+.code-block-lang {
+    background: var(--mica-chip);
+    color: var(--primary-text);
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+}
+
 /* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
 .stats-box,
 .project-card,
@@ -1541,6 +1527,7 @@ html::after {
         --mica-chrome: var(--bg-card);
         --mica-surface: var(--bg-card);
         --mica-raised: var(--bg-secondary);
+        --mica-chip: var(--bg-secondary);
         --mica-nav-glass: none;
     }
 }
@@ -1551,6 +1538,7 @@ html::after {
         --mica-chrome: var(--bg-card);
         --mica-surface: var(--bg-card);
         --mica-raised: var(--bg-secondary);
+        --mica-chip: var(--bg-secondary);
         --mica-noise-opacity: 0;
     }
 
