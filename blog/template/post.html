@@ -299,7 +299,7 @@
         }
 
         .blog-article-content pre {
-            background: var(--bg-secondary);
+            background: var(--mica-surface);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1rem;
@@ -331,7 +331,7 @@
             font-weight: 600;
             font-family: 'JetBrains Mono', 'SF Mono', monospace;
             color: var(--text-dim);
-            background: var(--bg-secondary);
+            background: var(--mica-surface);
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 0.1rem 0.5rem;
@@ -344,7 +344,7 @@
         }
 
         .blog-article-content :not(pre)>code {
-            background: var(--bg-secondary);
+            background: var(--mica-surface);
             padding: 0.15rem 0.4rem;
             border-radius: 3px;
             font-size: 0.85em;
@@ -476,7 +476,7 @@
             font-weight: 600;
             font-family: 'JetBrains Mono', 'SF Mono', monospace;
             color: var(--text-dim);
-            background: var(--bg-secondary);
+            background: var(--mica-surface);
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 0.1rem 0.5rem;
@@ -515,7 +515,7 @@
         }
 
         .blog-nav-post {
-            background: var(--bg-card);
+            background: var(--mica-surface);
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 1rem 1.25rem;
@@ -569,7 +569,7 @@
         .fab-btn {
             width: 40px;
             height: 40px;
-            background: var(--bg-card);
+            background: var(--mica-surface);
             border: 1px solid var(--border);
             border-radius: 8px;
             display: flex;
@@ -610,7 +610,9 @@
                 box-sizing: border-box;
                 padding: 4.5rem 1rem 1rem;
                 padding-bottom: env(safe-area-inset-bottom, 1rem);
-                background: var(--bg-card);
+                background: var(--mica-surface);
+                -webkit-backdrop-filter: var(--mica-blur);
+                backdrop-filter: var(--mica-blur);
                 border-right: 1px solid var(--border);
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
