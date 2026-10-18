@@ -21,19 +21,22 @@
     --shadow: rgba(0, 0, 0, 0.3);
     --transition-speed: 0.3s;
 
-    /* --- Mica Alt 材质（暗色）：accent 着色 + 两层结构 --- */
+    /* --- Mica Alt 材质（暗色）：accent 着色 + 分层结构 --- */
     --mica-chrome: rgba(43, 54, 65, 0.90); /* 导航 / 抽屉：「标题栏层」，更实 */
     --mica-surface: rgba(43, 54, 65, 0.72); /* 卡片：正文层，略淡 */
+    /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
+    --mica-raised: rgba(82, 94, 84, 0.26);
     --mica-nav-glass: blur(12px); /* 置为 none 可彻底关掉导航模糊 */
     --mica-noise-opacity: 0.05;
-    /* 页级洗色：两种色相，避免整页纯色显得单调 */
+    /* 页级洗色：一张大暖纱 + 三团不同色相，避免整页纯色显得单调 */
+    --mica-wash-0: rgba(82, 94, 84, 0.025); /* 满屏暖纱 · 暗色下极淡 */
     --mica-wash-1: rgba(82, 94, 84, 0.11); /* 鼠尾草绿 · 左上 */
     --mica-wash-2: rgba(74, 106, 168, 0.07); /* 冷靛蓝 · 右下 */
     --mica-wash-3: rgba(64, 120, 106, 0.06); /* 青绿 · 右上 */
     /* 抖动强度：把暗色渐变的 8bit 色带打散（嫌有台阶就调到 0.045） */
     --mica-dither-opacity: 0.03;
     /* 点阵背景：暗色下用浅蓝灰才看得见 */
-    --dot: rgba(148, 163, 184, 0.13);
+    --dot: rgba(148, 163, 184, 0.16);
     --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -51,16 +54,22 @@
     --border: rgba(150, 120, 90, 0.2);
     --shadow: rgba(60, 40, 20, 0.08);
 
-    /* --- Mica Alt 材质（浅色）：accent 着色更淡以保正文对比度 --- */
-    --mica-chrome: rgba(241, 221, 196, 0.92);
-    --mica-surface: rgba(241, 221, 196, 0.80);
+    /* --- Mica Alt 材质（浅色）---
+       关键：面板必须比底色更亮才"浮"得起来（原生浅色主题里卡片 #f5efe6 也是比底色亮的）。
+       之前用 rgba(241,221,196,0.80) 合成出的 #f2e1c8 与底色亮度接近，所以看不出材质。 */
+    --mica-chrome: rgba(250, 238, 216, 0.94); /* 导航「标题栏层」：更亮更暖 */
+    --mica-surface: rgba(252, 243, 226, 0.82); /* 卡片「正文层」：更亮的暖奶油 */
+    /* 按钮等交互元素：暖琥珀，与卡片明确区分（浅色下最需要这一档） */
+    --mica-raised: rgba(217, 119, 6, 0.16);
     --mica-noise-opacity: 0.04;
-    /* 页级洗色：暖色系，比暗色更淡以保正文对比度 */
-    --mica-wash-1: rgba(217, 119, 6, 0.06); /* 琥珀 · 左上 */
+    /* 页级洗色：满屏暖纱把整页统一拉暖（茶色），再叠三团不同色相 */
+    --mica-wash-0: rgba(217, 119, 6, 0.04); /* 满屏暖纱 */
+    --mica-wash-1: rgba(217, 119, 6, 0.07); /* 琥珀 · 左上 */
     --mica-wash-2: rgba(150, 120, 90, 0.05); /* 暖褐 · 右下 */
     --mica-wash-3: rgba(180, 130, 60, 0.05); /* 金棕 · 右上 */
-    --mica-dither-opacity: 0.03;
-    --dot: rgba(120, 100, 80, 0.14);
+    /* 灰色噪声会压低暖色的饱和度，浅色下减半以免茶色发灰 */
+    --mica-dither-opacity: 0.02;
+    --dot: rgba(150, 110, 70, 0.26); /* 暖茶棕，浅底上才看得清 */
 }
 
 body {
@@ -72,8 +81,8 @@ body {
     overflow-x: hidden;
     transition: background var(--transition-speed), color var(--transition-speed);
     -webkit-font-smoothing: antialiased;
-    background-image: radial-gradient(var(--dot) 0.7px, transparent 1.2px);
-    background-size: 26px 26px;
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.6px);
+    background-size: 24px 24px;
 }
 
 /* ===== NAV ===== */
@@ -192,7 +201,7 @@ body.nav-open::before {
     position: relative;
     width: 48px;
     height: 26px;
-    background: var(--bg-secondary);
+    background: var(--mica-raised);
     border: 1px solid var(--border);
     border-radius: 13px;
     cursor: pointer;
@@ -252,7 +261,7 @@ body.nav-open::before {
     position: relative;
     width: 26px;
     height: 26px;
-    background: var(--bg-secondary);
+    background: var(--mica-raised);
     border: 1px solid var(--border);
     border-radius: 6px;
     cursor: pointer;
@@ -365,7 +374,7 @@ main {
     align-items: center;
     gap: 0.5rem;
     padding: 0.35rem 1rem;
-    background: var(--bg-secondary);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 20px;
     font-size: 0.8rem;
@@ -471,7 +480,7 @@ main {
 .btn {
     padding: 0.75rem 1.75rem;
     border: 1px solid var(--border);
-    background: transparent;
+    background: var(--mica-raised);
     color: var(--text);
     font-size: 0.9rem;
     font-weight: 500;
@@ -500,7 +509,7 @@ main {
 }
 
 .btn-primary:hover {
-    background: transparent;
+    background: var(--mica-raised);
     color: var(--primary);
     box-shadow: 0 0 20px var(--primary-glow);
 }
@@ -1469,6 +1478,7 @@ html::before {
     z-index: -2;
     pointer-events: none;
     background-image:
+        radial-gradient(120rem 70rem at 50% 30%, var(--mica-wash-0), transparent 72%),
         radial-gradient(46rem 32rem at 10% 26%, var(--mica-wash-1), transparent 60%),
         radial-gradient(42rem 30rem at 88% 74%, var(--mica-wash-2), transparent 60%),
         radial-gradient(38rem 26rem at 76% 2%, var(--mica-wash-3), transparent 62%);
@@ -1525,6 +1535,7 @@ html::after {
     :root {
         --mica-chrome: var(--bg-card);
         --mica-surface: var(--bg-card);
+        --mica-raised: var(--bg-secondary);
         --mica-nav-glass: none;
     }
 }
@@ -1534,6 +1545,7 @@ html::after {
     :root {
         --mica-chrome: var(--bg-card);
         --mica-surface: var(--bg-card);
+        --mica-raised: var(--bg-secondary);
         --mica-noise-opacity: 0;
     }
 
