@@ -20,6 +20,16 @@
     --warning: #f59e0b;
     --shadow: rgba(0, 0, 0, 0.3);
     --transition-speed: 0.3s;
+
+    /* --- Mica 材质（暗色） --- */
+    --mica-rgb: 37, 51, 74;
+    --mica-alpha: 0.65;
+    --mica-surface: rgba(var(--mica-rgb), var(--mica-alpha));
+    --mica-blur: blur(14px) saturate(1.4);
+    --mica-noise-opacity: 0.05;
+    --mica-glow-1: rgba(82, 94, 84, 0.10);
+    --mica-glow-2: rgba(82, 94, 84, 0.06);
+    --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 [data-theme="light"] {
@@ -35,6 +45,14 @@
     --text-muted: #9a8c82;
     --border: rgba(150, 120, 90, 0.2);
     --shadow: rgba(60, 40, 20, 0.08);
+
+    /* --- Mica 材质（浅色，alpha 更高以保正文对比度） --- */
+    --mica-rgb: 245, 239, 230;
+    --mica-alpha: 0.72;
+    --mica-surface: rgba(var(--mica-rgb), var(--mica-alpha));
+    --mica-noise-opacity: 0.04;
+    --mica-glow-1: rgba(217, 119, 6, 0.07);
+    --mica-glow-2: rgba(150, 120, 90, 0.06);
 }
 
 body {
@@ -44,6 +62,8 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     overflow-x: hidden;
+    /* Mica：把 body 变成层叠上下文，保证 body::after 的负 z-index 收在内部 */
+    isolation: isolate;
     transition: background var(--transition-speed), color var(--transition-speed);
     -webkit-font-smoothing: antialiased;
     background-image: radial-gradient(var(--border) 0.5px, transparent 0.5px);
@@ -56,8 +76,9 @@ nav {
     top: 0;
     width: 100%;
     padding: 1rem 2rem;
-    background: rgba(var(--bg-rgb), 0.85);
-    backdrop-filter: blur(12px);
+    background: rgba(var(--bg-rgb), 0.72);
+    -webkit-backdrop-filter: var(--mica-blur);
+    backdrop-filter: var(--mica-blur);
     border-bottom: 1px solid var(--border);
     z-index: 100;
     display: flex;
@@ -554,7 +575,7 @@ section {
 }
 
 .stats-box {
-    background: var(--bg-card);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
@@ -593,7 +614,7 @@ section {
 
 .skill-tag {
     padding: 0.4rem 1rem;
-    background: var(--bg-secondary);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text);
@@ -617,7 +638,7 @@ section {
 }
 
 .project-card {
-    background: var(--bg-card);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
@@ -723,7 +744,7 @@ section {
 }
 
 .blog-preview-card {
-    background: var(--bg-card);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1.25rem 1.5rem;
@@ -803,7 +824,7 @@ section {
 }
 
 .nook-preview-card {
-    background: var(--bg-card);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1.25rem 1.5rem;
@@ -902,7 +923,7 @@ section {
 /* ===== CONTACT ===== */
 .contact-container {
     text-align: center;
-    background: var(--bg-card);
+    background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 3rem 2rem;
@@ -1029,7 +1050,9 @@ footer {
         max-width: 320px;
         height: 100dvh;
         height: 100vh;
-        background: var(--bg-secondary);
+        background: var(--mica-surface);
+        -webkit-backdrop-filter: var(--mica-blur);
+        backdrop-filter: var(--mica-blur);
         border-left: 1px solid var(--border);
         flex-direction: column;
         justify-content: center;
@@ -1357,7 +1380,8 @@ html.reduce-motion .hero-content > * {
 /* ===== SHARED NAV STYLES ===== */
 .blog-nav, .nook-nav, .nook-detail-nav {
     position: sticky; top: 0; width: 100%; padding: 1rem 2rem;
-    background: rgba(var(--bg-rgb), 0.9); backdrop-filter: blur(12px);
+    background: rgba(var(--bg-rgb), 0.72);
+    -webkit-backdrop-filter: var(--mica-blur); backdrop-filter: var(--mica-blur);
     border-bottom: 1px solid var(--border); z-index: 100;
     display: flex; justify-content: space-between; align-items: center;
 }
@@ -1384,7 +1408,7 @@ html.reduce-motion .hero-content > * {
 /* Blog / nook list pages share one search component (see public/search.js). */
 .search-bar {
     display: flex; align-items: center; gap: 0.6rem;
-    background: var(--bg-secondary); border: 1px solid var(--border);
+    background: var(--mica-surface); border: 1px solid var(--border);
     border-radius: 8px; padding: 0 0.9rem; margin-bottom: 1rem;
     transition: border-color 0.3s, background 0.3s;
 }
@@ -1421,4 +1445,95 @@ html.reduce-motion .hero-content > * {
 /* 打印时隐藏搜索相关元素 */
 @media print {
     .search-bar, .search-count, .search-empty { display: none !important; }
+}
+
+/* ===== MICA MATERIAL ===== */
+/* 仿 Mica 材质：静态光晕 + 半透明着色 + 细颗粒。
+   backdrop-filter 只用于导航栏与移动端抽屉（全站 2~3 个合成层）；
+   卡片一律使用静态颗粒，零每帧开销。 */
+
+/* 静态光晕：固定定位图层，合成一次，滚动零成本（不用 background-attachment: fixed） */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+        radial-gradient(60rem 40rem at 12% 8%, var(--mica-glow-1), transparent 60%),
+        radial-gradient(50rem 36rem at 88% 82%, var(--mica-glow-2), transparent 60%);
+}
+
+/* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
+.stats-box,
+.project-card,
+.blog-preview-card,
+.nook-preview-card,
+.contact-container,
+.blog-page-card,
+.nook-card,
+.blog-nav-post,
+.e404 {
+    position: relative;
+    isolation: isolate;
+}
+
+.stats-box::after,
+.project-card::after,
+.blog-preview-card::after,
+.nook-preview-card::after,
+.contact-container::after,
+.blog-page-card::after,
+.nook-card::after,
+.blog-nav-post::after,
+.e404::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: var(--mica-noise);
+    background-size: 160px 160px;
+    opacity: var(--mica-noise-opacity);
+}
+
+/* 不支持 backdrop-filter：退回近似不透明表面 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root {
+        --mica-surface: var(--bg-card);
+        --mica-blur: none;
+    }
+}
+
+/* 系统要求降低透明度 */
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --mica-surface: var(--bg-card);
+        --mica-noise-opacity: 0;
+    }
+
+    body::after { display: none; }
+}
+
+/* 触屏设备：降低模糊半径以省电 */
+@media (hover: none) and (pointer: coarse) {
+    :root { --mica-blur: blur(8px) saturate(1.3); }
+}
+
+/* 打印：去掉颗粒与光晕，避免纸上出现灰噪点 */
+@media print {
+    body::after { display: none !important; }
+
+    .stats-box::after,
+    .project-card::after,
+    .blog-preview-card::after,
+    .nook-preview-card::after,
+    .contact-container::after,
+    .blog-page-card::after,
+    .nook-card::after,
+    .blog-nav-post::after,
+    .e404::after {
+        display: none !important;
+    }
 }
