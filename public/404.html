@@ -35,8 +35,8 @@
             /* 按钮等交互元素：抬升一层并带 accent 色相 */
             --mica-raised: rgba(95, 209, 181, 0.16);
             --mica-noise-opacity: 0.10;
-            /* 扫光层：与主站同一条光带（24s 掠过内容区） */
-            --mica-sweep: rgba(190, 240, 232, 0.055);
+            /* 扫光层：与主站同一道光束（24s 掠过内容区；形状是软椭圆，见文件下方） */
+            --mica-sweep: rgba(190, 240, 232, 0.085);
             /* 页级洗色 + 抖动（底色极暗，色带更明显，抖动层尤其必要） */
             --mica-wash-0: rgba(95, 209, 181, 0.02); /* 满屏纱 */
             --mica-wash-1: rgba(95, 209, 181, 0.08);
@@ -214,7 +214,9 @@
             opacity: var(--mica-noise-opacity);
             mix-blend-mode: overlay;
         }
-        /* 扫光层：与主站同一层（只动 transform，顶边让开导航高度） */
+        /* 扫光层：与主站同一层（只动 transform，顶边让开导航高度）。
+           光束是软椭圆：两个半径都远小于盒子的半宽/半高，光在抵达四边前就归零，
+           所以四条边都没有「台阶」（斜带版本会在图层边缘留下 1px 跳 2~4 级的硬边）。 */
         .mica-sweep {
             position: fixed;
             left: 0;
@@ -232,12 +234,12 @@
             bottom: 0;
             left: 0;
             width: 55vw;
-            background-image: linear-gradient(104deg, transparent 0%, var(--mica-sweep) 46%, transparent 100%);
+            background-image: radial-gradient(16vw 38vh at 50% 50%, var(--mica-sweep), transparent);
             animation: mica-sweep 24s ease-in-out infinite;
         }
         @keyframes mica-sweep {
-            from { transform: translate3d(-100%, 0, 0); }
-            to { transform: translate3d(200%, 0, 0); }
+            from { transform: translate3d(-100%, 0, 0) rotate(-5deg); }
+            to { transform: translate3d(200%, 0, 0) rotate(4deg); }
         }
         /* 指针特效层（cursor.js 创建的 canvas） */
         .fx-layer { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
