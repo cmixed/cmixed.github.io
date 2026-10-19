@@ -109,11 +109,6 @@
        颜色取「另一个模式」的对照色 —— 掠光是在 data-theme 翻过之后才播的，
        所以浅色页面上要用深色带才看得见（旧版用白色，压在近白导航上等于没有）。 */
     --mica-sheen: rgba(238, 244, 246, 0.13);
-    /* 扫光层：一道极淡的光束不停歇地掠过内容区（24s 一圈，形状是软椭圆，见文件末尾）。
-       只动 transform、不用 mix-blend-mode，纯合成器开销；顶边让开导航高度，
-       导航的模糊采样区因此仍然静止（只在滚动时重建）。
-       椭圆只有一个峰、没有平台（旧斜带是一大片平台），所以 alpha 要比旧值高一档才读得出。 */
-    --mica-sweep: rgba(190, 240, 232, 0.085);
     /* 抖动强度：把暗色渐变的 8bit 色带打散（嫌有台阶就调到 0.045） */
     --mica-dither-opacity: 0.03;
     /* 点阵背景：暗色下用浅青才看得见 */
@@ -187,9 +182,6 @@
     --mica-depth: -1.2%;
     /* 无 View Transition 的回落掠光：浅色下必须用深色带（白带压在近白导航上不可见） */
     --mica-sheen: rgba(12, 23, 20, 0.15);
-    /* 扫光层：浅色下同样不能用白色（白在近白底上等于没有），改用极淡的冷青。
-       浅色下这道光是「压暗」页面，观感比暗色下更显眼，所以比暗色保守一档。 */
-    --mica-sweep: rgba(70, 130, 125, 0.080);
     /* 灰色噪声会压低青色的饱和度，浅色下减半以免底色发灰 */
     --mica-dither-opacity: 0.02;
     --dot: rgba(110, 150, 145, 0.26); /* 青灰，浅底上才看得清 */
@@ -1585,21 +1577,18 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
       （屏上 6~9 张卡 ≈ 8~12 条导航的采样面积，而且是持续的）。
       卡片改「指针下的那一张才开真玻璃」（见文件末尾的 :hover 规则）：开销被限制在
       一张卡、且只在指针停留时；静止时依旧是零每帧开销。
-   ③ 卡片的通透感由三件事给：膜（alpha 降到 0.80/0.78，让底色的绿/青光透上来）、
-      玻璃厚边与受光（见文件末尾的「面」）、以及 F 扫光层带来的「光从玻璃上走过去」。
+   ③ 卡片的通透感由两件事给：膜（alpha 降到 0.80/0.78，让底色的绿/青光透上来）、
+      以及玻璃厚边与受光（见文件末尾的「面」）。
    洗色 / 抖动层挂在 html 上（不是 body），避开已占用的 body.nav-open::before。
 
-   --- 动态光源（4 层，全部只动 transform / opacity，纯合成器开销）---
+   --- 动态光源（3 层，全部只动 transform / opacity，纯合成器开销）---
    D 受光层：html::before 里的顶部柔光 + 暗角 + 时段柔光，完全静态。
    A/C 漂移层：body::after，translate + 极慢 rotate（A）+ 随滚动的纵向位移（C）。
               刻意压在抖动层之下（色带照样被抖动打散），顶边正好从导航下沿开始，
               且纵向位移只往上（滑到导航背后）——
               这样页面中部永远不会露出「光到这里就断了」的硬边。
    E 掠光层：nav::after，只在切主题 / 开合抽屉时扫一次；切主题时它只是
-              View Transition 不可用时的回落（周期扫会像加载条）。
-   F 扫光层：.mica-sweep，24s 掠过内容区一道极淡的光束（软椭圆，四边都归零）——
-              这就是「每一刻都在变」的那一半（单靠降 alpha 只有 1~2 个 L* 的变化，
-              肉眼看不出来），代价只有一层合成，且顶边让开导航高度。 */
+              View Transition 不可用时的回落（周期扫会像加载条）。 */
 
 /* 洗色层：视口锚定（fixed），静态合成一次，滚动零成本 */
 html::before {
@@ -1704,56 +1693,6 @@ nav::after {
 html[data-sheen] nav::after,
 body.nav-open nav::after {
     animation: nav-sheen 1.15s cubic-bezier(0.33, 0, 0.2, 1);
-}
-
-/* ===== 扫光层（F）=====
-   一道极淡的光束不停歇地掠过内容区，24s 一圈。
-   为什么不是每张卡自己动：卡片的 ::before / ::after 都已占用，而且每卡多一层
-   常驻合成层（9 张卡 ≈ 十几 MB 显存 + 9 个持续动画）。这一层只动 transform、
-   不用 mix-blend-mode，是「一层光从玻璃上走过去」的等效观感，代价只有一层合成。
-   两个关键约束：
-   ① top 让开导航高度 → 导航的模糊采样区仍然静止（与漂移层同一套理由）；
-   ② 容器 overflow: hidden 裁掉光束，出屏时不撑出横向滚动。
-
-   形状为什么是椭圆而不是斜带：旧版用 linear-gradient(104deg, … 46% …) 时，
-   渐变的 0% / 100% 落在盒子的两个对角上，而盒子的右缘只走到渐变线的 77% ——
-   于是右缘被切在「峰值 → 透明」的斜坡中段。实测那道边在 1px 内跳 2~4 级，
-   而带内真实斜率只有 0.021 级/px（差约 150 倍），Mach 带让这个台阶比渐变显眼得多，
-   于是看起来就是一条上下贯通的半透明矩形在扫（四条边都有台阶，只是上下两条
-   被导航和屏幕底边掩掉了）。改成椭圆后两个半径都远小于盒子的半宽 / 半高
-   （16vw < 27.5vw、38vh < 50vh − 29px，与视口比例无关、任何屏幕恒成立），
-   光在抵达四条边之前就已经归零 —— 台阶从构造上不存在，连 mask 都不需要。
-   方向性由形状给（椭圆 + 一点 rotate），不再靠硬边。 */
-.mica-sweep {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: var(--nav-h);
-    bottom: 0;
-    z-index: 60; /* 压在内容之上、导航(100)/抽屉(150,200)之下 */
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.mica-sweep::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 55vw;
-    background-image: radial-gradient(16vw 38vh at 50% 50%, var(--mica-sweep), transparent);
-    animation: mica-sweep 24s ease-in-out infinite;
-}
-
-/* 不停顿的连续扫法：从画面外浮进来 → 掠过 → 从另一侧出去。走完一圈立刻重来，
-   所以「每一刻都在变」是真的每一刻（ease-in-out 让它在画面外两端变慢，
-   看起来像光自己浮出来又消失，而不是一条匀速的加载条）。
-   旋转让椭圆在扫过时略微偏转，读起来像「一束光」而不是「一片光斑」；
-   5° 偏转后光束实际范围 468×725，仍在 704×842 的盒内，碰不到盒边。 */
-@keyframes mica-sweep {
-    from { transform: translate3d(-100%, 0, 0) rotate(-5deg); }
-    to { transform: translate3d(200%, 0, 0) rotate(4deg); }
 }
 
 /* ===== 主题切换：圆形揭示（View Transition）=====
@@ -1955,14 +1894,13 @@ nav,
         --mica-noise-opacity: 0;
     }
 
-    html::before, html::after, body::before, body::after, .mica-sweep { display: none; }
+    html::before, html::after, body::before, body::after { display: none; }
 }
 
-/* 系统要求降低动效：漂移、掠光、扫光、指针特效全部停掉（漂移回落到中性 keyframe，完全静止） */
+/* 系统要求降低动效：漂移、掠光、指针特效全部停掉（漂移回落到中性 keyframe，完全静止） */
 @media (prefers-reduced-motion: reduce) {
     body::after { animation: none; }
     nav::after { animation: none; opacity: 0; }
-    .mica-sweep::before { animation: none; }
     .fx-layer { display: none; }
 }
 
@@ -1974,19 +1912,17 @@ nav,
     body::after { animation-duration: 150s, 1s; }
 }
 
-/* 移动端抽屉铺满全屏时暂停漂移与扫光：
+/* 移动端抽屉铺满全屏时暂停漂移：
    抽屉自带 backdrop-filter，底下任何还在动的层都会让它每帧重模糊整屏。 */
 body.nav-open::after { animation-play-state: paused; }
-body.nav-open .mica-sweep::before { animation-play-state: paused; }
 
-/* 打印：去掉颗粒、点阵、扫光与洗色，避免纸上出现灰噪点与色块 */
+/* 打印：去掉颗粒、点阵与洗色，避免纸上出现灰噪点与色块 */
 @media print {
     html::before,
     html::after,
     body::before,
     body::after,
     nav::after,
-    .mica-sweep,
     .fx-layer,
     .stats-box::after,
     .project-card::after,
