@@ -2,6 +2,7 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
     <script src="../theme.js"></script>
+    <script defer src="../cursor.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{description}}">
@@ -67,11 +68,11 @@
         .nook-detail-content ul, .nook-detail-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
         .nook-detail-content li { margin-bottom: 0.5rem; }
         .nook-detail-content code {
-            background: var(--mica-surface); padding: 0.15rem 0.4rem;
+            background: var(--bg-card); padding: 0.15rem 0.4rem;
             border-radius: 4px; font-size: 0.9em;
         }
         .nook-detail-content pre {
-            background: var(--mica-surface); border: 1px solid var(--border);
+            background: var(--bg-card); border: 1px solid var(--border);
             border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem;
         }
         .nook-detail-content pre code { background: none; padding: 0; }
@@ -140,6 +141,7 @@
     </style>
 </head>
 <body>
+    <div class="mica-sweep" aria-hidden="true"></div>
     <nav class="nook-detail-nav">
         <div class="nook-detail-nav-left">
             <a href="../" class="logo">&larr; cmixed</a>

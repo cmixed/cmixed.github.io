@@ -1,3 +1,12 @@
+/* 指针追光的开关量：0 = 无追光，1 = 完全亮起。
+   注册成 <number> 才可过渡，所以鼠标移入/移出卡片时高光是「淡进来」而不是「跳出来」
+   （不支持 @property 的浏览器只会丢掉过渡，功能不受影响）。 */
+@property --glare {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -39,7 +48,13 @@
        层次来自「色相 + 明度」双差，而不是像旧版那样让冷蓝底和橄榄面板互相对撞。
        浅色用同一条公式的高曝光档，所以两套主题是"同一关系的两个曝光"。 */
     --mica-chrome: rgba(28, 42, 48, 0.90); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
-    --mica-surface: rgba(28, 42, 48, 0.86); /* 卡片：面板色，比导航更透（正文层） */
+    --mica-surface: rgba(28, 42, 48, 0.80); /* 卡片：面板色，比导航更透（正文层） */
+    /* 指针停在卡片上时：面板再降一档不透明度，让 backdrop-filter 真的透出来
+       （本体 0.80 时模糊只透 20%，等于看不见；降到 0.62 才像一块玻璃） */
+    --mica-surface-glass: rgba(28, 42, 48, 0.62);
+    /* 卡片 hover 的真玻璃：只给「指针下的那一张」用，指针一离开就归零，
+       所以静止时全站依旧是零每帧开销 */
+    --mica-panel-glass: blur(12px) saturate(142%);
     /* 玻璃：Mica 的味道是「背景的颜色被玻璃吸上来」，所以除模糊外还要提饱和。
        blur 单独拆成一个 token，是为了触屏设备只降半径、不至于把 saturate 一起丢掉。 */
     --mica-glass-blur: 14px;
@@ -52,18 +67,25 @@
     --mica-chip: rgba(95, 209, 181, 0.20);
     /* --- 面板的「面」：材质感来自受光，不来自透明度 ---
        底板背后是一张平滑洗色，透出来的几乎是同一个颜色，所以单靠调 alpha 看不出通透
-       （这也是卡片一律不加 backdrop-filter 的原因：漂移层一直在动，会让每张卡每帧重模糊。
-        导航能模糊，是因为漂移层的顶边正好让开了导航高度）。
-       真正让面板像「一块板」的是面上的三件事：
-       ① 顶部 1px 亮边（受光边）② 上亮下暗的极淡渐变（板有厚度）③ 贴地阴影（板离开纸面）。
-       三者画在元素自己的 background-image / box-shadow 上：不加图层、不抢
-       ::before（hover 顶条）与 ::after（颗粒）的位置，也不产生任何每帧开销。 */
-    --mica-panel-edge: rgba(255, 255, 255, 0.06); /* 顶部 1px 亮边 */
-    --mica-panel-sheen: rgba(255, 255, 255, 0.05); /* 上半受光 */
-    --mica-panel-shade: rgba(0, 0, 0, 0.10); /* 下缘厚度 */
+       （这也是卡片不做常驻 backdrop-filter 的原因：漂移层一直在动，会让每张卡每帧重模糊。
+        导航能常驻模糊，是因为漂移层的顶边正好让开了导航高度）。
+       真正让面板像「一块玻璃板」的是面上的几件事：
+       ① 顶部 1px 亮边（受光边）② 底边 1px 反光（板的下缘也接光）③ 左上镜面光池
+       ④ 内侧一圈更密的厚边（玻璃有厚度）⑤ 贴地阴影（板离开纸面）⑥ 中性颗粒。
+       ①~⑤画在元素自己的 background-image / box-shadow 上：不加图层、不抢
+       ::before（hover 顶条）与 ::after（颗粒）的位置，也不产生任何每帧开销。
+       ⑥ 指针追光的镜面也是同一套背景层（靠 --glare 开关，见文件末尾）。 */
+    --mica-panel-edge: rgba(210, 255, 245, 0.11); /* 顶部 1px 亮边（偏青的白：玻璃的边是被环境染色的，纯白反而不像） */
+    --mica-panel-sheen: rgba(255, 255, 255, 0.05); /* 上半受光（导航沿用） */
+    --mica-panel-spec: rgba(95, 209, 181, 0.12); /* 左上镜面光池：光从上方来，面板像被打亮 */
+    --mica-panel-inner: rgba(5, 18, 20, 0.13); /* 内侧玻璃厚边：四边比中心密一点，读起来是一块板 */
+    --mica-panel-edge-b: rgba(190, 245, 235, 0.07); /* 底边 1px 反光：玻璃的下缘也会接光，一块板才有上下两条亮边 */
+    --mica-panel-shade: rgba(0, 0, 0, 0); /* 下缘厚度：暗色下这层黑纱最像污渍，直接去掉 */
+    --mica-glare-rgb: 190, 245, 235; /* 指针追光：跟着鼠标走的镜面（由 cursor.js 驱动） */
+    --mica-glare-a: 0.055;
     --mica-elev-1: 0 1px 2px rgba(0, 0, 0, 0.30), 0 10px 24px -14px rgba(0, 0, 0, 0.50);
     --mica-elev-2: 0 2px 4px rgba(0, 0, 0, 0.32), 0 18px 36px -16px rgba(0, 0, 0, 0.55);
-    --mica-noise-opacity: 0.05;
+    --mica-noise-opacity: 0.10; /* 颗粒改成「中性」后用 overlay 混合（见 ::after 规则），亮度不再被抬高，所以可以加浓一档 */
     /* 页级洗色：青线 + 一个中性，避免多个色相互相打架 */
     --mica-wash-0: rgba(95, 209, 181, 0.02); /* 满屏薄纱 · 暗色下极淡 */
     --mica-wash-1: rgba(95, 209, 181, 0.08); /* 亮青 · 左上 */
@@ -83,8 +105,14 @@
     --mica-glow-3: rgba(15, 118, 110, 0.10); /* 深青光斑 */
     /* 滚动联动位移（暗色全幅，浅色减半） */
     --mica-depth: -2.4%;
-    /* 导航玻璃掠光（仅切主题 / 开合抽屉时扫一次） */
-    --mica-sheen: rgba(255, 255, 255, 0.07);
+    /* 导航玻璃掠光（无 View Transition 的浏览器才用：切主题时扫一次）
+       颜色取「另一个模式」的对照色 —— 掠光是在 data-theme 翻过之后才播的，
+       所以浅色页面上要用深色带才看得见（旧版用白色，压在近白导航上等于没有）。 */
+    --mica-sheen: rgba(238, 244, 246, 0.13);
+    /* 扫光层：一条极淡的光带不停歇地掠过内容区（24s 一圈）。
+       只动 transform、不用 mix-blend-mode，纯合成器开销；顶边让开导航高度，
+       导航的模糊采样区因此仍然静止（只在滚动时重建）。 */
+    --mica-sweep: rgba(190, 240, 232, 0.055);
     /* 抖动强度：把暗色渐变的 8bit 色带打散（嫌有台阶就调到 0.045） */
     --mica-dither-opacity: 0.03;
     /* 点阵背景：暗色下用浅青才看得见 */
@@ -97,25 +125,30 @@
     --primary: #0f766e;
     --primary-dim: rgba(15, 118, 110, 0.12);
     --primary-glow: rgba(15, 118, 110, 0.18);
-    --primary-text: #0d6a62;
+    --primary-text: #0b5f57;
     /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青，不是纯白） --- */
     --bg: #d0e2db;
     --bg-rgb: 208, 226, 219;
-    --bg-card: #eef4f6; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
+    --bg-card: #f2f8f9; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
     --bg-secondary: #e5eef1;
     /* 文字三档同样取「底色与面板之间」的色相（≈180°），只差明度 */
     --text: #162221;
-    --text-dim: #455e5e;
-    --text-muted: #4e6363;
+    --text-dim: #3f5656;
+    --text-muted: #465a5a;
     --border: rgba(90, 140, 130, 0.26);
     --shadow: rgba(30, 60, 55, 0.10);
 
     /* --- Mica Alt 材质（浅色）---
-       与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #eef4f6（更青，hue≈195），
-       色相差 ≈38°、亮度比 ≈1.20:1（合成后 1.19:1），面板封顶在 L*96（不是纯白，久看不累眼）。
+       与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #f2f8f9（更青，hue≈195），
+       色相差 ≈38°、不透明面板的亮度比 ≈1.20:1，面板封顶在 L*96（不是纯白，久看不累眼）。
        旧版浅色面板和底色明度几乎相同（1.00~1.03:1），只靠"更黄"来区分，所以既糊又土。 */
     --mica-chrome: rgba(238, 244, 246, 0.92); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
-    --mica-surface: rgba(238, 244, 246, 0.89); /* 卡片：面板色，比导航更透（正文层） */
+    /* 卡片比暗色再降一档：浅色面板本来就接近白，只有让底色的绿透进来，
+       面板才会从「一张白卡」变成「一层薄荷玻璃膜」，这是浅色唯一看得出通透的办法。
+       代价是分层变弱，所以面板色同步提亮到 #f2f8f9 补回来。 */
+    --mica-surface: rgba(242, 248, 249, 0.78);
+    --mica-surface-glass: rgba(242, 248, 249, 0.58);
+    --mica-panel-glass: blur(12px) saturate(128%);
     /* 浅色玻璃同样提饱和，但幅度小一档：浅色底本来就低饱和，提猛了会发荧光 */
     --mica-glass-sat: 135%;
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
@@ -125,13 +158,18 @@
     /* --- 面板的「面」（与暗色同一套逻辑，只换过曝光档）---
        浅色面板已经接近白（L*96），"更亮"没有余地，所以受光靠的是：
        顶部 1px 更白的亮边（白 85% 压在 L*96 上 ≈ L*99，是一条看得见的边）、
-       上半略亮 + 下缘略沉的一点渐变、以及一圈贴地阴影。 */
-    --mica-panel-edge: rgba(255, 255, 255, 0.85); /* 顶部 1px 亮边 */
-    --mica-panel-sheen: rgba(255, 255, 255, 0.55); /* 上半受光 */
-    --mica-panel-shade: rgba(70, 110, 105, 0.035); /* 下缘厚度 */
+       底边 1px 反光、左上白色镜面光池、一圈极淡的冷调内侧厚边，以及贴地阴影。 */
+    --mica-panel-edge: rgba(255, 255, 255, 0.90); /* 顶部 1px 亮边 */
+    --mica-panel-sheen: rgba(255, 255, 255, 0.55); /* 上半受光（导航沿用） */
+    --mica-panel-spec: rgba(255, 255, 255, 0.80); /* 左上镜面光池 */
+    --mica-panel-inner: rgba(88, 138, 138, 0.05); /* 内侧玻璃厚边（冷调，不是灰） */
+    --mica-panel-edge-b: rgba(255, 255, 255, 0.75); /* 底边 1px 反光（浅色下靠它把「板」立起来） */
+    --mica-panel-shade: rgba(70, 110, 105, 0.02); /* 下缘厚度：浅色下只留一点点 */
+    --mica-glare-rgb: 15, 118, 110; /* 指针追光：浅底上用 accent 的深青才看得见 */
+    --mica-glare-a: 0.05;
     --mica-elev-1: 0 1px 2px rgba(30, 60, 55, 0.06), 0 10px 24px -14px rgba(30, 60, 55, 0.22);
     --mica-elev-2: 0 2px 4px rgba(30, 60, 55, 0.07), 0 18px 36px -16px rgba(30, 60, 55, 0.26);
-    --mica-noise-opacity: 0.04;
+    --mica-noise-opacity: 0.10;
     /* 页级洗色：青线 + 一个灰青，避免多个色相互相打架 */
     --mica-wash-0: rgba(120, 180, 170, 0.04); /* 满屏薄纱 */
     --mica-wash-1: rgba(120, 180, 170, 0.05); /* 亮青 · 左上 */
@@ -146,8 +184,10 @@
     --mica-glow-3: rgba(150, 200, 200, 0.05);
     /* 浅色底本来就亮，滚动位移减半，避免局部比面板还亮 */
     --mica-depth: -1.2%;
-    /* 浅色导航是暖白偏青的面板，白高光才看得见 */
-    --mica-sheen: rgba(255, 255, 255, 0.35);
+    /* 无 View Transition 的回落掠光：浅色下必须用深色带（白带压在近白导航上不可见） */
+    --mica-sheen: rgba(12, 23, 20, 0.15);
+    /* 扫光层：浅色下同样不能用白色（白在近白底上等于没有），改用极淡的冷青 */
+    --mica-sweep: rgba(70, 130, 125, 0.05);
     /* 灰色噪声会压低青色的饱和度，浅色下减半以免底色发灰 */
     --mica-dither-opacity: 0.02;
     --dot: rgba(110, 150, 145, 0.26); /* 青灰，浅底上才看得清 */
@@ -664,7 +704,7 @@ section {
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: var(--mica-elev-1);
-    transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+    transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
 .stat-item {
@@ -727,7 +767,7 @@ section {
     border-radius: 12px;
     padding: 1.5rem;
     position: relative;
-    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
     box-shadow: var(--mica-elev-1);
     display: block;
     text-decoration: none;
@@ -827,7 +867,7 @@ section {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1.25rem 1.5rem;
-    transition: border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+    transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
     text-decoration: none;
     color: inherit;
     display: flex;
@@ -904,7 +944,7 @@ section {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1.25rem 1.5rem;
-    transition: border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+    transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
     text-decoration: none;
     color: inherit;
     display: flex;
@@ -998,6 +1038,7 @@ section {
     border-radius: 12px;
     padding: 3rem 2rem;
     box-shadow: var(--mica-elev-1);
+    transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
 .email-display {
@@ -1534,22 +1575,29 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
    再往上是按钮/标签的「抬升层」）+ 细颗粒。
    页级背景 = 静态洗色（两种色相）+ 静态受光/暗角 + 抖动噪点；洗色是渐变，
    暗色下必然有 8bit 色带，所以必须用 html::after 的噪点层做抖动来打散（这是色带唯一的根治手段）。
-   通透感的两条边界：
-   ① 玻璃（backdrop-filter + saturate）只给导航栏与移动端抽屉 —— 底下真有内容在动，
+   通透感的边界：
+   ① 玻璃（backdrop-filter + saturate）常驻给导航栏与移动端抽屉 —— 底下真有内容在动，
       模糊才看得见；而且因为漂移层的顶边让开了导航高度，导航采样区是静止的，
       重建模糊只在滚动时发生。
-   ② 卡片一律不加 backdrop-filter：卡片背后是一张平滑洗色，模糊在视觉上是空操作，
-      却会因为漂移层一直在动而让每张卡每帧重模糊。卡片的材质感改由「面」来做
-      （见文件末尾的受光边 + 渐变 + 贴地阴影），零每帧开销。
+   ② 卡片不做常驻 backdrop-filter：漂移层一直在面板背后动，常驻会让每张卡每帧重模糊
+      （屏上 6~9 张卡 ≈ 8~12 条导航的采样面积，而且是持续的）。
+      卡片改「指针下的那一张才开真玻璃」（见文件末尾的 :hover 规则）：开销被限制在
+      一张卡、且只在指针停留时；静止时依旧是零每帧开销。
+   ③ 卡片的通透感由三件事给：膜（alpha 降到 0.80/0.78，让底色的绿/青光透上来）、
+      玻璃厚边与受光（见文件末尾的「面」）、以及 F 扫光层带来的「光从玻璃上走过去」。
    洗色 / 抖动层挂在 html 上（不是 body），避开已占用的 body.nav-open::before。
 
-   --- 动态光源（3 层，全部只动 transform / opacity，纯合成器开销）---
+   --- 动态光源（4 层，全部只动 transform / opacity，纯合成器开销）---
    D 受光层：html::before 里的顶部柔光 + 暗角 + 时段柔光，完全静态。
    A/C 漂移层：body::after，translate + 极慢 rotate（A）+ 随滚动的纵向位移（C）。
               刻意压在抖动层之下（色带照样被抖动打散），顶边正好从导航下沿开始，
               且纵向位移只往上（滑到导航背后）——
               这样页面中部永远不会露出「光到这里就断了」的硬边。
-   E 掠光层：nav::after，只在切主题 / 开合抽屉时扫一次（周期扫会像加载条）。 */
+   E 掠光层：nav::after，只在切主题 / 开合抽屉时扫一次；切主题时它只是
+              View Transition 不可用时的回落（周期扫会像加载条）。
+   F 扫光层：.mica-sweep，24s 掠过内容区一条极淡的光带 —— 这就是「每一刻都在变」
+              的那一半（单靠降 alpha 只有 1~2 个 L* 的变化，肉眼看不出来），
+              代价只有一层合成，且顶边让开导航高度。 */
 
 /* 洗色层：视口锚定（fixed），静态合成一次，滚动零成本 */
 html::before {
@@ -1656,6 +1704,86 @@ body.nav-open nav::after {
     animation: nav-sheen 1.15s cubic-bezier(0.33, 0, 0.2, 1);
 }
 
+/* ===== 扫光层（F）=====
+   一条极淡的光带不停歇地掠过内容区，24s 一圈。
+   为什么不是每张卡自己动：卡片的 ::before / ::after 都已占用，而且每卡多一层
+   常驻合成层（9 张卡 ≈ 十几 MB 显存 + 9 个持续动画）。这一层只动 transform、
+   不用 mix-blend-mode，是「一层光从玻璃上走过去」的等效观感，代价只有一层合成。
+   两个关键约束：
+   ① top 让开导航高度 → 导航的模糊采样区仍然静止（与漂移层同一套理由）；
+   ② 容器 overflow: hidden 裁掉光带，带子出屏时不撑出横向滚动。 */
+.mica-sweep {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--nav-h);
+    bottom: 0;
+    z-index: 60; /* 压在内容之上、导航(100)/抽屉(150,200)之下 */
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.mica-sweep::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 55vw;
+    background-image: linear-gradient(104deg, transparent 0%, var(--mica-sweep) 46%, transparent 100%);
+    animation: mica-sweep 24s ease-in-out infinite;
+}
+
+/* 不停顿的连续扫法：淡进 → 掠过 → 淡出。走完一圈立刻重来，
+   所以「每一刻都在变」是真的每一刻（ease-in-out 让它在画面外两端变慢，
+   看起来像光自己浮出来又消失，而不是一条匀速的加载条）。 */
+@keyframes mica-sweep {
+    from { transform: translate3d(-100%, 0, 0); }
+    to { transform: translate3d(200%, 0, 0); }
+}
+
+/* ===== 主题切换：圆形揭示（View Transition）=====
+   从主题开关的位置把新主题「铺」出去，比一条掠光更直觉：光是从你按下的地方来的。
+   只负责表现，状态切换仍由 theme.js 的 toggleTheme 完成；不支持
+   startViewTransition 的浏览器继续走 nav-sheen 掠光（theme.js 里分流）。
+   ::view-transition-old / -new 都是全屏快照，必须显式关掉默认的交叉淡化：
+   老快照留在下层压住不动，新快照用 clip-path 的圆做成揭示。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-old(root) { z-index: 1; }
+
+::view-transition-new(root) {
+    z-index: 2;
+    animation: theme-reveal 460ms cubic-bezier(0.32, 0.72, 0.28, 1);
+}
+
+@keyframes theme-reveal {
+    from { clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 0px)); }
+    to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0px)); }
+}
+
+/* 揭示进行中：临时掐掉所有颜色过渡。
+   View Transition 抓「新快照」是在下一帧，如果 body/nav 的 background 过渡正在跑，
+   新快照抓到的是过渡起点（旧颜色）→ 揭示出来什么都没变、0.46s 后才在底下突变。
+   这一类只持续一帧多的全站规则，开销可以忽略。 */
+html.vt *,
+html.vt *::before,
+html.vt *::after {
+    transition: none !important;
+}
+
+/* ===== 指针特效层（cursor.js 创建的 canvas）===== */
+.fx-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    pointer-events: none;
+}
+
 /* 抖动层：极淡噪点压在洗色之上，把色带打散 */
 html::after {
     content: '';
@@ -1721,9 +1849,13 @@ html::after {
     background-image: var(--mica-noise);
     background-size: 160px 160px;
     opacity: var(--mica-noise-opacity);
+    /* 颗粒必须「中性」：噪点图是灰阶 + 随机 alpha，用普通 alpha 叠在深色面板上
+       平均会把面板提亮三级、还带一层斑点 —— 那就是「脏」的来源。
+       改成 overlay 后 50% 灰落在中性点上、不改变亮度，只留纹理。 */
+    mix-blend-mode: overlay;
 }
 
-/* Mica Alt 的「面」：受光边 + 上下渐变 + 贴地阴影（token 说明见 :root）。
+/* Mica Alt 的「面」：受光边（上/下）+ 左上镜面光池 + 内侧厚边 + 贴地阴影 + 追光（token 说明见 :root）。
    刻意画在元素自己的 background-image 上，而不是新开伪元素：
    卡片的 ::before 让给了 hover 顶条、::after 让给了颗粒；
    背景图则谁也不会碰，而且 :hover 规则改 box-shadow 时，顶部亮边不会被一起抹掉
@@ -1742,11 +1874,42 @@ html::after {
     background-image:
         /* ① 顶部 1px 受光亮边 */
         linear-gradient(180deg, var(--mica-panel-edge) 0, transparent 1px),
-        /* ② 上半受光 */
-        linear-gradient(180deg, var(--mica-panel-sheen), transparent 120px),
-        /* ③ 下缘厚度 */
+        /* ② 指针追光：跟着鼠标走的镜面（--glare 由 cursor.js 在 hover 时置 1，
+              未注册 @property 时它只是「跳一下」，不影响功能） */
+        radial-gradient(240px 180px at var(--mx, 50%) var(--my, 0%),
+            rgba(var(--mica-glare-rgb), calc(var(--mica-glare-a) * var(--glare, 0))), transparent 72%),
+        /* ③ 左上镜面光池：光从上方来，面板像被打亮 */
+        radial-gradient(120% 80% at 22% -20%, var(--mica-panel-spec), transparent 62%),
+        /* ④ 内侧玻璃厚边：四边比中心密一点，读起来是一块玻璃板而不是一张色纸 */
+        radial-gradient(closest-side at 50% 50%, transparent 58%, var(--mica-panel-inner) 100%),
+        /* ⑤ 底边 1px 反光 */
+        linear-gradient(0deg, var(--mica-panel-edge-b) 0, transparent 1px),
+        /* ⑥ 下缘厚度（暗色已置零） */
         linear-gradient(0deg, var(--mica-panel-shade), transparent 96px);
     box-shadow: var(--mica-elev-1);
+}
+
+/* 卡片 hover = 真玻璃：只有指针下的那一张加 backdrop-filter。
+   全量常驻是不可行的 —— 漂移层一直在面板背后动，会让每张卡每帧重模糊
+   （导航能常驻模糊，是因为漂移层的顶边让开了导航高度，采样区静止）。
+   指针下的这一张：面积约等于 1.3 条导航，且只在指针停留时开销。
+   不透明度同步降到 --mica-surface-glass，否则 0.80 的膜把模糊挡住九成、等于白做。 */
+@media (hover: hover) and (pointer: fine) {
+    @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .stats-box:hover,
+        .project-card:hover,
+        .blog-preview-card:hover,
+        .nook-preview-card:hover,
+        .contact-container:hover,
+        .blog-page-card:hover,
+        .nook-card:hover,
+        .blog-nav-post:hover,
+        .e404:hover {
+            background-color: var(--mica-surface-glass);
+            -webkit-backdrop-filter: var(--mica-panel-glass);
+            backdrop-filter: var(--mica-panel-glass);
+        }
+    }
 }
 
 /* 导航 / 抽屉（标题栏层）：同一套受光逻辑，层矮，所以渐变跟着收窄 */
@@ -1778,13 +1941,15 @@ nav,
         --mica-noise-opacity: 0;
     }
 
-    html::before, html::after, body::before, body::after { display: none; }
+    html::before, html::after, body::before, body::after, .mica-sweep { display: none; }
 }
 
-/* 系统要求降低动效：漂移与掠光全部停掉（漂移回落到中性 keyframe，完全静止） */
+/* 系统要求降低动效：漂移、掠光、扫光、指针特效全部停掉（漂移回落到中性 keyframe，完全静止） */
 @media (prefers-reduced-motion: reduce) {
     body::after { animation: none; }
     nav::after { animation: none; opacity: 0; }
+    .mica-sweep::before { animation: none; }
+    .fx-layer { display: none; }
 }
 
 /* 触屏设备：降低模糊半径以省电，漂移也放慢到 150s
@@ -1795,17 +1960,20 @@ nav,
     body::after { animation-duration: 150s, 1s; }
 }
 
-/* 移动端抽屉铺满全屏时暂停漂移：
-   抽屉自带 backdrop-filter，底下的光斑一直在动会让它每帧重模糊整屏。 */
+/* 移动端抽屉铺满全屏时暂停漂移与扫光：
+   抽屉自带 backdrop-filter，底下任何还在动的层都会让它每帧重模糊整屏。 */
 body.nav-open::after { animation-play-state: paused; }
+body.nav-open .mica-sweep::before { animation-play-state: paused; }
 
-/* 打印：去掉颗粒、点阵与洗色，避免纸上出现灰噪点与色块 */
+/* 打印：去掉颗粒、点阵、扫光与洗色，避免纸上出现灰噪点与色块 */
 @media print {
     html::before,
     html::after,
     body::before,
     body::after,
     nav::after,
+    .mica-sweep,
+    .fx-layer,
     .stats-box::after,
     .project-card::after,
     .blog-preview-card::after,

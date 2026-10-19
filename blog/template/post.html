@@ -3,6 +3,7 @@
 
 <head>
     <script src="../theme.js"></script>
+    <script defer src="../cursor.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{description}}">
@@ -332,7 +333,7 @@
         }
 
         .blog-article-content pre {
-            background: var(--mica-surface);
+            background: var(--bg-card); /* 代码块用不透明面板：0.78 的膜压在代码上会读不动 */
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1rem;
@@ -373,7 +374,7 @@
         }
 
         .blog-article-content :not(pre)>code {
-            background: var(--mica-surface);
+            background: var(--bg-card);
             padding: 0.15rem 0.4rem;
             border-radius: 3px;
             font-size: 0.85em;
@@ -505,7 +506,7 @@
             font-weight: 600;
             font-family: 'JetBrains Mono', 'SF Mono', monospace;
             color: var(--text-dim);
-            background: var(--mica-surface);
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 0.1rem 0.5rem;
@@ -548,7 +549,7 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 1rem 1.25rem;
-            transition: border-color 0.3s, transform 0.3s;
+            transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, --glare 0.28s ease;
             text-decoration: none;
             color: inherit;
             display: block;
@@ -832,6 +833,7 @@
 </head>
 
 <body{{tocCollapsed}}>
+    <div class="mica-sweep" aria-hidden="true"></div>
     <nav class="blog-nav">
         <div class="blog-nav-left">
             <a href="../" class="logo">&larr; cmixed</a>
