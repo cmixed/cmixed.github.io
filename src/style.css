@@ -35,17 +35,34 @@
 
     /* --- Mica Alt 材质（暗色）---
        主题色 1 = 底色 #0c1714（更绿，hue≈164）；主题色 2 = 面板 #1c2a30（更青，hue≈198）。
-       两色不同、不相似，但都落在青绿这条窄色相带里：色相差 ≈34°、亮度比 1.20:1。
+       两色不同、不相似，但都落在青绿这条窄色相带里：色相差 ≈34°、亮度比 ≈1.20:1（半透明合成后 1.19:1）。
        层次来自「色相 + 明度」双差，而不是像旧版那样让冷蓝底和橄榄面板互相对撞。
        浅色用同一条公式的高曝光档，所以两套主题是"同一关系的两个曝光"。 */
-    --mica-chrome: rgba(28, 42, 48, 0.95); /* 导航 / 抽屉：面板色，略实 */
-    --mica-surface: rgba(28, 42, 48, 0.90); /* 卡片：面板色，略透 */
+    --mica-chrome: rgba(28, 42, 48, 0.90); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
+    --mica-surface: rgba(28, 42, 48, 0.86); /* 卡片：面板色，比导航更透（正文层） */
+    /* 玻璃：Mica 的味道是「背景的颜色被玻璃吸上来」，所以除模糊外还要提饱和。
+       blur 单独拆成一个 token，是为了触屏设备只降半径、不至于把 saturate 一起丢掉。 */
+    --mica-glass-blur: 14px;
+    --mica-glass-sat: 150%;
+    --mica-nav-glass: blur(var(--mica-glass-blur)) saturate(var(--mica-glass-sat)); /* 置为 none 可彻底关掉玻璃 */
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
     --mica-raised: rgba(95, 209, 181, 0.16);
     /* 卡片内的小标签（tag / 分类 / 状态）：填色比卡片明显一档，
        再配 --primary 描边，保证在卡片上「看得出来是个标签」 */
     --mica-chip: rgba(95, 209, 181, 0.20);
-    --mica-nav-glass: blur(12px); /* 置为 none 可彻底关掉导航模糊 */
+    /* --- 面板的「面」：材质感来自受光，不来自透明度 ---
+       底板背后是一张平滑洗色，透出来的几乎是同一个颜色，所以单靠调 alpha 看不出通透
+       （这也是卡片一律不加 backdrop-filter 的原因：漂移层一直在动，会让每张卡每帧重模糊。
+        导航能模糊，是因为漂移层的顶边正好让开了导航高度）。
+       真正让面板像「一块板」的是面上的三件事：
+       ① 顶部 1px 亮边（受光边）② 上亮下暗的极淡渐变（板有厚度）③ 贴地阴影（板离开纸面）。
+       三者画在元素自己的 background-image / box-shadow 上：不加图层、不抢
+       ::before（hover 顶条）与 ::after（颗粒）的位置，也不产生任何每帧开销。 */
+    --mica-panel-edge: rgba(255, 255, 255, 0.06); /* 顶部 1px 亮边 */
+    --mica-panel-sheen: rgba(255, 255, 255, 0.05); /* 上半受光 */
+    --mica-panel-shade: rgba(0, 0, 0, 0.10); /* 下缘厚度 */
+    --mica-elev-1: 0 1px 2px rgba(0, 0, 0, 0.30), 0 10px 24px -14px rgba(0, 0, 0, 0.50);
+    --mica-elev-2: 0 2px 4px rgba(0, 0, 0, 0.32), 0 18px 36px -16px rgba(0, 0, 0, 0.55);
     --mica-noise-opacity: 0.05;
     /* 页级洗色：青线 + 一个中性，避免多个色相互相打架 */
     --mica-wash-0: rgba(95, 209, 181, 0.02); /* 满屏薄纱 · 暗色下极淡 */
@@ -95,14 +112,25 @@
 
     /* --- Mica Alt 材质（浅色）---
        与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #eef4f6（更青，hue≈195），
-       色相差 ≈38°、亮度比 1.20:1，面板封顶在 L*96（不是纯白，久看不累眼）。
+       色相差 ≈38°、亮度比 ≈1.20:1（合成后 1.19:1），面板封顶在 L*96（不是纯白，久看不累眼）。
        旧版浅色面板和底色明度几乎相同（1.00~1.03:1），只靠"更黄"来区分，所以既糊又土。 */
-    --mica-chrome: rgba(238, 244, 246, 0.96); /* 导航 / 抽屉：面板色，略实 */
-    --mica-surface: rgba(238, 244, 246, 0.92); /* 卡片：面板色，略透 */
+    --mica-chrome: rgba(238, 244, 246, 0.92); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
+    --mica-surface: rgba(238, 244, 246, 0.89); /* 卡片：面板色，比导航更透（正文层） */
+    /* 浅色玻璃同样提饱和，但幅度小一档：浅色底本来就低饱和，提猛了会发荧光 */
+    --mica-glass-sat: 135%;
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
     --mica-raised: rgba(15, 118, 110, 0.10);
     /* 卡片内小标签：填色比卡片明显一档 + accent 描边，拉开区分度 */
     --mica-chip: rgba(15, 118, 110, 0.13);
+    /* --- 面板的「面」（与暗色同一套逻辑，只换过曝光档）---
+       浅色面板已经接近白（L*96），"更亮"没有余地，所以受光靠的是：
+       顶部 1px 更白的亮边（白 85% 压在 L*96 上 ≈ L*99，是一条看得见的边）、
+       上半略亮 + 下缘略沉的一点渐变、以及一圈贴地阴影。 */
+    --mica-panel-edge: rgba(255, 255, 255, 0.85); /* 顶部 1px 亮边 */
+    --mica-panel-sheen: rgba(255, 255, 255, 0.55); /* 上半受光 */
+    --mica-panel-shade: rgba(70, 110, 105, 0.035); /* 下缘厚度 */
+    --mica-elev-1: 0 1px 2px rgba(30, 60, 55, 0.06), 0 10px 24px -14px rgba(30, 60, 55, 0.22);
+    --mica-elev-2: 0 2px 4px rgba(30, 60, 55, 0.07), 0 18px 36px -16px rgba(30, 60, 55, 0.26);
     --mica-noise-opacity: 0.04;
     /* 页级洗色：青线 + 一个灰青，避免多个色相互相打架 */
     --mica-wash-0: rgba(120, 180, 170, 0.04); /* 满屏薄纱 */
@@ -635,7 +663,7 @@ section {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 20px var(--shadow);
+    box-shadow: var(--mica-elev-1);
     transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
@@ -700,7 +728,7 @@ section {
     padding: 1.5rem;
     position: relative;
     transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 4px 20px var(--shadow);
+    box-shadow: var(--mica-elev-1);
     display: block;
     text-decoration: none;
     color: inherit;
@@ -724,7 +752,7 @@ section {
 .project-card:hover {
     border-color: var(--primary);
     transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 12px 40px var(--shadow);
+    box-shadow: var(--mica-elev-2);
 }
 
 .project-card:hover::before {
@@ -817,7 +845,7 @@ section {
 .blog-preview-card:hover {
     border-color: var(--primary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px var(--shadow);
+    box-shadow: var(--mica-elev-2);
 }
 
 .blog-preview-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
@@ -894,7 +922,7 @@ section {
 .nook-preview-card:hover {
     border-color: var(--primary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px var(--shadow);
+    box-shadow: var(--mica-elev-2);
 }
 
 .nook-preview-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
@@ -969,7 +997,7 @@ section {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 3rem 2rem;
-    box-shadow: 0 4px 30px var(--shadow);
+    box-shadow: var(--mica-elev-1);
 }
 
 .email-display {
@@ -1502,11 +1530,17 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 /* ===== MICA ALT MATERIAL ===== */
-/* 仿 Windows 11 Mica Alt：accent 着色 + 两层结构（「标题栏层」比「正文层」更实）+ 细颗粒。
+/* 仿 Windows 11 Mica Alt：accent 着色 + 三层结构（「标题栏层」比「正文层」更实，
+   再往上是按钮/标签的「抬升层」）+ 细颗粒。
    页级背景 = 静态洗色（两种色相）+ 静态受光/暗角 + 抖动噪点；洗色是渐变，
    暗色下必然有 8bit 色带，所以必须用 html::after 的噪点层做抖动来打散（这是色带唯一的根治手段）。
-   backdrop-filter 只用于导航栏与移动端抽屉，且不带 saturate；
-   卡片一律使用静态颗粒，零每帧开销。
+   通透感的两条边界：
+   ① 玻璃（backdrop-filter + saturate）只给导航栏与移动端抽屉 —— 底下真有内容在动，
+      模糊才看得见；而且因为漂移层的顶边让开了导航高度，导航采样区是静止的，
+      重建模糊只在滚动时发生。
+   ② 卡片一律不加 backdrop-filter：卡片背后是一张平滑洗色，模糊在视觉上是空操作，
+      却会因为漂移层一直在动而让每张卡每帧重模糊。卡片的材质感改由「面」来做
+      （见文件末尾的受光边 + 渐变 + 贴地阴影），零每帧开销。
    洗色 / 抖动层挂在 html 上（不是 body），避开已占用的 body.nav-open::before。
 
    --- 动态光源（3 层，全部只动 transform / opacity，纯合成器开销）---
@@ -1689,6 +1723,40 @@ html::after {
     opacity: var(--mica-noise-opacity);
 }
 
+/* Mica Alt 的「面」：受光边 + 上下渐变 + 贴地阴影（token 说明见 :root）。
+   刻意画在元素自己的 background-image 上，而不是新开伪元素：
+   卡片的 ::before 让给了 hover 顶条、::after 让给了颗粒；
+   背景图则谁也不会碰，而且 :hover 规则改 box-shadow 时，顶部亮边不会被一起抹掉
+   （做成 inset box-shadow 就会被 hover 的 box-shadow 整条覆盖掉）。
+   渐变按 px 收边而不是百分比：卡片从 100px 到 900px 都有，
+   用百分比的话高卡片的渐变会拉成一整片洗色，不再像一块板。 */
+.stats-box,
+.project-card,
+.blog-preview-card,
+.nook-preview-card,
+.contact-container,
+.blog-page-card,
+.nook-card,
+.blog-nav-post,
+.e404 {
+    background-image:
+        /* ① 顶部 1px 受光亮边 */
+        linear-gradient(180deg, var(--mica-panel-edge) 0, transparent 1px),
+        /* ② 上半受光 */
+        linear-gradient(180deg, var(--mica-panel-sheen), transparent 120px),
+        /* ③ 下缘厚度 */
+        linear-gradient(0deg, var(--mica-panel-shade), transparent 96px);
+    box-shadow: var(--mica-elev-1);
+}
+
+/* 导航 / 抽屉（标题栏层）：同一套受光逻辑，层矮，所以渐变跟着收窄 */
+nav,
+.blog-nav,
+.nook-nav,
+.nook-detail-nav {
+    background-image: linear-gradient(180deg, var(--mica-panel-sheen), transparent 46px);
+}
+
 /* 不支持 backdrop-filter：退回近似不透明表面 */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     :root {
@@ -1722,7 +1790,7 @@ html::after {
 /* 触屏设备：降低模糊半径以省电，漂移也放慢到 150s
    （必须写成两值列表：单值会被重复应用到列表里的每个动画上） */
 @media (hover: none) and (pointer: coarse) {
-    :root { --mica-nav-glass: blur(8px); }
+    :root { --mica-glass-blur: 8px; }
 
     body::after { animation-duration: 150s, 1s; }
 }
