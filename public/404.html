@@ -20,15 +20,23 @@
 
             /* --- Mica Alt 材质：与主站暗色同一套（底更绿 / 板更青，1.20:1） --- */
             --mica-chrome: rgba(28, 42, 48, 0.90);
-            --mica-surface: rgba(28, 42, 48, 0.86);
-            /* 面板的「面」：受光边 + 上下渐变 + 贴地阴影（与主站同一套，说明见 src/style.css） */
-            --mica-panel-edge: rgba(255, 255, 255, 0.06);
-            --mica-panel-sheen: rgba(255, 255, 255, 0.05);
-            --mica-panel-shade: rgba(0, 0, 0, 0.10);
+            --mica-surface: rgba(28, 42, 48, 0.80);
+            --mica-surface-glass: rgba(28, 42, 48, 0.62);
+            --mica-panel-glass: blur(12px) saturate(142%);
+            /* 面板的「面」：受光边 + 镜面光池 + 内侧厚边 + 指针追光（与主站同一套，说明见 src/style.css） */
+            --mica-panel-edge: rgba(210, 255, 245, 0.11);
+            --mica-panel-spec: rgba(95, 209, 181, 0.12);
+            --mica-panel-inner: rgba(5, 18, 20, 0.13);
+            --mica-panel-edge-b: rgba(190, 245, 235, 0.07);
+            --mica-panel-shade: rgba(0, 0, 0, 0);
+            --mica-glare-rgb: 190, 245, 235;
+            --mica-glare-a: 0.055;
             --mica-elev-1: 0 1px 2px rgba(0, 0, 0, 0.30), 0 10px 24px -14px rgba(0, 0, 0, 0.50);
             /* 按钮等交互元素：抬升一层并带 accent 色相 */
             --mica-raised: rgba(95, 209, 181, 0.16);
-            --mica-noise-opacity: 0.05;
+            --mica-noise-opacity: 0.10;
+            /* 扫光层：与主站同一条光带（24s 掠过内容区） */
+            --mica-sweep: rgba(190, 240, 232, 0.055);
             /* 页级洗色 + 抖动（底色极暗，色带更明显，抖动层尤其必要） */
             --mica-wash-0: rgba(95, 209, 181, 0.02); /* 满屏纱 */
             --mica-wash-1: rgba(95, 209, 181, 0.08);
@@ -175,11 +183,24 @@
             background: var(--mica-surface);
             background-image:
                 linear-gradient(180deg, var(--mica-panel-edge) 0, transparent 1px),
-                linear-gradient(180deg, var(--mica-panel-sheen), transparent 120px),
+                radial-gradient(240px 180px at var(--mx, 50%) var(--my, 0%),
+                    rgba(var(--mica-glare-rgb), calc(var(--mica-glare-a) * var(--glare, 0))), transparent 72%),
+                radial-gradient(120% 80% at 22% -20%, var(--mica-panel-spec), transparent 62%),
+                radial-gradient(closest-side at 50% 50%, transparent 58%, var(--mica-panel-inner) 100%),
+                linear-gradient(0deg, var(--mica-panel-edge-b) 0, transparent 1px),
                 linear-gradient(0deg, var(--mica-panel-shade), transparent 96px);
             border: 1px solid var(--border);
             border-radius: 16px;
             box-shadow: var(--mica-elev-1);
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s, --glare 0.28s ease;
+        }
+        /* 指针悬停 = 真玻璃（与主站同一套：只有指针下的那一张开模糊） */
+        @media (hover: hover) and (pointer: fine) {
+            .panel:hover {
+                background-color: var(--mica-surface-glass);
+                -webkit-backdrop-filter: var(--mica-panel-glass);
+                backdrop-filter: var(--mica-panel-glass);
+            }
         }
         .panel::after {
             content: '';
@@ -191,7 +212,35 @@
             background-image: var(--mica-noise);
             background-size: 160px 160px;
             opacity: var(--mica-noise-opacity);
+            mix-blend-mode: overlay;
         }
+        /* 扫光层：与主站同一层（只动 transform，顶边让开导航高度） */
+        .mica-sweep {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: var(--nav-h);
+            bottom: 0;
+            z-index: 60;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .mica-sweep::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 55vw;
+            background-image: linear-gradient(104deg, transparent 0%, var(--mica-sweep) 46%, transparent 100%);
+            animation: mica-sweep 24s ease-in-out infinite;
+        }
+        @keyframes mica-sweep {
+            from { transform: translate3d(-100%, 0, 0); }
+            to { transform: translate3d(200%, 0, 0); }
+        }
+        /* 指针特效层（cursor.js 创建的 canvas） */
+        .fx-layer { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
         .code {
             font-family: 'Orbitron', 'JetBrains Mono', monospace;
             font-size: clamp(5rem, 15vw, 10rem);
@@ -230,6 +279,7 @@
     </style>
 </head>
 <body>
+    <div class="mica-sweep" aria-hidden="true"></div>
     <nav class="topnav">
         <a href="/" class="brand">&larr; cmixed</a>
         <div class="topnav-right">
@@ -256,5 +306,6 @@
             );
         })();
     </script>
+    <script defer src="/cursor.js"></script>
 </body>
 </html>

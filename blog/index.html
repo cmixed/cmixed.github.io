@@ -12,6 +12,7 @@
     <title>博客 · cmixed</title>
     <link rel="stylesheet" href="style.css">
     <script src="../theme.js"></script>
+    <script defer src="../cursor.js"></script>
     <style>
         body { transition: background 0.3s, color 0.3s; }
 
@@ -32,7 +33,7 @@
         .blog-page-card {
             background: var(--mica-surface); border: 1px solid var(--border); border-radius: 12px;
             padding: 1.5rem; position: relative; overflow: hidden;
-            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             text-decoration: none; color: inherit; display: block;
         }
         .blog-page-card::before {
@@ -112,6 +113,7 @@
     </style>
 </head>
 <body>
+    <div class="mica-sweep" aria-hidden="true"></div>
     <nav class="blog-nav">
         <div class="blog-nav-left">
             <a href="../" class="logo">&larr; cmixed</a>

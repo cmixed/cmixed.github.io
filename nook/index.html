@@ -2,6 +2,7 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
     <script src="../theme.js"></script>
+    <script defer src="../cursor.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="cmixed 的资源小窝 - 工具、文档与代码资源下载">
@@ -52,7 +53,7 @@
             background: var(--mica-surface); border: 1px solid var(--border); border-radius: 12px;
             padding: 1.5rem; position: relative; display: flex; flex-direction: column;
             text-decoration: none; color: inherit; overflow: hidden;
-            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             box-shadow: var(--mica-elev-1);
             content-visibility: auto; contain-intrinsic-size: auto 200px;
         }
@@ -149,6 +150,7 @@
     </style>
 </head>
 <body>
+    <div class="mica-sweep" aria-hidden="true"></div>
     <div class="scroll-progress" id="scrollProgress"></div>
     <nav class="nook-nav">
         <div class="nook-nav-left">
