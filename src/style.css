@@ -411,7 +411,14 @@ body.nav-open::before {
     justify-content: center;
     padding: 2rem;
     position: relative;
+    /* 光晕（::before）的圆心被 translate(-50%,-50%) 推到 hero 左上方，
+       溢出了 hero 的盒子；用 overflow:hidden 硬裁会在盒边留下一条竖直
+       断口（左侧看起来像一块「矩形阴影」）。改成 clip + clip-margin，
+       让光晕在盒外继续柔和衰减，断口就消失了。
+       不支持 overflow:clip 的浏览器仍走 overflow:hidden（行为同修复前）。 */
     overflow: hidden;
+    overflow: clip;
+    overflow-clip-margin: 200px;
 }
 
 .hero::before {
