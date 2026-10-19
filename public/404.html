@@ -19,8 +19,13 @@
             --border: rgba(120, 190, 180, 0.22);
 
             /* --- Mica Alt 材质：与主站暗色同一套（底更绿 / 板更青，1.20:1） --- */
-            --mica-chrome: rgba(28, 42, 48, 0.92);
-            --mica-surface: rgba(28, 42, 48, 0.90);
+            --mica-chrome: rgba(28, 42, 48, 0.90);
+            --mica-surface: rgba(28, 42, 48, 0.86);
+            /* 面板的「面」：受光边 + 上下渐变 + 贴地阴影（与主站同一套，说明见 src/style.css） */
+            --mica-panel-edge: rgba(255, 255, 255, 0.06);
+            --mica-panel-sheen: rgba(255, 255, 255, 0.05);
+            --mica-panel-shade: rgba(0, 0, 0, 0.10);
+            --mica-elev-1: 0 1px 2px rgba(0, 0, 0, 0.30), 0 10px 24px -14px rgba(0, 0, 0, 0.50);
             /* 按钮等交互元素：抬升一层并带 accent 色相 */
             --mica-raised: rgba(95, 209, 181, 0.16);
             --mica-noise-opacity: 0.05;
@@ -160,7 +165,7 @@
             text-align: center;
             padding: 2rem;
         }
-        /* Mica Alt 面板：accent 着色 + 颗粒置于内容之下 */
+        /* Mica Alt 面板：accent 着色 + 受光面 + 颗粒置于内容之下 */
         .panel {
             position: relative;
             isolation: isolate;
@@ -168,8 +173,13 @@
             width: 100%;
             padding: 3rem 2rem;
             background: var(--mica-surface);
+            background-image:
+                linear-gradient(180deg, var(--mica-panel-edge) 0, transparent 1px),
+                linear-gradient(180deg, var(--mica-panel-sheen), transparent 120px),
+                linear-gradient(0deg, var(--mica-panel-shade), transparent 96px);
             border: 1px solid var(--border);
             border-radius: 16px;
+            box-shadow: var(--mica-elev-1);
         }
         .panel::after {
             content: '';
