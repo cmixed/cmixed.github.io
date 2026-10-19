@@ -1836,6 +1836,11 @@ html::after {
 .nook-card,
 .blog-nav-post,
 .e404 {
+    /* 面板底色统一在这里给。页面里的内联 <style> 只覆盖布局/尺寸即可，
+       千万不要再用 `background:` 简写 —— 简写会把下面这 6 层受光图重置成
+       none，卡片立刻从「玻璃板」退回「色纸」（博客 / 小窝的列表卡片之前
+       就是这么和主页不统一的；要改底色请用 background-color）。 */
+    background-color: var(--mica-surface);
     background-image:
         /* ① 顶部 1px 受光亮边 */
         linear-gradient(180deg, var(--mica-panel-edge) 0, transparent 1px),
