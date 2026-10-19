@@ -411,19 +411,22 @@ body.nav-open::before {
     justify-content: center;
     padding: 2rem;
     position: relative;
-    /* 光晕（::before）的圆心被 translate(-50%,-50%) 推到 hero 左上方，
-       溢出了 hero 的盒子；用 overflow:hidden 硬裁会在盒边留下一条竖直
-       断口（左侧看起来像一块「矩形阴影」）。改成 clip + clip-margin，
-       让光晕在盒外继续柔和衰减，断口就消失了。
-       不支持 overflow:clip 的浏览器仍走 overflow:hidden（行为同修复前）。 */
-    overflow: hidden;
-    overflow: clip;
-    overflow-clip-margin: 200px;
+    /* 不裁切：光晕居中在内容正后方（见 ::before），它的亮部会越过 hero 的上下边。
+       原来的 overflow:hidden 把光晕在盒边硬切一刀，暗色下看起来就是 hero 左侧的
+       一块「矩形阴影」，所以这里必须是 visible。 */
+    overflow: visible;
 }
 
 .hero::before {
     content: '';
     position: absolute;
+    /* 显式居中：left/top 50% 把元素左上角放到 hero 中心，再由 keyframes 里的
+       translate(-50%,-50%) 抵消自身一半尺寸 —— 光晕就落在内容正后方。
+       不能只靠 flex 的「静态位置」居中：各浏览器对绝对定位子元素的静态位置
+       处理不一致，之前正是静态位置 + translate(-50%,-50%) 叠加，把圆心推出
+       半个身位、贴到 hero 左上角，才被盒边裁出那条竖线。 */
+    top: 50%;
+    left: 50%;
     width: 600px;
     height: 600px;
     background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
@@ -433,6 +436,8 @@ body.nav-open::before {
 }
 
 @keyframes hero-glow {
+    /* translate(-50%,-50%) 与上面的 left/top 50% 配对使用（= 让光晕相对 hero 居中），
+       不要单独去掉其中一边。 */
     0% { transform: translate(-50%, -50%) translateY(0) scale(1); opacity: 0.35; }
     100% { transform: translate(-50%, -50%) translateY(-20px) scale(1.08); opacity: 0.5; }
 }
