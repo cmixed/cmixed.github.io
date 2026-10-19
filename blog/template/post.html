@@ -71,6 +71,33 @@
             max-height: calc(100vh - 100px);
             overflow-y: auto;
             padding-right: 1rem;
+            /* 目录一溢出，浏览器就会画一条原生滚动条：它既挤掉 1rem 的内容宽度、
+               让链接文字跳一下，也和全站「隐藏原生滚动条」的做法不一致。
+               这里统一隐藏（Firefox 用 scrollbar-width，Chromium/Safari 用
+               ::-webkit-scrollbar），改用上下两道 18px 渐隐来提示「还有内容」。
+               渐隐只在真的能滚动、且确实滚到那一侧时才出现（syncTocFade() 切换 class），
+               所以短目录和不滚动时完全不会被淡化。 */
+            scrollbar-width: none;
+            overscroll-behavior: contain;
+        }
+
+        .blog-toc::-webkit-scrollbar {
+            display: none;
+        }
+
+        .blog-toc.fade-top {
+            -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18px);
+            mask-image: linear-gradient(180deg, transparent 0, #000 18px);
+        }
+
+        .blog-toc.fade-bottom {
+            -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent 100%);
+            mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent 100%);
+        }
+
+        .blog-toc.fade-top.fade-bottom {
+            -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+            mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
         }
 
         body.toc-open .blog-toc {
@@ -1093,6 +1120,7 @@
                 tocBtn.classList.toggle('active', document.body.classList.contains('toc-open'));
                 localStorage.setItem('toc-open', document.body.classList.contains('toc-open'));
                 syncTocHeight();
+                syncTocFade();
             });
             tocOverlay.addEventListener('click', function () {
                 document.body.classList.remove('toc-open');
@@ -1107,6 +1135,18 @@
                     localStorage.setItem('toc-open', 'false');
                 }
             });
+
+            // TOC 渐隐：原生滚动条已被 CSS 隐藏，这里按实际滚动位置挂上/摘掉上下渐隐
+            // （能滚才提示，滚到底就不提示底部，没滚动过就不提示顶部）
+            function syncTocFade() {
+                var max = blogToc.scrollHeight - blogToc.clientHeight;
+                var scrollable = max > 2;
+                blogToc.classList.toggle('fade-top', scrollable && blogToc.scrollTop > 2);
+                blogToc.classList.toggle('fade-bottom', scrollable && blogToc.scrollTop < max - 2);
+            }
+            blogToc.addEventListener('scroll', syncTocFade, { passive: true });
+            window.addEventListener('resize', syncTocFade, { passive: true });
+            syncTocFade();
         })();
     </script>
 </body>
