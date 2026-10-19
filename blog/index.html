@@ -31,7 +31,8 @@
         .blog-page-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
         .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
         .blog-page-card {
-            background: var(--mica-surface); border: 1px solid var(--border); border-radius: 12px;
+            /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
+            border: 1px solid var(--border); border-radius: 12px;
             padding: 1.5rem; position: relative; overflow: hidden;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             text-decoration: none; color: inherit; display: block;
