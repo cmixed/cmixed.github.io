@@ -5,22 +5,24 @@
 }
 
 :root {
-    /* accent 只作「填充 / 描边」：白字压在它上面 5.32:1，达标。
-       这个填充值两个主题共用 —— 切主题时强调色的"形状"不变，只换曝光。 */
-    --primary: #a8541a;
-    --primary-dim: rgba(168, 84, 26, 0.18);
-    --primary-glow: rgba(232, 176, 106, 0.24);
-    /* accent 作「前景」（文字/图标）时用这个：深褐底上要用亮橙才读得清 */
-    --primary-text: #e8b06a;
-    /* --- 整页只有两个主题色：底色（橙的暗档）+ 面板色 --- */
-    --bg: #140f0b;
-    --bg-rgb: 20, 15, 11;
-    --bg-card: #2e2219; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
-    --bg-secondary: #382b21; /* 抬升层的不透明版本 */
-    --text: #f4ebde;
-    --text-dim: #c9b59d;
-    --text-muted: #a89478;
-    --border: rgba(214, 180, 140, 0.20);
+    /* accent 只作「填充 / 描边」：白字压在它上面 5.47:1，达标。
+       填充值两个主题共用 —— 切主题时强调色的形制不变，只换曝光。 */
+    --primary: #0f766e;
+    --primary-dim: rgba(15, 118, 110, 0.18);
+    --primary-glow: rgba(95, 209, 181, 0.26);
+    /* accent 作「前景」（文字/图标）时用这个：墨绿底上要用亮青才读得清 */
+    --primary-text: #5fd8c0;
+    /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青） --- */
+    --bg: #0c1714;
+    --bg-rgb: 12, 23, 20;
+    --bg-card: #1c2a30; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
+    --bg-secondary: #22343b; /* 抬升层的不透明版本 */
+    /* 文字三档都取「底色与面板之间」的色相（≈180°），只差明度：
+       这样正文/次级/弱化跟底色、面板都同族，却不会跟任何一层同亮 */
+    --text: #e8eded;
+    --text-dim: #b0c4c4;
+    --text-muted: #93a9aa;
+    --border: rgba(120, 190, 180, 0.22);
     --alert: #ef4444;
     --warning: #f59e0b;
     --shadow: rgba(0, 0, 0, 0.35);
@@ -32,25 +34,26 @@
     --nav-h: 58px;
 
     /* --- Mica Alt 材质（暗色）---
-       规则：底色 #140f0b 与面板 #2e2219 是同一条橙线上的两个曝光档
-       （褐色本来就等于"低曝光的橙"），只差一档亮度，混色后 1.20:1。
-       两色同相，所以面板是干净地"浮起来"的；不是靠换色相来分层。 */
-    --mica-chrome: rgba(46, 34, 25, 0.95); /* 导航 / 抽屉：同一面板色，略实 */
-    --mica-surface: rgba(46, 34, 25, 0.90); /* 卡片：同一面板色，略透 */
+       主题色 1 = 底色 #0c1714（更绿，hue≈164）；主题色 2 = 面板 #1c2a30（更青，hue≈198）。
+       两色不同、不相似，但都落在青绿这条窄色相带里：色相差 ≈34°、亮度比 1.20:1。
+       层次来自「色相 + 明度」双差，而不是像旧版那样让冷蓝底和橄榄面板互相对撞。
+       浅色用同一条公式的高曝光档，所以两套主题是"同一关系的两个曝光"。 */
+    --mica-chrome: rgba(28, 42, 48, 0.95); /* 导航 / 抽屉：面板色，略实 */
+    --mica-surface: rgba(28, 42, 48, 0.90); /* 卡片：面板色，略透 */
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
-    --mica-raised: rgba(232, 176, 106, 0.14);
+    --mica-raised: rgba(95, 209, 181, 0.16);
     /* 卡片内的小标签（tag / 分类 / 状态）：填色比卡片明显一档，
        再配 --primary 描边，保证在卡片上「看得出来是个标签」 */
-    --mica-chip: rgba(232, 176, 106, 0.20);
+    --mica-chip: rgba(95, 209, 181, 0.20);
     --mica-nav-glass: blur(12px); /* 置为 none 可彻底关掉导航模糊 */
     --mica-noise-opacity: 0.05;
-    /* 页级洗色：同一条橙线 + 一个中性，避免多个色相互相打架 */
-    --mica-wash-0: rgba(232, 176, 106, 0.02); /* 满屏薄纱 · 暗色下极淡 */
-    --mica-wash-1: rgba(232, 176, 106, 0.08); /* 暖橙 · 左上 */
-    --mica-wash-2: rgba(255, 255, 255, 0.03); /* 中性 · 右下（取代原来的冷靛蓝） */
-    --mica-wash-3: rgba(168, 84, 26, 0.06); /* 深橙 · 右上 */
+    /* 页级洗色：青线 + 一个中性，避免多个色相互相打架 */
+    --mica-wash-0: rgba(95, 209, 181, 0.02); /* 满屏薄纱 · 暗色下极淡 */
+    --mica-wash-1: rgba(95, 209, 181, 0.08); /* 亮青 · 左上 */
+    --mica-wash-2: rgba(255, 255, 255, 0.03); /* 中性 · 右下 */
+    --mica-wash-3: rgba(15, 118, 110, 0.06); /* 深青 · 右上 */
     /* 静态「受光」：顶部一道柔光 + 四周暗角，让页面有光的方向感（零每帧成本） */
-    --mica-light-top: rgba(232, 176, 106, 0.05);
+    --mica-light-top: rgba(95, 209, 181, 0.05);
     --mica-vignette: rgba(0, 0, 0, 0.18);
     /* 时段柔光：theme.js 按本地时间设 html[data-daylight]，这里必须始终有值——
        html::before 的 background-image 引用了它，未定义会让整条声明失效（洗色一起消失） */
@@ -58,79 +61,81 @@
     /* --- 动态光源 ---
        漂移层（body::after）只做 transform：translate 2% 级 + rotate 1° 级，
        75 秒一个循环（触屏放慢到 150 秒），看起来像光源在缓慢游移而不是贴图在滑。 */
-    --mica-glow-1: rgba(232, 176, 106, 0.11); /* 亮橙光斑 */
-    --mica-glow-2: rgba(168, 84, 26, 0.09); /* 深橙光斑（同线） */
-    --mica-glow-3: rgba(200, 140, 70, 0.08); /* 焦糖光斑 */
+    --mica-glow-1: rgba(95, 209, 181, 0.11); /* 亮青光斑 */
+    --mica-glow-2: rgba(76, 150, 190, 0.08); /* 偏蓝青光斑（同族） */
+    --mica-glow-3: rgba(15, 118, 110, 0.10); /* 深青光斑 */
     /* 滚动联动位移（暗色全幅，浅色减半） */
     --mica-depth: -2.4%;
     /* 导航玻璃掠光（仅切主题 / 开合抽屉时扫一次） */
     --mica-sheen: rgba(255, 255, 255, 0.07);
     /* 抖动强度：把暗色渐变的 8bit 色带打散（嫌有台阶就调到 0.045） */
     --mica-dither-opacity: 0.03;
-    /* 点阵背景：暗色下用浅暖沙才看得见 */
-    --dot: rgba(226, 196, 152, 0.14);
+    /* 点阵背景：暗色下用浅青才看得见 */
+    --dot: rgba(150, 200, 195, 0.14);
     --mica-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 [data-theme="light"] {
-    /* accent 填充与暗色共用同一值，只换「前景档」：浅底上要用深橙褐才读得清 */
-    --primary: #a8541a;
-    --primary-dim: rgba(168, 84, 26, 0.12);
-    --primary-glow: rgba(168, 84, 26, 0.18);
-    --primary-text: #8a4312;
-    /* --- 整页只有两个主题色：底色（橙的亮档）+ 面板色（暖白，刻意不用纯白） --- */
-    --bg: #e5d9cb;
-    --bg-rgb: 229, 217, 203;
-    --bg-card: #f7efe6; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
-    --bg-secondary: #f2ebe1;
-    --text: #2a1c10;
-    --text-dim: #5d4a38;
-    --text-muted: #6d5c48;
-    --border: rgba(140, 100, 60, 0.26);
-    --shadow: rgba(60, 45, 25, 0.10);
+    /* accent 填充与暗色共用同一值，只换「前景档」：浅底上要用深青才读得清 */
+    --primary: #0f766e;
+    --primary-dim: rgba(15, 118, 110, 0.12);
+    --primary-glow: rgba(15, 118, 110, 0.18);
+    --primary-text: #0d6a62;
+    /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青，不是纯白） --- */
+    --bg: #d0e2db;
+    --bg-rgb: 208, 226, 219;
+    --bg-card: #eef4f6; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
+    --bg-secondary: #e5eef1;
+    /* 文字三档同样取「底色与面板之间」的色相（≈180°），只差明度 */
+    --text: #162221;
+    --text-dim: #455e5e;
+    --text-muted: #4e6363;
+    --border: rgba(90, 140, 130, 0.26);
+    --shadow: rgba(30, 60, 55, 0.10);
 
     /* --- Mica Alt 材质（浅色）---
-       与暗色同一条规则：底色 #e5d9cb 与面板 #f7efe6 同属橙线，只差一档亮度
-       （混色后 1.20:1）。面板封顶在 L*95，不是纯白——纯白（L*100）久看累眼。
-       之前的浅色是靠"面板更黄"来分层（明度几乎相同，1.00~1.03:1），所以既糊又土；
-       现在两色同相、只差明度，面板才是真的浮起来。 */
-    --mica-chrome: rgba(247, 239, 230, 0.96); /* 导航 / 抽屉：同一面板色，略实 */
-    --mica-surface: rgba(247, 239, 230, 0.92); /* 卡片：同一面板色，略透 */
+       与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #eef4f6（更青，hue≈195），
+       色相差 ≈38°、亮度比 1.20:1，面板封顶在 L*96（不是纯白，久看不累眼）。
+       旧版浅色面板和底色明度几乎相同（1.00~1.03:1），只靠"更黄"来区分，所以既糊又土。 */
+    --mica-chrome: rgba(238, 244, 246, 0.96); /* 导航 / 抽屉：面板色，略实 */
+    --mica-surface: rgba(238, 244, 246, 0.92); /* 卡片：面板色，略透 */
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
-    --mica-raised: rgba(168, 84, 26, 0.10);
-    /* 卡片内小标签：浅色下暖色面板对比天生偏弱，靠略深的填充 + 描边拉开区分度 */
-    --mica-chip: rgba(168, 84, 26, 0.14);
+    --mica-raised: rgba(15, 118, 110, 0.10);
+    /* 卡片内小标签：填色比卡片明显一档 + accent 描边，拉开区分度 */
+    --mica-chip: rgba(15, 118, 110, 0.13);
     --mica-noise-opacity: 0.04;
-    /* 页级洗色：同一条橙线 + 一个灰褐，避免多个色相互相打架 */
-    --mica-wash-0: rgba(200, 150, 90, 0.04); /* 满屏暖纱 */
-    --mica-wash-1: rgba(200, 150, 90, 0.05); /* 暖橙 · 左上 */
-    --mica-wash-2: rgba(150, 120, 90, 0.03); /* 灰褐 · 右下 */
-    --mica-wash-3: rgba(210, 160, 100, 0.035); /* 浅砂 · 右上 */
-    /* 静态「受光」：浅色下"光从上方来"表现为顶部更亮 + 暖棕暗角 */
-    --mica-light-top: rgba(255, 255, 255, 0.28);
-    --mica-vignette: rgba(120, 90, 50, 0.10);
+    /* 页级洗色：青线 + 一个灰青，避免多个色相互相打架 */
+    --mica-wash-0: rgba(120, 180, 170, 0.04); /* 满屏薄纱 */
+    --mica-wash-1: rgba(120, 180, 170, 0.05); /* 亮青 · 左上 */
+    --mica-wash-2: rgba(110, 140, 150, 0.03); /* 灰青 · 右下 */
+    --mica-wash-3: rgba(150, 200, 200, 0.035); /* 浅冰青 · 右上 */
+    /* 静态「受光」：浅色下"光从上方来"表现为顶部更亮 + 青灰暗角 */
+    --mica-light-top: rgba(255, 255, 255, 0.30);
+    --mica-vignette: rgba(60, 100, 95, 0.10);
     /* 动态光源（浅色下色团更淡，否则噪点压不住色带） */
-    --mica-glow-1: rgba(200, 150, 90, 0.06);
-    --mica-glow-2: rgba(150, 120, 90, 0.05);
-    --mica-glow-3: rgba(210, 160, 100, 0.05);
-    /* 浅色底本来就亮，滚动位移减半，避免局部比暖色面板还亮 */
+    --mica-glow-1: rgba(120, 180, 170, 0.06);
+    --mica-glow-2: rgba(110, 140, 150, 0.05);
+    --mica-glow-3: rgba(150, 200, 200, 0.05);
+    /* 浅色底本来就亮，滚动位移减半，避免局部比面板还亮 */
     --mica-depth: -1.2%;
-    /* 浅色导航是暖白面板，白高光才看得见 */
+    /* 浅色导航是暖白偏青的面板，白高光才看得见 */
     --mica-sheen: rgba(255, 255, 255, 0.35);
-    /* 灰色噪声会压低暖色的饱和度，浅色下减半以免底色发灰 */
+    /* 灰色噪声会压低青色的饱和度，浅色下减半以免底色发灰 */
     --mica-dither-opacity: 0.02;
-    --dot: rgba(150, 120, 85, 0.26); /* 暖褐，浅底上才看得清 */
+    --dot: rgba(110, 150, 145, 0.26); /* 青灰，浅底上才看得清 */
 }
 
 /* 时段柔光：theme.js 在 <head> 里按本地小时设一次 html[data-daylight]，
-   之后完全静态（零每帧成本）。选择器比 :root 更具体，所以能覆盖默认值。 */
-html[data-daylight='dawn'] { --mica-daylight: rgba(232, 176, 106, 0.05); }
+   之后完全静态（零每帧成本）。选择器比 :root 更具体，所以能覆盖默认值。
+   四个时段都落在同一条青线上（晨=偏绿亮青、昏=偏深青、夜=偏青蓝），
+   只挪一点点色相，不引入暖色，免得跟青绿主色打架。 */
+html[data-daylight='dawn'] { --mica-daylight: rgba(150, 215, 195, 0.05); }
 html[data-daylight='day'] { --mica-daylight: transparent; }
-html[data-daylight='dusk'] { --mica-daylight: rgba(214, 120, 60, 0.06); }
-html[data-daylight='night'] { --mica-daylight: rgba(90, 130, 170, 0.055); }
-[data-theme='light'][data-daylight='dawn'] { --mica-daylight: rgba(200, 150, 90, 0.045); }
-[data-theme='light'][data-daylight='dusk'] { --mica-daylight: rgba(200, 120, 70, 0.05); }
-[data-theme='light'][data-daylight='night'] { --mica-daylight: rgba(100, 120, 160, 0.04); }
+html[data-daylight='dusk'] { --mica-daylight: rgba(80, 160, 175, 0.06); }
+html[data-daylight='night'] { --mica-daylight: rgba(90, 130, 175, 0.055); }
+[data-theme='light'][data-daylight='dawn'] { --mica-daylight: rgba(150, 205, 190, 0.045); }
+[data-theme='light'][data-daylight='dusk'] { --mica-daylight: rgba(90, 160, 170, 0.05); }
+[data-theme='light'][data-daylight='night'] { --mica-daylight: rgba(100, 130, 165, 0.04); }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
@@ -144,8 +149,25 @@ body {
     overflow-x: hidden;
     transition: background var(--transition-speed), color var(--transition-speed);
     -webkit-font-smoothing: antialiased;
-    background-image: radial-gradient(var(--dot) 1px, transparent 1.6px);
-    background-size: 24px 24px;
+}
+
+/* 点阵层：视口锚定（不随滚动滑动）+ 向下渐隐 —— 越靠近视口下缘越淡，
+   页脚那一大片空白不再顶着硬邦邦的网格。圆点改成柔边（0.3→1.5px）比
+   原来的 1px 硬边更像"纸"，暗色下也不会闪。
+   z-index -3 落在洗色层(-2)之下，与它取代的「画布背景点阵」同一个位置；
+   纯静态合成，滚动与静止都不产生帧。
+   注意：body::before 同时被移动端抽屉的遮罩复用（body.nav-open::before），
+   那条规则里用 background 简写重置了底图，并显式取消了这里的渐隐遮罩。 */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 50% 50%, var(--dot) 0.3px, transparent 1.5px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 48%, transparent 88%);
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 48%, transparent 88%);
 }
 
 /* ===== NAV ===== */
@@ -247,6 +269,10 @@ body.nav-open::before {
     background: rgba(0, 0, 0, 0.5);
     z-index: 150;
     animation: fade-in 0.2s ease;
+    /* 本伪元素平时是点阵层（body::before），这里必须显式取消它的渐隐遮罩，
+       否则遮罩会跟着「向下渐隐」把抽屉下方的压暗一起淡掉 */
+    -webkit-mask-image: none;
+    mask-image: none;
 }
 
 @keyframes fade-in {
@@ -1684,7 +1710,7 @@ html::after {
         --mica-noise-opacity: 0;
     }
 
-    html::before, html::after, body::after { display: none; }
+    html::before, html::after, body::before, body::after { display: none; }
 }
 
 /* 系统要求降低动效：漂移与掠光全部停掉（漂移回落到中性 keyframe，完全静止） */
@@ -1705,10 +1731,11 @@ html::after {
    抽屉自带 backdrop-filter，底下的光斑一直在动会让它每帧重模糊整屏。 */
 body.nav-open::after { animation-play-state: paused; }
 
-/* 打印：去掉颗粒与洗色，避免纸上出现灰噪点与色块 */
+/* 打印：去掉颗粒、点阵与洗色，避免纸上出现灰噪点与色块 */
 @media print {
     html::before,
     html::after,
+    body::before,
     body::after,
     nav::after,
     .stats-box::after,
