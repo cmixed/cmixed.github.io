@@ -621,9 +621,11 @@ ${sitemapUrls}
       return `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
-            <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
-            <div class="blog-page-card-meta">阅读约 ${p.readTime} 分钟 · 创建于 ${escapeXml(p.date)} · 更新于 ${escapeXml(p.updated)} · ${p.wordCount} 字 · ${p.imageCount} 张图片</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
+            <div class="blog-page-card-footer">
+                <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
+                <div class="blog-page-card-meta">阅读约 ${p.readTime}\u00a0分钟\u00a0· 创建于\u00a0${escapeXml(p.date)}\u00a0· 更新于\u00a0${escapeXml(p.updated)}\u00a0· ${p.wordCount}\u00a0字\u00a0· ${p.imageCount}\u00a0张图片</div>
+            </div>
         </a>`;
     })
     .join('');
