@@ -70,6 +70,15 @@
     --chip-pad-y: 0.2rem;
     --chip-pad-x: 0.5rem;
     --chip-font: 0.75rem;
+    /* --- 可点胶囊自己的材质（只读标签不用这三个）---
+       只读标签有 --mica-chip 的填色顶着，胶囊原本是透明底 + --border 描边；
+       实测那条边框相对页面底色只有 1.69:1（浅色 1.38:1），远低于控件边界该有的
+       3:1 —— 所以未激活态必须自己带填充，不能靠 --border。
+       暗色填充用 mint 微光而不是加白：加白会读成一块灰片，mint 才落在同一条青绿带上。
+       hover 的填充比未激活再亮一档（浅色下 --mica-raised 反而更暗，会让 hover 沉下去）。 */
+    --chip-fill: rgba(95, 209, 181, 0.10);
+    --chip-border: rgba(150, 220, 205, 0.44); /* 3.2:1 @ #0c1714 */
+    --chip-fill-hover: rgba(95, 209, 181, 0.18);
     /* --- 面板的「面」：材质感来自受光，不来自透明度 ---
        底板背后是一张平滑洗色，透出来的几乎是同一个颜色，所以单靠调 alpha 看不出通透
        （这也是卡片不做常驻 backdrop-filter 的原因：漂移层一直在动，会让每张卡每帧重模糊。
@@ -160,6 +169,11 @@
     --mica-raised: rgba(15, 118, 110, 0.10);
     /* 卡片内小标签：填色比卡片明显一档 + accent 描边，拉开区分度 */
     --mica-chip: rgba(15, 118, 110, 0.13);
+    /* 可点胶囊（浅色）：填充走「比底色更亮」= 抬升，和浅色面板同一套语言；
+       描边用深青压到 3:1（--border 在这个底色上只有 1.38:1，等于没有）。 */
+    --chip-fill: rgba(242, 248, 249, 0.55);
+    --chip-border: rgba(15, 118, 110, 0.80); /* 2.97:1 @ #d0e2db */
+    --chip-fill-hover: rgba(242, 248, 249, 0.78);
     /* --- 面板的「面」（与暗色同一套逻辑，只换过曝光档）---
        浅色面板已经接近白（L*96），纯白最多只能再给 +7 L*，所以「受光」不能靠加白：
        暗色那张卡之所以看起来被照亮，是因为它的 1px 边框比面板亮 14~16 L*；
@@ -1127,10 +1141,14 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
         transform: none;
     }
 
-    /* 筛选标签要够大的点击目标（视觉尺寸仍是 --chip-*，只把高度撑到 44px） */
+    /* 筛选标签要够大的点击目标（视觉尺寸仍是 --chip-*，只把高度撑到 44px）。
+       撑高之后短标签（AI / Git / x86）在 999px 圆角下会变成「圆环」——
+       描边变清楚以前看不出来，现在很扎眼，所以同时给个最小宽度，形状回到胶囊。 */
     .blog-tag,
     .nook-filter {
         min-height: 44px;
+        min-width: 4rem;
+        justify-content: center;
     }
 }
 
@@ -1784,7 +1802,10 @@ html::after {
 }
 
 /* 可点小标签（博客 / 小窝的筛选）：版式与只读标签同一套，只把形状换成胶囊，
-   并给出 hover / 选中态。选中用实心 accent + 白字（5.47:1），一眼看出「已筛选」。 */
+   并给出 hover / 选中态。未激活态不能是「透明底 + --border」：那条边框太淡，
+   胶囊在页面底色上几乎看不出边界，所以填充与描边都由 --chip-fill / --chip-border
+   单独给（见文件开头的 token 注释）。选中用实心 accent + 白字（5.47:1），
+   一眼看出「已筛选」；三步的填充是单调变实的：未激活 < hover < 选中。 */
 .blog-tag,
 .nook-filter {
     display: inline-flex;
@@ -1792,10 +1813,12 @@ html::after {
     padding: var(--chip-pad-y) var(--chip-pad-x);
     font-family: inherit;
     font-size: var(--chip-font);
+    /* 12px 下 400 太细，胶囊边界一变清楚，字也要跟上 */
+    font-weight: 500;
     line-height: 1.45;
     color: var(--text-dim);
-    background: transparent;
-    border: 1px solid var(--border);
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
     border-radius: 999px;
     cursor: pointer;
     text-decoration: none;
@@ -1804,7 +1827,7 @@ html::after {
 
 .blog-tag:hover,
 .nook-filter:hover {
-    background: var(--mica-raised);
+    background: var(--chip-fill-hover);
     border-color: var(--primary);
     color: var(--primary-text);
 }
