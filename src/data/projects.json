@@ -25,8 +25,8 @@
   },
   {
     "title": "cmixed.github.io",
-    "subtitle": "个人主页与技术博客",
-    "desc": "Vite + TypeScript 构建的个人站点，内置 Markdown 博客生成器、RSS 输出、AVIF 图片优化与结构化数据 SEO。支持明暗主题、无障碍模式与标签筛选。",
+    "subtitle": "个人主页 · 博客 · 资源小窝",
+    "desc": "Vite + TypeScript 构建的零框架个人站点：自研 Markdown 博客引擎与资源小窝，支持实时搜索、RSS、Sitemap、AVIF 图片优化与结构化数据 SEO，全站统一 Mica Alt 材质。",
     "url": "https://github.com/cmixed/cmixed.github.io",
     "status": "TypeScript",
     "tags": ["TypeScript", "Vite", "Blog", "Static Site"]
