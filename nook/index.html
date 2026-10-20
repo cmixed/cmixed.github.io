@@ -34,14 +34,7 @@
             will-change: transform; transition: transform 0.1s linear, background var(--transition-speed);
         }
 
-        .nook-filter {
-            padding: 0.3rem 0.8rem; background: var(--mica-surface);
-            border: 1px solid var(--border); border-radius: 6px;
-            color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
-            text-decoration: none; display: inline-block;
-        }
-        .nook-filter:hover, .nook-filter.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary-text); }
+        /* 筛选标签的材质与尺寸在 style.css 的「小标签」规则里统一（胶囊 + 实心选中） */
 
         .nook-page { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
         .nook-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
@@ -74,16 +67,12 @@
         .nook-card-title { font-weight: 700; font-size: 1.1rem; color: var(--text); }
         .nook-card-category {
             display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.75rem; font-weight: 600;
+            font-weight: 600;
             white-space: nowrap;
         }
         .nook-card-desc { color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem; }
         .nook-card-footer { margin-top: auto; }
         .nook-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-        .nook-card-tags span {
-            font-size: 0.7rem; padding: 0.15rem 0.45rem;
-        }
         .nook-card-meta { display: flex; justify-content: space-between; align-items: center; }
         .nook-card-info { font-size: 0.8rem; color: var(--text-muted); }
         .nook-download {
@@ -138,7 +127,6 @@
         @media (hover: none) and (pointer: coarse) {
             .nook-card:hover { transform: none; }
             .nook-download { min-height: 44px; padding: 0.6rem 1.2rem; }
-            .nook-filter { min-height: 44px; padding: 0.5rem 1rem; }
         }
 
         @media (prefers-reduced-motion: reduce) {

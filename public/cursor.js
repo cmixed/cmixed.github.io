@@ -16,7 +16,7 @@
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   /* --- 强度（中等档）--- */
-  var TRAIL_LIFE = 200; /* 尾迹存活 ms */
+  var TRAIL_LIFE = 280; /* 尾迹存活 ms */
   var TRAIL_MAX = 14; /* 最多保留几个点 */
   var TRAIL_W = 2.4; /* 最新一段的线宽 */
   var RIPPLE_LIFE = 480; /* 波纹存活 ms */

@@ -16,14 +16,7 @@
     <style>
         body { transition: background 0.3s, color 0.3s; }
 
-        .blog-tag {
-            padding: 0.3rem 0.8rem; background: var(--mica-surface);
-            border: 1px solid var(--border); border-radius: 6px;
-            color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
-            text-decoration: none; display: inline-block;
-        }
-        .blog-tag:hover, .blog-tag.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary-text); }
+        /* 筛选标签的材质与尺寸在 style.css 的「小标签」规则里统一（胶囊 + 实心选中） */
 
         .blog-page { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
         .blog-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
@@ -48,9 +41,6 @@
         .blog-page-card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
         .blog-page-card-desc { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
         .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
-        .blog-page-card-tags span {
-            font-size: 0.7rem; padding: 0.15rem 0.45rem;
-        }
         .blog-page-card-pin { border-color: var(--primary-dim); }
         .blog-page-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
         .blog-sort { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-size: 0.85rem; color: var(--text-dim); }
@@ -98,7 +88,6 @@
 
         @media (hover: none) and (pointer: coarse) {
             .blog-page-card:hover { transform: none; }
-            .blog-tag { min-height: 44px; padding: 0.5rem 1rem; }
             .blog-sort-btn { min-height: 44px; padding: 0.5rem 1rem; }
         }
 
