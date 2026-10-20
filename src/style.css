@@ -39,6 +39,15 @@
     /* 等宽字形（代码块、提交 hash、日期）：全站同一串回退，别再各写一份 */
     --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
+    /* --- 内容区滚动条（弹窗正文 / 代码块 / 表格）---
+       整页滚动条仍然隐藏（见文件末尾），所以这套皮肤只服务「块内滚动」。
+       拇指取 mint 微光而不是加白：加白在深色面板上是一条亮灰，和周边的青绿材质断掉；
+       轨道透明，滚动条读起来是「浮在面板边缘的一条玻璃条」，而不是嵌进去的凹槽。 */
+    --scrollbar-size: 10px;
+    --scrollbar-thumb: rgba(150, 220, 205, 0.24);
+    --scrollbar-thumb-hover: rgba(150, 220, 205, 0.40);
+    --scrollbar-thumb-active: rgba(95, 209, 181, 0.60);
+
     /* --- 导航栏尺度（全站统一，窄屏由 :root 覆盖） --- */
     --nav-logo-size: 1.25rem;
     /* 导航高度：导航栏本体与「漂移光层」的顶部偏移共用同一来源 */
@@ -153,6 +162,11 @@
     --text-muted: #465a5a;
     --border: rgba(90, 140, 130, 0.26);
     --shadow: rgba(30, 60, 55, 0.10);
+
+    /* 内容区滚动条：浅底上用深青而不是加黑，滚动条才和文字同一条色相 */
+    --scrollbar-thumb: rgba(15, 118, 110, 0.24);
+    --scrollbar-thumb-hover: rgba(15, 118, 110, 0.38);
+    --scrollbar-thumb-active: rgba(15, 118, 110, 0.56);
 
     /* --- Mica Alt 材质（浅色）---
        与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #f2f8f9（更青，hue≈195），
@@ -660,6 +674,45 @@ body.nav-open::before {
     box-shadow: 0 0 20px var(--primary-glow);
 }
 
+/* --- 首页 CTA 的两档权重 ---
+   四颗按钮分两档：关于本站 / 更新日志是「轻」档（面板底 + 弱描边，安静但明确可点），
+   个人博客 / 资源小窝是「重」档（accent 淡填 + accent 描边 + accent 字）。
+   两档都靠 token 换色，深浅主题自动同构，不需要各写一套。
+   重档刻意不做实心 accent：两块实心并排会互相抢注意力，也会和导航里那颗唯一的
+   主题色开关撞在一起。「克制的显著」= 静止在淡填，hover 才让 accent 真正亮起来。 */
+.btn-quiet {
+    background: var(--chip-fill);
+    border-color: var(--chip-border);
+    color: var(--text-dim);
+}
+
+.btn-quiet:hover {
+    background: var(--chip-fill-hover);
+    border-color: var(--primary);
+    color: var(--primary-text);
+    /* 轻档不抬升、不发光：那两件事留给重档，否则两档在 hover 时又回到同一层 */
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-quiet:active {
+    transform: scale(0.97);
+}
+
+.btn-strong {
+    background: var(--primary-dim);
+    border-color: var(--primary);
+    color: var(--primary-text);
+    font-weight: 600;
+}
+
+.btn-strong:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
 /* ===== SECTIONS ===== */
 section {
     padding: 5rem 2rem;
@@ -675,7 +728,14 @@ section {
 #contact { contain-intrinsic-size: auto 300px; }
 
 .section-header {
-    font-size: 1.5rem;
+    /* 字号与行盒由同一对变量管：区块标题要和右侧「查看全部」胶囊等高，
+       两者都从这里推导，改一个数就同时跟着变（窄屏只覆盖字号）。
+       行盒 1.15 而不是继承 body 的 1.6：那是给正文读的，标题只要一行，
+       1.6 会把它撑成 45px 的胖条，胶囊也得跟着变胖。 */
+    --section-header-size: 1.75rem;
+    --section-header-line: 1.15;
+    font-size: var(--section-header-size);
+    line-height: var(--section-header-line);
     font-weight: 700;
     margin-bottom: 2.5rem;
     color: var(--text);
@@ -687,9 +747,52 @@ section {
 
 .section-header::after {
     content: '';
+    /* 标题（order 0）→ 装饰线（1）→ 「查看全部」（2）：线永远夹在两者之间，
+       并吃掉剩余宽度，所以按钮天然靠右，不需要另加一层 wrapper。 */
+    order: 1;
     flex: 1;
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* 「查看全部」：从标题下方搬进标题行右端，和标题共用一条水平线。
+   形状用胶囊而不是方角 —— 按全站约定，胶囊 = 可点，方角 = 只读信息。
+   高度直接取标题的行盒高度，上下两端与标题严丝合缝；
+   字号跟着标题缩放，窄屏不会出现「大胶囊配小标题」。 */
+.section-more {
+    order: 2;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    height: calc(var(--section-header-size) * var(--section-header-line));
+    padding: 0 0.8rem;
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    background: var(--chip-fill);
+    color: var(--text-dim);
+    font-size: max(0.75rem, calc(var(--section-header-size) * 0.5));
+    font-weight: 500;
+    letter-spacing: 0;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background var(--transition-speed), border-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.section-more:hover {
+    background: var(--chip-fill-hover);
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+.section-more span {
+    transition: transform var(--transition-speed);
+}
+
+.section-more:hover span {
+    transform: translateX(3px);
 }
 
 /* ===== ABOUT ===== */
@@ -948,11 +1051,6 @@ section {
     margin-bottom: 0.4rem;
 }
 
-.blog-preview-more {
-    text-align: center;
-    margin-top: 2rem;
-}
-
 /* ===== NOOK PREVIEW ===== */
 .nook-preview-grid {
     display: grid;
@@ -1030,11 +1128,6 @@ section {
     gap: 0.4rem;
     flex-wrap: wrap;
     margin-bottom: 0.4rem;
-}
-
-.nook-preview-more {
-    text-align: center;
-    margin-top: 2rem;
 }
 
 @media (max-width: 768px) {
@@ -1435,6 +1528,60 @@ a.changelog-item:hover {
 html { scrollbar-width: none; } /* Firefox 64+ / Chromium 121+ */
 html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
 
+/* --- 内容区滚动条：全站一套 ---
+   弹窗正文、代码块、表格这些「块内滚动」原本用系统滚动条：深色面板上横着一条亮灰，
+   浅色面板上又是一条深灰，材质在界面上直接断掉。这里统一成同一条形状与颜色，
+   拇指是 mint / 深青玻璃条，hover、拖动时逐档提亮。
+   只列真正会滚的容器，不写 `*`：全站绝大多数元素不滚动，`*` 还会顺手改掉
+   未来新增的、本该保持系统外观的元素（比如 textarea）。
+   博客侧栏目录（.blog-toc）故意不在此列 —— 它用上下两道渐隐提示还有内容，
+   加回滚动条会把那两个设计一起顶掉（见 blog/template/post.html 的 .blog-toc）。 */
+.site-modal-body,
+pre,
+.table-wrapper {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.site-modal-body::-webkit-scrollbar,
+pre::-webkit-scrollbar,
+.table-wrapper::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+}
+
+.site-modal-body::-webkit-scrollbar-track,
+pre::-webkit-scrollbar-track,
+.table-wrapper::-webkit-scrollbar-track,
+.site-modal-body::-webkit-scrollbar-corner,
+pre::-webkit-scrollbar-corner,
+.table-wrapper::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* 内缩 2px（border + padding-box）：拇指不贴边，读起来是一条圆角玻璃条；
+   直接铺满整条槽会变成一根粗方块，深色下尤其抢眼。 */
+.site-modal-body::-webkit-scrollbar-thumb,
+pre::-webkit-scrollbar-thumb,
+.table-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+}
+
+.site-modal-body::-webkit-scrollbar-thumb:hover,
+pre::-webkit-scrollbar-thumb:hover,
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+.site-modal-body::-webkit-scrollbar-thumb:active,
+pre::-webkit-scrollbar-thumb:active,
+.table-wrapper::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-active);
+}
+
 /* ===== TRANSITIONS ===== */
 .theme-transitioning { pointer-events: none; }
 .theme-transitioning * { transition-duration: 0.3s !important; }
@@ -1542,7 +1689,8 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
     }
 
     .section-header {
-        font-size: 1.3rem;
+        --section-header-size: 1.5rem;
+        gap: 0.75rem;
     }
 
     .hero {
@@ -1790,8 +1938,7 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
 /* Print */
 @media print {
     nav, .scroll-progress, .hamburger, .theme-toggle,
-    .fab-group, footer, .hero::before, .hero .typewriter, .cta-buttons,
-    .blog-preview-more {
+    .fab-group, footer, .hero::before, .hero .typewriter, .cta-buttons {
         display: none !important;
     }
     body {
@@ -2571,5 +2718,79 @@ body.nav-open::after { animation-play-state: paused; }
     .blog-nav-post::after,
     .e404::after {
         display: none !important;
+    }
+}
+
+/* ===== 右下角浮动操作 =====
+   fab.js 在主页、博客（列表 / 文章）、资源小窝（列表 / 详情）注入同一组按钮：
+   回上级 + 回到顶部 + 直达底部。样式只写这一份，页面里不再各存一套。
+   材质沿用交互元素的 --mica-raised + --border：静止时是一列安静的玻璃片，
+   hover / 键盘聚焦才亮 accent，不和正文抢注意力。
+   首屏整组透明（fab.js 滚过 400px 才加 .visible），避免右下角凭空多出三个方块。 */
+.fab-group {
+    position: fixed;
+    right: 2rem;
+    bottom: 2rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-speed);
+}
+
+.fab-group.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.fab-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mica-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-dim);
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color var(--transition-speed), color var(--transition-speed),
+        background var(--transition-speed), transform var(--transition-speed);
+}
+
+/* 图标是内联 SVG（fab.js 里），尺寸跟 40px 的方片成比例；
+   文章页导航里的「首行缩进 / 目录」两颗仍是字符，所以上面保留了 font-size */
+.fab-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.fab-btn:hover,
+.fab-btn:focus-visible {
+    background: var(--chip-fill-hover);
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+.fab-btn:active {
+    transform: scale(0.94);
+}
+
+.fab-btn.active {
+    background: var(--primary-dim);
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+@media (max-width: 600px) {
+    .fab-group {
+        right: 1rem;
+        bottom: 1rem;
     }
 }

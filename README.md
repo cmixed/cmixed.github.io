@@ -37,6 +37,7 @@
 - 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`src/client/cursor.ts` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
 - 完整 SEO：OpenGraph、JSON-LD 结构化数据、各区块 Sitemap 与 RSS
 - 页脚带两个悬浮框：**关于本站**（渲染 `README.md`）与**更新日志**（渲染 git 提交记录），内容在构建期定型、用原生 `<dialog>`，材质与卡片完全同源
+- 右下角浮动操作（回上级 / 回到顶部 / 直达底部）与内容区滚动条全站一套：前者由 `src/client/fab.ts` 在主页、博客、资源小窝注入，图标是内联 SVG；后者按深浅主题换色，弹窗正文 / 代码块 / 表格不再出现系统灰条
 - GitHub Actions 自动执行 `vp check` + `vp test`、`vp run build` 并部署到 GitHub Pages
 
 ## 设计说明
@@ -79,36 +80,77 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 框体是原生 `<dialog>` + `showModal()`：ESC 关闭、焦点陷阱、`::backdrop`、关闭后焦点回到页脚按钮，全是浏览器给的，没有手写焦点管理。材质同样没另写一份 —— `.site-modal` 直接进了文件末尾那条共享面板选择器，底色、受光边、颗粒、贴地阴影自动继承；新增的只有尺寸、圆角、`::backdrop`（`rgba(var(--bg-rgb), .55)` + 6px 模糊：暗色压一层底色、浅色铺一层薄纱，都不用纯黑）和进场的淡入位移（`prefers-reduced-motion` 下不做）。直达链接是 `#about-site` / `#changelog`（`replaceState`；关闭时把打开前的 hash 还回去 —— 页脚在主页，这个位置本来就属于锚点导航）。更新日志每行是「hash 方角标签 + 类型标签 + 标题」，标签复用只读小标签那套材质（`.changelog-hash` / `.changelog-type` 直接挂在共享选择器上，不新增材质）；超过 80 条给一个「展开更多」，数据已经在本地，不再请求。窄屏（≤600px）标题换到标签下面一行，否则两个标签吃掉三分之二宽度、标题挤成三行右边还空着。
 
+### 首页入口与区块标题
+
+hero 下的入口从三颗（项目 / 博客 / 资源）换成四颗（关于本站 / 个人博客 / 资源小窝 / 更新日志），并分两档权重：**关于本站、更新日志是「轻」档**（面板底 + 弱描边，`--chip-fill` / `--chip-border`），**个人博客、资源小窝是「重」档**（accent 淡填 + accent 描边 + accent 字，`--primary-dim` / `--primary` / `--primary-text`）。两档只差 token，深浅主题自动同构。重档刻意不做实心 accent：两块实心并排会互相抢注意力，也会和导航里那颗唯一的主题色开关撞在一起 —— 所以停在淡填，hover 才让 accent 真正亮起来，这就是「克制的显著」。前两颗按钮直接复用页脚的 `data-meta` 接线（`main.ts` 按 `[data-meta]` 绑定），点开的是同一个悬浮框，没有第二套逻辑。
+
+区块标题（关于 / 技能 / 项目 / 博客 / 资源 / 联系）从 `1.5rem` 提到 `1.75rem`（窄屏 `1.3rem` → `1.5rem`）。「查看全部」从标题**下面**一行搬进标题行右端：标题左对齐、按钮右对齐，中间仍是那道渐隐装饰线 —— 靠 `order` 排列（标题 0 / 线 1 / 按钮 2），线自然夹在两者之间并吃掉剩余宽度，不用额外包一层 flex。按钮做成胶囊（按全站约定，胶囊 = 可点），高度直接取标题的行盒（`--section-header-size × --section-header-line`），所以标题与按钮上下两端严丝合缝；按钮字号也跟着标题缩放，窄屏不会出现「大胶囊配小标题」。标题行盒单独定成 1.15 而不是继承正文的 1.6：后者会把单行标题撑成 45px 的胖条，胶囊也得跟着变胖。
+
+### 滚动条与右下角浮动操作
+
+**滚动条**：整页滚动条仍然隐藏（sticky 导航要铺满窗口，位置由顶部进度条反馈），但弹窗正文、代码块（横向）、表格这些「块内滚动」原本用系统滚动条 —— 深色面板上横着一条亮灰、浅色面板上又是一条深灰，材质直接断掉。现在统一成一套 token（`--scrollbar-*`：暗色 mint 微光、浅色深青），轨道透明，拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮。两条实现路径都写：标准的 `scrollbar-width: thin` + `scrollbar-color`（Firefox、以及 Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、以及经典滚动条）—— 两条路径取同一个颜色，所以不管浏览器用哪种方式画滚动条，都落在同一套材质里。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
+
+**右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（构建成 `dist/fab.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框（导航 RSS 那个 `&#9741;` 就是前车之鉴）。
+
 **正文排版只有一份**：README 是 Markdown，博客文章也是，所以原来写在 `blog/template/post.html` 内联样式里的 `.blog-article-content h1 … table` 整块搬进了 `src/style.css`、改名 `.md-body`，文章页容器同时挂 `md-body` 类（`body.indent` 首行缩进、TOC、mermaid、代码块语言角标这类文章页独有的东西仍留在模板里）。搬家前后逐页比对过：2 篇文章 × 2 主题 × 桌面 / 移动 × 3 个滚动位置，**像素级 0 差异**；之后调正文字号只改一处。
 
 ## 项目结构
 
 ```
 ├── src/
-│   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染、页脚悬浮框
-│   ├── client/          # 全站共用的经典脚本（TS）：theme / cursor / search
-│   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（token 的唯一来源）
-│   ├── data/            # projects.json / skills.json
-│   ├── __tests__/       # 单测（构建期内容的解析与改写规则）
+│   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染、悬浮框（页脚 + 首页入口）
+│   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / fab
+│   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（.md-body，token 的唯一来源）
+│   ├── data/            # projects.json / skills.json（主页卡片的内容源）
+│   ├── __tests__/       # 单测：构建期内容的解析与改写规则
 │   └── lib/             # 构建工具：front-matter 解析、日期与 git 时间
 ├── blog/
 │   ├── post/            # Markdown 文章（可在同目录放 asset/ 图片）
-│   ├── template/        # 文章页、404 模板
+│   ├── template/        # 文章页、博客 404 模板
+│   ├── index.html       # 博客列表页骨架（筛选项与卡片由 build.ts 注入）
 │   ├── build.ts         # 生成列表、文章页、RSS、sitemap 与供主页用的 data.json
-│   └── build-hljs.ts    # 按实际用到的语言裁剪 highlight.js
+│   ├── build-hljs.ts    # 按实际用到的语言裁剪 highlight.js
+│   ├── vendor/          # 裁出来的 highlight.js 与明暗两套主题（自托管，不进打包图）
+│   ├── mermaid-cache/   # 渲染过的 Mermaid 图（按源码 hash 缓存，命中就不重渲染）
+│   └── __tests__/       # 博客构建的单测
 ├── nook/
 │   ├── file/            # 资源：<category>/<slug>/index.md（+ 附带文件）
 │   ├── template/        # 详情页模板
+│   ├── index.html       # 资源列表页骨架（分类 / 标签筛选同上）
+│   ├── 404.html         # 小窝自己的 404 页
 │   └── build.ts
 ├── public/              # 原样拷到站点根 —— 这里的目录结构就是 URL 结构
 │   ├── 404.html         #   /404.html（GitHub Pages 只认这个路径，挪走就没有自定义 404）
 │   ├── robots.txt       #   /robots.txt（爬虫只读根目录）
 │   ├── sitemap.xml      #   /sitemap.xml（由 robots.txt 声明）
 │   └── assets/          #   站内引用的图：og-image.png / icons/ / 签名 / 头像
-├── scripts/             # optimize-images.ts（PNG → AVIF）、client-scripts.ts（客户端脚本编译）、site-meta.ts（页脚悬浮框内容）、og-image.ts（分享卡）
+├── scripts/             # 构建期脚本：都由 vp 调起，不进前端打包图
+│   ├── optimize-images.ts   # PNG → AVIF
+│   ├── client-scripts.ts    # src/client/*.ts → dist/{theme,cursor,search,fab}.js（固定文件名）
+│   ├── site-meta.ts         # README + git log → dist/site-meta.json（页脚两个悬浮框）
+│   └── og-image.ts          # 生成分享卡 public/assets/og-image.png
 ├── docs/                # 迁移计划与报告
 ├── index.html           # 主站入口
-└── vite.config.ts       # 多页构建与 HTML 入口
+├── vite.config.ts       # 多页构建、HTML 入口、插件注册（client-scripts / site-meta）
+└── tsconfig.json        # 源码一律 TS：vp check / tsc 覆盖 src、blog、nook、scripts
+```
+
+构建产物 `dist/` 不提交，结构大致是：
+
+```
+dist/
+├── index.html            # 主站
+├── site-meta.json        # 页脚两个悬浮框的内容（README + 提交记录，构建期生成）
+├── theme.js              # 四个固定文件名的经典脚本（不进打包图）
+├── cursor.js
+├── search.js
+├── fab.js
+├── assets/               # 打包后的 CSS / JS，外加 public/assets 原样拷来的图
+├── blog/                 # 列表页、文章页、data.json、feed.xml、sitemap.xml、vendor/、mermaid/
+├── nook/                 # 列表页、详情页、data.json
+├── 404.html              # 来自 public/404.html
+├── robots.txt
+└── sitemap.xml
 ```
 
 `public/` 不是素材仓库，它的目录结构就是站点 URL 结构。所以只把**路径被约定死的**文件留在根目录（`404.html` 是 GitHub Pages 的约定，`robots.txt` / `sitemap.xml` 是爬虫的约定），其余按用途收进 `assets/`：换目录就等于换 URL，而约定路径一挪就失效。

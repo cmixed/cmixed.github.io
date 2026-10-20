@@ -648,6 +648,14 @@ ${sitemapUrls}
     /* search.js is optional */
   }
 
+  // Copy the shared floating-action script from dist root
+  const fabSrc = join(__dirname, '..', 'dist', 'fab.js');
+  try {
+    copyFileSync(fabSrc, join(outDir, 'fab.js'));
+  } catch {
+    /* fab.js is optional */
+  }
+
   // Copy vendor scripts (self-hosted highlight.js, mermaid.js)
   const vendorDir = join(__dirname, 'vendor');
   if (statSync(vendorDir).isDirectory()) {

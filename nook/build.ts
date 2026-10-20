@@ -302,6 +302,14 @@ async function build(): Promise<void> {
     /* search.js is optional */
   }
 
+  // Copy the shared floating-action script from dist root
+  const fabSrc = join(__dirname, '..', 'dist', 'fab.js');
+  try {
+    copyFileSync(fabSrc, join(outDir, 'fab.js'));
+  } catch {
+    /* fab.js is optional */
+  }
+
   // Copy resource files
   for (const r of resources) {
     if (!r.file) continue;

@@ -4,6 +4,7 @@
 <head>
     <script src="../theme.js"></script>
     <script defer src="../cursor.js"></script>
+    <script defer src="../fab.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{description}}">
@@ -393,52 +394,6 @@
             text-align: right;
         }
 
-        /* Floating action buttons */
-        .fab-group {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            z-index: 50;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .fab-group.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .fab-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--mica-raised);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: border-color 0.3s, color 0.3s, background 0.3s;
-            color: var(--text-dim);
-            font-size: 1rem;
-            text-decoration: none;
-        }
-
-        .fab-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary-text);
-        }
-
-        .fab-btn.active {
-            background: var(--primary-dim);
-            border-color: var(--primary);
-            color: var(--primary-text);
-        }
-
         /* Mobile TOC overlay */
         @media (max-width: 768px) {
             .blog-article-layout {
@@ -656,12 +611,6 @@
         </article>
     </div>
 
-    <div class="fab-group" id="fabGroup">
-        <a href="./" class="fab-btn" title="博客主页">&#9750;</a>
-        <button class="fab-btn" id="backToTop" title="返回顶部">&uarr;</button>
-        <button class="fab-btn" id="goBottom" title="直达底部">&darr;</button>
-    </div>
-
     <script>
         (function () {
             var htmlEl = document.documentElement;
@@ -872,14 +821,6 @@
 
             // Initial sync (handles direct URL with hash)
             if (headingEls.length > 0) setActiveLink(headingEls[0].id);
-
-            // Floating buttons
-            var fabGroup = document.getElementById('fabGroup');
-            window.addEventListener('scroll', function () {
-                fabGroup.classList.toggle('visible', window.scrollY > 400);
-            }, { passive: true });
-            document.getElementById('backToTop').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
-            document.getElementById('goBottom').addEventListener('click', function () { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); });
 
             // TOC height: sync with visualViewport for mobile browser chrome changes
             var blogToc = document.getElementById('blogToc');
