@@ -36,6 +36,7 @@
 - 全站导航栏统一：主页、博客列表 / 文章、资源列表 / 详情、三套 404 页共用同一套 58px 高的 sticky 导航（同一材质层、同一内边距断点）；移动端抽屉关闭时不产生横向溢出，极窄屏（≤360px）自动让位
 - 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`src/client/cursor.ts` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
 - 完整 SEO：OpenGraph、JSON-LD 结构化数据、各区块 Sitemap 与 RSS
+- 页脚带两个悬浮框：**关于本站**（渲染 `README.md`）与**更新日志**（渲染 git 提交记录），内容在构建期定型、用原生 `<dialog>`，材质与卡片完全同源
 - GitHub Actions 自动执行 `vp check` + `vp test`、`vp run build` 并部署到 GitHub Pages
 
 ## 设计说明
@@ -72,14 +73,23 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 **小标签只有一套设计语言，两个角色**：尺寸由 `--chip-radius` / `--chip-pad-*` / `--chip-font` 统一。只读标签（卡片标签、项目状态、技能、分类、文章标签、代码语言角标）是 **4px 方角**、不可点，材质用 `--mica-chip`（填色比卡片明显一档 + accent 描边）；列表页的筛选控件（`.blog-tag` / `.nook-filter`）是 **胶囊**、可点，材质单独一套（`--chip-fill` / `--chip-border` / `--chip-fill-hover`）—— 原因很具体：胶囊原本是「透明底 + `--border` 描边」，而那条边框相对页面底色只有 **1.69:1（浅色 1.38:1）**，远低于控件边界该有的 3:1，未激活时几乎看不出是个控件（`--border` 又不能整体加深：它是所有面板的描边，加深会把材质层次拉平）。现在暗色给一层 mint 微光（不加白，加白会读成灰片）+ 亮青描边，屏上实测 **4.5:1**；浅色用「比底色更亮」的填充 —— 和浅色面板同一个抬升语言 —— 配深青描边，实测 **2.9:1**；填充按 未激活 < hover < 选中 **单调变实**。文字只用 `--text-dim`，未激活给 `font-weight: 500`（12px 下 400 太细，边界清楚之后字也要跟上）。形状与状态仍是语义分界 —— 方角=信息，胶囊=可点。触屏下筛选标签只把 `min-height` 撑到 44px，不放大视觉尺寸。
 
+### 页脚：关于本站 / 更新日志
+
+两个悬浮框，内容**在构建期就定型**。`scripts/site-meta.ts` 是一个和 `client-scripts.ts` 同形式的 Vite 插件：`vp build` 时 emit 成 `dist/site-meta.json`，`vp dev` 时用中间件现读现算 —— 所以改完 README 刷新就生效，`package.json` 里也不用为此多加一步构建。「关于本站」是 `README.md` 经 marked 渲染（**默认配置**，不套博客那套 mermaid / 代码块角标的 renderer；仓库内相对链接如 `LICENSE` 改写成 GitHub 上的对应地址，站外链接补 `target` / `rel`），「更新日志」取 `git log`（约定式提交拆成 `type` / `scope` 与标题，按日期分组，最多带 400 条）。产物约 60KB，**第一次点开才下载**，之后留在内存；拿不到 git（比如源码压缩包）就降级成「暂无记录」，不影响页面。CI 的 build job 本来就 `fetch-depth: 0`，历史是完整的。
+
+框体是原生 `<dialog>` + `showModal()`：ESC 关闭、焦点陷阱、`::backdrop`、关闭后焦点回到页脚按钮，全是浏览器给的，没有手写焦点管理。材质同样没另写一份 —— `.site-modal` 直接进了文件末尾那条共享面板选择器，底色、受光边、颗粒、贴地阴影自动继承；新增的只有尺寸、圆角、`::backdrop`（`rgba(var(--bg-rgb), .55)` + 6px 模糊：暗色压一层底色、浅色铺一层薄纱，都不用纯黑）和进场的淡入位移（`prefers-reduced-motion` 下不做）。直达链接是 `#about-site` / `#changelog`（`replaceState`；关闭时把打开前的 hash 还回去 —— 页脚在主页，这个位置本来就属于锚点导航）。更新日志每行是「hash 方角标签 + 类型标签 + 标题」，标签复用只读小标签那套材质（`.changelog-hash` / `.changelog-type` 直接挂在共享选择器上，不新增材质）；超过 80 条给一个「展开更多」，数据已经在本地，不再请求。窄屏（≤600px）标题换到标签下面一行，否则两个标签吃掉三分之二宽度、标题挤成三行右边还空着。
+
+**正文排版只有一份**：README 是 Markdown，博客文章也是，所以原来写在 `blog/template/post.html` 内联样式里的 `.blog-article-content h1 … table` 整块搬进了 `src/style.css`、改名 `.md-body`，文章页容器同时挂 `md-body` 类（`body.indent` 首行缩进、TOC、mermaid、代码块语言角标这类文章页独有的东西仍留在模板里）。搬家前后逐页比对过：2 篇文章 × 2 主题 × 桌面 / 移动 × 3 个滚动位置，**像素级 0 差异**；之后调正文字号只改一处。
+
 ## 项目结构
 
 ```
 ├── src/
-│   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染
+│   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染、页脚悬浮框
 │   ├── client/          # 全站共用的经典脚本（TS）：theme / cursor / search
-│   ├── style.css        # 全站样式与 Mica Alt 材质（token 的唯一来源）
+│   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（token 的唯一来源）
 │   ├── data/            # projects.json / skills.json
+│   ├── __tests__/       # 单测（构建期内容的解析与改写规则）
 │   └── lib/             # 构建工具：front-matter 解析、日期与 git 时间
 ├── blog/
 │   ├── post/            # Markdown 文章（可在同目录放 asset/ 图片）
@@ -95,7 +105,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 │   ├── robots.txt       #   /robots.txt（爬虫只读根目录）
 │   ├── sitemap.xml      #   /sitemap.xml（由 robots.txt 声明）
 │   └── assets/          #   站内引用的图：og-image.png / icons/ / 签名 / 头像
-├── scripts/             # optimize-images.ts（PNG → AVIF）、client-scripts.ts（客户端脚本编译）、og-image.ts（分享卡）
+├── scripts/             # optimize-images.ts（PNG → AVIF）、client-scripts.ts（客户端脚本编译）、site-meta.ts（页脚悬浮框内容）、og-image.ts（分享卡）
 ├── docs/                # 迁移计划与报告
 ├── index.html           # 主站入口
 └── vite.config.ts       # 多页构建与 HTML 入口

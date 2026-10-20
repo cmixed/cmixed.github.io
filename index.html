@@ -172,8 +172,26 @@
     <footer>
         <div class="footer-line">
             <span id="footerStatus">© 2026 cmixed</span>
+            <span class="footer-dot" aria-hidden="true">·</span>
+            <button type="button" class="footer-link" data-meta="about" aria-haspopup="dialog">关于本站</button>
+            <span class="footer-dot" aria-hidden="true">·</span>
+            <button type="button" class="footer-link" data-meta="changelog" aria-haspopup="dialog">更新日志</button>
         </div>
     </footer>
+
+    <!-- 页脚两个入口共用一个悬浮框：内容由 /site-meta.json 在第一次打开时取回 -->
+    <dialog class="site-modal" id="siteModal" aria-labelledby="siteModalTitle">
+        <div class="site-modal-head">
+            <div>
+                <h2 class="site-modal-title" id="siteModalTitle">关于本站</h2>
+                <p class="site-modal-sub" id="siteModalSub"></p>
+            </div>
+            <button type="button" class="site-modal-close" id="siteModalClose" aria-label="关闭">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
+        <div class="site-modal-body md-body" id="siteModalBody" tabindex="0"></div>
+    </dialog>
 
     <script type="module" src="src/main.js"></script>
 </body>
