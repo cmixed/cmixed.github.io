@@ -65,6 +65,11 @@
     /* 卡片内的小标签（tag / 分类 / 状态）：填色比卡片明显一档，
        再配 --primary 描边，保证在卡片上「看得出来是个标签」 */
     --mica-chip: rgba(95, 209, 181, 0.20);
+    /* --- 小标签的尺寸：全站只此一套（只读方角 / 可点胶囊共用） --- */
+    --chip-radius: 4px;
+    --chip-pad-y: 0.2rem;
+    --chip-pad-x: 0.5rem;
+    --chip-font: 0.75rem;
     /* --- 面板的「面」：材质感来自受光，不来自透明度 ---
        底板背后是一张平滑洗色，透出来的几乎是同一个颜色，所以单靠调 alpha 看不出通透
        （这也是卡片不做常驻 backdrop-filter 的原因：漂移层一直在动，会让每张卡每帧重模糊。
@@ -75,6 +80,10 @@
        ①~⑤画在元素自己的 background-image / box-shadow 上：不加图层、不抢
        ::before（hover 顶条）与 ::after（颗粒）的位置，也不产生任何每帧开销。
        ⑥ 指针追光的镜面也是同一套背景层（靠 --glare 开关，见文件末尾）。 */
+    --mica-panel-rim: rgba(150, 220, 205, 0.20); /* 顶边框色：面板「被照亮」的主要来源（见共享面板规则的 border-top-color） */
+    --mica-panel-top: rgba(190, 245, 230, 0.06); /* 顶部柔光带：从顶边向下衰减 */
+    --mica-panel-top-fade: 10px; /* 柔光带长度：暗色只需要一小段，长了会糊 */
+    --mica-panel-bevel: rgba(0, 0, 0, 0); /* 亮边下方的 1px 压线：暗色不需要（边框本身已经比面板亮） */
     --mica-panel-edge: rgba(210, 255, 245, 0.11); /* 顶部 1px 亮边（偏青的白：玻璃的边是被环境染色的，纯白反而不像） */
     --mica-panel-sheen: rgba(255, 255, 255, 0.05); /* 上半受光（导航沿用） */
     --mica-panel-spec: rgba(95, 209, 181, 0.12); /* 左上镜面光池：光从上方来，面板像被打亮 */
@@ -152,15 +161,21 @@
     /* 卡片内小标签：填色比卡片明显一档 + accent 描边，拉开区分度 */
     --mica-chip: rgba(15, 118, 110, 0.13);
     /* --- 面板的「面」（与暗色同一套逻辑，只换过曝光档）---
-       浅色面板已经接近白（L*96），"更亮"没有余地，所以受光靠的是：
-       顶部 1px 更白的亮边（白 85% 压在 L*96 上 ≈ L*99，是一条看得见的边）、
-       底边 1px 反光、左上白色镜面光池、一圈极淡的冷调内侧厚边，以及贴地阴影。 */
+       浅色面板已经接近白（L*96），纯白最多只能再给 +7 L*，所以「受光」不能靠加白：
+       暗色那张卡之所以看起来被照亮，是因为它的 1px 边框比面板亮 14~16 L*；
+       浅色的同一条边框反而比面板暗 8 L*，只会读成描边。所以浅色把顶边框单独换成白色
+       （--mica-panel-rim），再在它下面压 1px 冷调暗线（--mica-panel-bevel）把白边「立」起来，
+       最后叠一条 16px 的白色柔光带补上衰减 —— 三者合起来才有「光」，单加白没有用。 */
+    --mica-panel-rim: rgba(255, 255, 255, 0.96); /* 顶边框色：浅色被照亮的主要来源 */
+    --mica-panel-top: rgba(255, 255, 255, 0.55); /* 顶部柔光带：从顶边向下衰减 */
+    --mica-panel-top-fade: 16px; /* 柔光带长度：浅色要靠它补出「光」的衰减 */
+    --mica-panel-bevel: rgba(60, 110, 105, 0.06); /* 亮边下方的 1px 压线：让白边有「厚度」 */
     --mica-panel-edge: rgba(255, 255, 255, 0.90); /* 顶部 1px 亮边 */
     --mica-panel-sheen: rgba(255, 255, 255, 0.55); /* 上半受光（导航沿用） */
     --mica-panel-spec: rgba(255, 255, 255, 0.80); /* 左上镜面光池 */
     --mica-panel-inner: rgba(88, 138, 138, 0.05); /* 内侧玻璃厚边（冷调，不是灰） */
     --mica-panel-edge-b: rgba(255, 255, 255, 0.75); /* 底边 1px 反光（浅色下靠它把「板」立起来） */
-    --mica-panel-shade: rgba(70, 110, 105, 0.02); /* 下缘厚度：浅色下只留一点点 */
+    --mica-panel-shade: rgba(70, 110, 105, 0.05); /* 下缘厚度：浅色下靠它把板压出一点厚度 */
     --mica-glare-rgb: 15, 118, 110; /* 指针追光：浅底上用 accent 的深青才看得见 */
     --mica-glare-a: 0.05;
     --mica-elev-1: 0 1px 2px rgba(30, 60, 55, 0.06), 0 10px 24px -14px rgba(30, 60, 55, 0.22);
@@ -739,25 +754,20 @@ section {
 .skills-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
+/* 材质、尺寸（--chip-*）都由文件末尾的「小标签」规则统一给，这里只管字重与回馈 */
 .skill-tag {
-    padding: 0.4rem 1rem;
-    background: var(--mica-surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 0.85rem;
     font-weight: 500;
-    transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
+    transition: background 0.3s, border-color 0.3s;
 }
 
+/* 技能标签是纯信息（不可点）：hover 只回应、不暗示操作 —— 填充加深一档、描边提亮，
+   不做位移，也不改文字色（文字本来就是 accent）。 */
 .skill-tag:hover {
     background: var(--primary-dim);
-    border-color: var(--primary);
-    color: var(--primary-text);
-    transform: translateY(-1px);
+    border-color: var(--primary-text);
 }
 
 /* ===== PROJECTS ===== */
@@ -820,8 +830,6 @@ section {
 }
 
 .project-status {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.6rem;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -855,11 +863,7 @@ section {
     flex-wrap: wrap;
 }
 
-.tech-tag {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    /* 材质（填色/描边/文字色）统一在「MICA ALT MATERIAL」的小标签规则里 */
-}
+/* .tech-tag 的材质与尺寸统一在文件末尾的「小标签」规则里（只读 = 4px 方角） */
 
 /* ===== BLOG PREVIEW ===== */
 .blog-preview-grid {
@@ -926,11 +930,6 @@ section {
     gap: 0.4rem;
     flex-wrap: wrap;
     margin-bottom: 0.4rem;
-}
-
-.blog-preview-card-tags span {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.45rem;
 }
 
 .blog-preview-more {
@@ -1015,11 +1014,6 @@ section {
     gap: 0.4rem;
     flex-wrap: wrap;
     margin-bottom: 0.4rem;
-}
-
-.nook-preview-card-tags span {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.45rem;
 }
 
 .nook-preview-more {
@@ -1133,8 +1127,10 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
         transform: none;
     }
 
-    .skill-tag:hover {
-        transform: none;
+    /* 筛选标签要够大的点击目标（视觉尺寸仍是 --chip-*，只把高度撑到 44px） */
+    .blog-tag,
+    .nook-filter {
+        min-height: 44px;
     }
 }
 
@@ -1264,7 +1260,8 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
     .typewriter { font-size: 1rem; }
     .status-bar { font-size: 0.75rem; }
 
-    section { padding: 2.5rem 1rem; }
+    /* 手机上把纵向节奏收紧一档：标签块变小后，2.5rem 的上下留白会显得空 */
+    section { padding: 2rem 1rem; }
     .section-header { font-size: 1.15rem; margin-bottom: 1.5rem; }
 
     .about-grid { gap: 1.5rem; }
@@ -1273,8 +1270,6 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
     .stat-item { padding: 0.6rem 0; }
     .stat-label { font-size: 0.8rem; }
     .stat-value { font-size: 0.8rem; }
-
-    .skill-tag { font-size: 0.8rem; padding: 0.35rem 0.8rem; }
 
     .project-card { padding: 1.25rem; }
     .project-title { font-size: 1rem; }
@@ -1761,11 +1756,14 @@ html::after {
     opacity: var(--mica-dither-opacity);
 }
 
-/* 卡片 / 面板内的小标签（tag / 分类 / 状态 / 代码语言角标）统一材质：
-   填色比卡片明显一档 + accent 描边 + accent 文字，暗色下也一眼能看清。
-   各处的字号、内边距、字重仍由各自规则定义，这里只管「看得到」。 */
+/* --- 小标签：一套设计语言，两个角色 ---------------------------------
+   只读（4px 方角）：卡片标签 / 项目状态 / 技能 / 分类 / 文章标签 / 代码语言角标
+   可点（胶囊）：列表页的筛选控件（.blog-tag / .nook-filter，紧接在下面）
+   两者共用 --chip-* 的尺寸、字体与 --mica-chip 的填色/描边/文字色；
+   只靠「形状 + 状态」区分语义 —— 方角是信息，胶囊是可点，所以不会互相误认。 */
 .tech-tag,
 .project-status,
+.skill-tag,
 .nook-preview-card-category,
 .blog-preview-card-tags span,
 .nook-preview-card-tags span,
@@ -1779,7 +1777,43 @@ html::after {
     background: var(--mica-chip);
     color: var(--primary-text);
     border: 1px solid var(--primary);
-    border-radius: 4px;
+    border-radius: var(--chip-radius);
+    padding: var(--chip-pad-y) var(--chip-pad-x);
+    font-size: var(--chip-font);
+    line-height: 1.45;
+}
+
+/* 可点小标签（博客 / 小窝的筛选）：版式与只读标签同一套，只把形状换成胶囊，
+   并给出 hover / 选中态。选中用实心 accent + 白字（5.47:1），一眼看出「已筛选」。 */
+.blog-tag,
+.nook-filter {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--chip-pad-y) var(--chip-pad-x);
+    font-family: inherit;
+    font-size: var(--chip-font);
+    line-height: 1.45;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.blog-tag:hover,
+.nook-filter:hover {
+    background: var(--mica-raised);
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+.blog-tag.active,
+.nook-filter.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
 }
 
 /* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
@@ -1841,7 +1875,14 @@ html::after {
        none，卡片立刻从「玻璃板」退回「色纸」（博客 / 小窝的列表卡片之前
        就是这么和主页不统一的；要改底色请用 background-color）。 */
     background-color: var(--mica-surface);
+    /* 顶边框单独取色：暗色下「受光」主要靠这一条比面板亮的边（浅色下换成白色），
+       另外三边仍沿用各元素自己的 --border。 */
+    border-top-color: var(--mica-panel-rim);
     background-image:
+        /* ⓪ 顶部柔光带：从顶边向下衰减 —— 浅色下「光」主要来自它和顶边框 */
+        linear-gradient(180deg, var(--mica-panel-top), transparent var(--mica-panel-top-fade)),
+        /* ⓪b 亮边下方的 1px 压线：暗色透明；浅色靠它把白边「立」出厚度 */
+        linear-gradient(180deg, transparent 1px, var(--mica-panel-bevel) 1px, transparent 3px),
         /* ① 顶部 1px 受光亮边 */
         linear-gradient(180deg, var(--mica-panel-edge) 0, transparent 1px),
         /* ② 指针追光：跟着鼠标走的镜面（--glare 由 cursor.js 在 hover 时置 1，
