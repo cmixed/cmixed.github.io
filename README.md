@@ -13,8 +13,8 @@
 
 ## 技术栈
 
-- **工具链**：Vite+（`vp` CLI，统一 Vite 8 / Rolldown / Oxlint / Oxfmt / Vitest）
-- **包管理器**：pnpm 12（`packageManager: pnpm@12.3.4`）
+- **工具链 / 命令**：Vite+（`vp` CLI，统一 Vite 8 / Rolldown / Oxlint / Oxfmt / Vitest）；全站命令以 `vp` 为准
+- **包管理器**：pnpm 12（`vp install` 在底层调用；`packageManager: pnpm@12.3.4`）
 - **运行时**：Node ≥ 22.18（CI 使用 24）
 - **语言**：TypeScript 6；前端零框架，无运行时依赖
 - **样式**：原生 CSS，深色 / 浅色双主题，无预处理器
@@ -36,7 +36,7 @@
 - 全站导航栏统一：主页、博客列表 / 文章、资源列表 / 详情、三套 404 页共用同一套 58px 高的 sticky 导航（同一材质层、同一内边距断点）；移动端抽屉关闭时不产生横向溢出，极窄屏（≤360px）自动让位
 - 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`public/cursor.js` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
 - 完整 SEO：OpenGraph、JSON-LD 结构化数据、各区块 Sitemap 与 RSS
-- GitHub Actions 自动执行 `pnpm check` + `pnpm test`、`pnpm build` 并部署到 GitHub Pages
+- GitHub Actions 自动执行 `vp check` + `vp test`、`vp run build` 并部署到 GitHub Pages
 
 ## 设计说明
 
@@ -96,20 +96,20 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 ## 本地运行
 
-环境要求：Node ≥ 22.18、pnpm 12。
+环境要求：Node ≥ 22.18，以及全局安装的 Vite+（提供 `vp`，安装方式见 [viteplus.dev](https://viteplus.dev/guide/)）。`vp` 只是启动器，真正的工具链来自项目内锁定的 `vite-plus`，所以连装依赖也交给它，不需要单独记 pnpm 的命令：
 
 ```bash
-# 安装依赖
-pnpm install
+# 安装依赖（内部调用 pnpm，尊重 pnpm-lock.yaml）
+vp install
 
 # 启动开发服务器
-pnpm dev
+vp dev
 ```
 
 ## 构建
 
 ```bash
-pnpm build
+vp run build
 ```
 
 构建顺序：图片优化（PNG → AVIF）→ Vite 主站 → highlight.js 裁剪 → 博客 → 资源小窝。产物输出到 `dist/`（主站 `index.html`、`blog/`、`nook/`、`assets/`），可直接静态托管。
@@ -133,7 +133,7 @@ pinned: false
 ```
 
 - 正文支持 `==高亮==`、表格、代码块、Mermaid（`mermaid` 代码块）
-- 图片放 `asset/`；`pnpm optimize-images` 会把 `blog/post/**/*.png` 转成同名 `.avif`，正文引用 `.avif` 即可
+- 图片放 `asset/`；`vp run optimize-images` 会把 `blog/post/**/*.png` 转成同名 `.avif`，正文引用 `.avif` 即可
 - 构建自动产出：列表页、文章页、上一篇 / 下一篇、`feed.xml`、`sitemap.xml`，以及主页预览用的 `data.json`
 
 ### 资源小窝
@@ -157,22 +157,25 @@ tags: [标签1, 标签2]
 
 ## 可用命令
 
-**统一入口是 `pnpm <script>`**：所有脚本都定义在 `package.json` 里，内部调用 Vite+ 的 `vp` CLI，所以不需要全局安装 `vp`。本地手动执行、`.husky/pre-commit` 钩子、GitHub Actions 用的是同一套写法（不要再混用 `vp check` 或 `pnpm exec vp check`）。
+**唯一入口是 `vp`。** 自带命令（`dev` / `check` / `test` / `fmt`…）直接 `vp <命令>`；需要多步串联的流程用 `vp run <script>`（可简写为 `vpr <script>`），跑的就是 `package.json` 里的同名脚本。
 
 | 命令 | 说明 |
 |------|------|
-| `pnpm dev` | 启动开发服务器 |
-| `pnpm build` | 完整构建：图片优化 + 主站 + 博客 + 资源小窝 |
-| `pnpm preview` | 预览构建产物 |
-| `pnpm blog` | 仅构建博客（含 highlight.js 裁剪） |
-| `pnpm nook` | 仅构建资源小窝 |
-| `pnpm check` | 格式 + Lint + 类型检查 |
-| `pnpm check:fix` | 自动修复格式与 lint 问题 |
-| `pnpm lint` | Oxlint 检查（`lint:fix` 自动修复） |
-| `pnpm format` | Oxfmt 格式化（`format:check` 只检查不写入） |
-| `pnpm typecheck` | TypeScript 类型检查（`typecheck:watch` 监听） |
-| `pnpm test` | 运行测试（`test:watch` 监听） |
-| `pnpm optimize-images` | PNG → AVIF 图片转换 |
+| `vp install` | 安装依赖（内部调用 pnpm，尊重 `pnpm-lock.yaml`） |
+| `vp dev` | 启动开发服务器 |
+| `vp run build` | 完整构建：图片优化 + 主站 + 博客 + 资源小窝 |
+| `vp preview` | 预览构建产物 |
+| `vp run blog` | 仅构建博客（含 highlight.js 裁剪） |
+| `vp run nook` | 仅构建资源小窝 |
+| `vp check` | 格式 + Lint + 类型检查 |
+| `vp check --fix` | 自动修复格式与 lint 问题 |
+| `vp lint` | Oxlint 检查（`vp lint --fix` 自动修复） |
+| `vp fmt` | Oxfmt 格式化（`vp fmt --check` 只检查不写入） |
+| `vp run typecheck` | TypeScript 类型检查（`typecheck:watch` 监听） |
+| `vp test` | 运行测试（`vp test watch` 监听模式） |
+| `vp run optimize-images` | PNG → AVIF 图片转换 |
+
+> **`vp build` 只跑 Vite。** 博客页、小窝页、highlight.js 裁剪是 `package.json` 里 `build` 脚本的后继步骤，所以整站构建必须用 **`vp run build`**；直接敲 `vp build` 会得到一个没有文章页和小窝页的 `dist/`。
 
 ## 兼容性
 
@@ -184,8 +187,8 @@ tags: [标签1, 标签2]
 
 推送 `main` 分支后，GitHub Actions 使用 [`setup-vp`](https://github.com/voidzero-dev/setup-vp) 自动执行：
 
-1. **check**：`pnpm check` → `pnpm test`
-2. **build**：`pnpm build`（图片优化 + 主站 + 博客 + 资源小窝）
+1. **check**：`vp check` → `vp test`
+2. **build**：`vp run build`（图片优化 + 主站 + 博客 + 资源小窝）
 3. **deploy**：部署到 GitHub Pages
 
 ## License
