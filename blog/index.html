@@ -39,7 +39,10 @@
             border: 1px solid var(--border); border-radius: 12px;
             padding: 1.5rem; position: relative; overflow: hidden;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
-            text-decoration: none; color: inherit; display: block;
+            text-decoration: none; color: inherit;
+            /* 纵向 flex：footer 的 margin-top:auto 才能把标签与元信息压到卡片底部，
+               同一行的卡片因此底边对齐（和小窝卡片同一套结构） */
+            display: flex; flex-direction: column;
         }
         .blog-page-card::before {
             content: ''; position: absolute; top: 0; left: 0;
@@ -48,10 +51,17 @@
         }
         .blog-page-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--mica-elev-2); }
         .blog-page-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
-        .blog-page-card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem; }
-        .blog-page-card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .blog-page-card-desc { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
-        .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
+        /* 卡片内部顺序与小窝列表一致：标题 → 摘要 → 标签 → 元信息。
+           之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间，
+           正文反而沉到卡片最底下，两页放在一起看是两种卡片。 */
+        .blog-page-card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.75rem; }
+        .blog-page-card-desc { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem; }
+        .blog-page-card-footer { margin-top: auto; }
+        .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        /* 这一行是长句（阅读 / 创建 / 更新 / 字数 / 图片），窄卡里会换行。
+           keep-all 禁止在中文词内部断行：否则行尾刚好塞满时会掉一个「片」到下一行；
+           分隔点前的空格在构建时写成 \u00a0，所以「·」跟着前一段走，不会顶到行首。 */
+        .blog-page-card-meta { font-size: 0.8rem; color: var(--text-muted); word-break: keep-all; }
         .blog-page-card-pin { border-color: var(--primary-dim); }
         .blog-page-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
 
