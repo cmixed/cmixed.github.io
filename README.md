@@ -37,7 +37,7 @@
 - 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`src/client/cursor.ts` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
 - 完整 SEO：OpenGraph、JSON-LD 结构化数据、各区块 Sitemap 与 RSS
 - 页脚带两个悬浮框：**关于本站**（渲染 `README.md`）与**更新日志**（渲染 git 提交记录），内容在构建期定型、用原生 `<dialog>`，材质与卡片完全同源
-- 右下角浮动操作（回上级 / 回到顶部 / 直达底部）与滚动条全站一套：前者由 `src/client/fab.ts` 在主页、博客、资源小窝注入，图标是内联 SVG；后者按深浅主题换色，整页、弹窗正文、代码块、表格共用同一条薄荷玻璃条，不再出现系统灰条
+- 右下角浮动操作（回上级 / 回到顶部 / 直达底部）与滚动条全站一套：前者由 `src/client/fab.ts` 在主页、博客、资源小窝注入，图标是内联 SVG；后者按深浅主题换色，整页是一条不占布局的浮层条（`src/client/scrollbar.ts`），弹窗正文 / 代码块 / 表格是同形制的系统 thin 条，都不再出现系统灰条或轨道槽
 - GitHub Actions 自动执行 `vp check` + `vp test`、`vp run build` 并部署到 GitHub Pages
 
 ## 设计说明
@@ -46,7 +46,7 @@
 
 ### Mica Alt 材质
 
-每个主题只由**两个主题色**构成 —— 底色 + 面板色（导航/抽屉「标题栏层」+ 卡片「正文层」+ 按钮与卡片内小标签「抬升层」）。两色**故意不同、不相似**：底色更绿（hue≈160）、面板更青（hue≈195），色相差 ≈35°、不透明面板 token 的亮度比 ≈1.20:1（面板压到半透明后，屏上实测「卡片 vs 紧邻底色」的局部 L\* 比约 1.05~1.17、「导航 vs 底色」约 1.04~1.10；层次主要由色相差 + 受光边 + 投影承担，不是靠亮度差），所以既有拼色的层次感、又不会像旧版「冷蓝底 + 橄榄面板」那样色相对撞；浅色用同一条公式的高曝光档，因此两套主题是"同一关系的两个曝光"。四个主题色：暗色 `#0c1714` / `#1c2a30`，浅色 `#d0e2db` / `#f2f8f9`（面板封顶 L\*96，**不用纯白**）。文字三档取「底色与面板之间」的色相（≈180°）、只差明度，所以与底色和面板都同族却不同亮；另有细颗粒（`mix-blend-mode: overlay`，把 50% 灰压在面板上不改变亮度，只留纹理 —— 之前用普通 alpha 叠加，平均把面板提亮三级、还带一层斑点，就是"脏"的来源）；每个面板的「面」再叠 1px 受光亮边 + 1px 底边反光 + 左上镜面光池 + 内侧玻璃厚边 + 贴地阴影（`--mica-panel-*` / `--mica-elev-*`），材质感因此来自"受光"而不是单纯调透明度。**顶边那道光是单独一层 token（`--mica-panel-rim`）**：暗色下它让 1px 边框比面板亮 14~16 L\*，边框本身就是光；浅色面板已经到 L\*96，纯白最多只再给 +7 L\*，所以浅色把顶边框换成白色、在它下面压 1px 冷调暗线（`--mica-panel-bevel`）、再叠一条 16px 的白色柔光带（`--mica-panel-top`）—— 靠"亮边 + 暗线 + 衰减"三件事立住，单加白没有用。卡片不透明度刻意压到 **0.80（暗）/ 0.78（浅）**：浅色面板本来就接近白，只有让底色的绿透上来才会从"一张白卡"变成"一层薄荷玻璃膜"（代价是分层变弱，用面板色提亮到 `#f2f8f9` 补回）。页级背景为满屏薄纱 + 同色相洗色 + 一个中性色团 + 顶部受光 + 四周暗角 + 抖动噪点（消除暗色渐变的 8bit 色带）+ 柔边点阵（视口锚定、向下渐隐，页脚不顶网格）；整页滚动条也走同一条 `--scrollbar-*` 皮肤（见「滚动条与右下角浮动操作」）。**面板底色的单一来源**：所有面板的底色 + 上面那 6 层受光图都由 `src/style.css` 末尾的共享规则给出，页面级内联样式只覆盖布局，改底色必须用 `background-color` —— 用 `background:` 简写会把 `background-image` 一起重置成 `none`，卡片立刻从「玻璃板」退回「色纸」（博客 / 小窝的列表卡片之前就是这么和主页不统一的）。静态部分零每帧开销。
+每个主题只由**两个主题色**构成 —— 底色 + 面板色（导航/抽屉「标题栏层」+ 卡片「正文层」+ 按钮与卡片内小标签「抬升层」）。两色**故意不同、不相似**：底色更绿（hue≈160）、面板更青（hue≈195），色相差 ≈35°、不透明面板 token 的亮度比 ≈1.20:1（面板压到半透明后，屏上实测「卡片 vs 紧邻底色」的局部 L\* 比约 1.05~1.17、「导航 vs 底色」约 1.04~1.10；层次主要由色相差 + 受光边 + 投影承担，不是靠亮度差），所以既有拼色的层次感、又不会像旧版「冷蓝底 + 橄榄面板」那样色相对撞；浅色用同一条公式的高曝光档，因此两套主题是"同一关系的两个曝光"。四个主题色：暗色 `#0c1714` / `#1c2a30`，浅色 `#d0e2db` / `#f2f8f9`（面板封顶 L\*96，**不用纯白**）。文字三档取「底色与面板之间」的色相（≈180°）、只差明度，所以与底色和面板都同族却不同亮；另有细颗粒（`mix-blend-mode: overlay`，把 50% 灰压在面板上不改变亮度，只留纹理 —— 之前用普通 alpha 叠加，平均把面板提亮三级、还带一层斑点，就是"脏"的来源）；每个面板的「面」再叠 1px 受光亮边 + 1px 底边反光 + 左上镜面光池 + 内侧玻璃厚边 + 贴地阴影（`--mica-panel-*` / `--mica-elev-*`），材质感因此来自"受光"而不是单纯调透明度。**顶边那道光是单独一层 token（`--mica-panel-rim`）**：暗色下它让 1px 边框比面板亮 14~16 L\*，边框本身就是光；浅色面板已经到 L\*96，纯白最多只再给 +7 L\*，所以浅色把顶边框换成白色、在它下面压 1px 冷调暗线（`--mica-panel-bevel`）、再叠一条 16px 的白色柔光带（`--mica-panel-top`）—— 靠"亮边 + 暗线 + 衰减"三件事立住，单加白没有用。卡片不透明度刻意压到 **0.80（暗）/ 0.78（浅）**：浅色面板本来就接近白，只有让底色的绿透上来才会从"一张白卡"变成"一层薄荷玻璃膜"（代价是分层变弱，用面板色提亮到 `#f2f8f9` 补回）。页级背景为满屏薄纱 + 同色相洗色 + 一个中性色团 + 顶部受光 + 四周暗角 + 抖动噪点（消除暗色渐变的 8bit 色带）+ 柔边点阵（视口锚定、向下渐隐，页脚不顶网格）；整页滚动条也走同一条 `--scrollbar-*` 皮肤，但它是 JS 浮层而不是原生条（见「滚动条与右下角浮动操作」）。**面板底色的单一来源**：所有面板的底色 + 上面那 6 层受光图都由 `src/style.css` 末尾的共享规则给出，页面级内联样式只覆盖布局，改底色必须用 `background-color` —— 用 `background:` 简写会把 `background-image` 一起重置成 `none`，卡片立刻从「玻璃板」退回「色纸」（博客 / 小窝的列表卡片之前就是这么和主页不统一的）。静态部分零每帧开销。
 
 ### 动态光源
 
@@ -102,7 +102,11 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 ### 滚动条与右下角浮动操作
 
-**滚动条**：整页滚动条与弹窗正文、代码块（横向）、表格共用一套 token（`--scrollbar-*`：暗色 mint 微光、浅色深青），轨道透明，拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮。整页滚动条早期是隐藏的 —— 为的是让 sticky 导航铺满窗口 —— 代价是整页没有任何「还能滚多远」的反馈；现在两套主题都有现成皮肤，就一并放出来（导航右侧留出滚动条槽是常规网页形态）。`html` 上额外写 `scrollbar-gutter: stable`：悬浮框打开时 body 变 `fixed`、滚动条会消失，不预留槽位的话背后的页面会横移 10px。两条实现路径都写：标准的 `scrollbar-width: thin` + `scrollbar-color`（Firefox、以及 Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、以及经典滚动条）—— 两条路径取同一个颜色，所以不管浏览器用哪种方式画滚动条，都落在同一套材质里。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
+**滚动条**：一套 token（`--scrollbar-*`：暗色 mint 微光、浅色深青），两种实现。
+
+整页那条是**浮层**，由 `src/client/scrollbar.ts` 画（`dist/scrollbar.js`）。原生整页滚动条做不到这个效果：经典条按定义要占 10px 布局宽度、还会画出自己的轨道，sticky 导航和 hero 就铺不到窗口右缘 —— 右侧永远缺一条缝，那正是「滚动槽」；`overflow: overlay` 已从 Chrome 114 移除，而 `::-webkit-scrollbar { width: 0 }` 等于没有滚动条。所以原生条藏掉（`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`），换一根 `position: fixed` 的 10px 轨道 + 拇指：几何是 `scrollTop / (scrollHeight - clientHeight)` 映射到轨道剩余长度，拇指最小 32px，监听 `scroll` / `resize` / `ResizeObserver(body)`（首页预览、正文图片都是 load 之后才撑高）；滚动时浮现、停 1.2s 淡出、指针靠近右缘 18px 再浮现；拇指可拖。触屏不创建（系统自带的浮层条够用），无 JS 时整页没有滚动条但滚动不受影响。藏掉原生条还有个附带好处：悬浮框把 `body` 变 `fixed` 时布局宽度不变，背景不会再横移 10px —— 之前靠 `scrollbar-gutter: stable` 预留，而那个预留本身就是一条槽。
+
+块内滚动（弹窗正文、代码块横向、表格）保持**系统 thin 条**：`scrollbar-width: thin` + `scrollbar-color`（Firefox、Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、经典滚动条），两条路径取同一个颜色。它们都在面板内部，轨道透明就够 —— 拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮，看上去和整页那枚一样是浮着的。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
 
 **右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（构建成 `dist/fab.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框（导航 RSS 那个 `&#9741;` 就是前车之鉴）。
 
@@ -113,7 +117,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 ```
 ├── src/
 │   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染、悬浮框（页脚 + 首页入口）
-│   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / sort / fab
+│   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / sort / fab / scrollbar
 │   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（.md-body，token 的唯一来源）
 │   ├── data/            # projects.json / skills.json（主页卡片的内容源）
 │   ├── __tests__/       # 单测：构建期内容的解析与改写规则
@@ -140,7 +144,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 │   └── assets/          #   站内引用的图：og-image.png / icons/ / 签名 / 头像
 ├── scripts/             # 构建期脚本：都由 vp 调起，不进前端打包图
 │   ├── optimize-images.ts   # PNG → AVIF
-│   ├── client-scripts.ts    # src/client/*.ts → dist/{theme,cursor,search,sort,fab}.js（固定文件名）
+│   ├── client-scripts.ts    # src/client/*.ts → dist/{theme,cursor,search,sort,fab,scrollbar}.js（固定文件名）
 │   ├── site-meta.ts         # README + git log → dist/site-about.json / site-commits.json（页脚两个悬浮框）
 │   └── og-image.ts          # 生成分享卡 public/assets/og-image.png
 ├── docs/                # 迁移计划与报告
@@ -156,11 +160,12 @@ dist/
 ├── index.html            # 主站
 ├── site-about.json       # 「关于本站」内容（README 渲染结果，构建期生成）
 ├── site-commits.json     # 「更新日志」内容（git 提交记录，构建期生成）
-├── theme.js              # 五个固定文件名的经典脚本（不进打包图）
+├── theme.js              # 六个固定文件名的经典脚本（不进打包图）
 ├── cursor.js
 ├── search.js
 ├── sort.js               # 列表排序（博客 / 资源小窝共用）
 ├── fab.js
+├── scrollbar.js          # 整页浮层滚动条
 ├── assets/               # 打包后的 CSS / JS，外加 public/assets 原样拷来的图
 ├── blog/                 # 列表页、文章页、data.json、feed.xml、sitemap.xml、vendor/、mermaid/
 ├── nook/                 # 列表页、详情页、data.json
@@ -265,7 +270,7 @@ tags: [标签1, 标签2]
 ## 工程约定
 
 - **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
-- **五个全站脚本仍是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `fab` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译成 `dist/<name>.js` —— `vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./theme.js` 这类引用因此保持稳定。
+- **六个全站脚本仍是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译成 `dist/<name>.js` —— `vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./theme.js` 这类引用因此保持稳定。
 - **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
 
 ## 兼容性

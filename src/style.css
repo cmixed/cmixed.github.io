@@ -1532,25 +1532,30 @@ a.changelog-item:hover {
 }
 
 /* ===== SCROLLBAR ===== */
-/* 整页滚动条与内容区共用同一套皮肤（规则在下面）。
-   早期整页滚动条是隐藏的，为的是让 sticky 导航铺满窗口右边；代价是整页没有任何
-   「还能滚多远」的反馈。现在两页的深浅主题都已经有 `--scrollbar-*`，整页也一起上皮肤：
-   导航右侧留出滚动条槽是常规网页形态，进度仍由顶部 .scroll-progress 反馈。
-   `scrollbar-gutter: stable` 预留槽位：弹窗打开时 body 变 fixed、滚动条会消失，
-   没有预留的话背后的页面会横移 10px。覆盖式滚动条（移动端 / macOS）不受影响。 */
+/* 整页滚动条是浮层（.page-scrollbar，由 src/client/scrollbar.ts 画），块内滚动用系统 thin 条。
+   为什么不直接用原生整页滚动条：经典条按定义要占 10px 布局宽度、还会画出自己的轨道，
+   sticky 导航和 hero 就铺不到窗口右缘（右侧永远缺一条缝，也就是「滚动槽」）；
+   `overflow: overlay` 已从 Chrome 114 移除，`::-webkit-scrollbar { width: 0 }` 又等于没有。
+   所以把原生那条藏掉，改由一根 fixed 轨道 + 拇指跟随 scrollY —— 不占布局、没有轨道底色，
+   和弹窗里那枚拇指同一个形制与 token（滚动时浮现，停 1.2s 淡出）。
+   藏掉原生条还有个好处：弹窗把 body 变 fixed 时滚动条会消失，但布局宽度不变，
+   页面不再横移 10px（原先靠 scrollbar-gutter: stable 预留，而那个预留本身就是条槽）。 */
 html {
-    scrollbar-gutter: stable;
+    scrollbar-width: none; /* Firefox 64+ / Chromium 121+ */
 }
 
-/* --- 整页 + 内容区滚动条：全站一套 ---
-   弹窗正文、代码块、表格这些「块内滚动」原本用系统滚动条：深色面板上横着一条亮灰，
-   浅色面板上又是一条深灰，材质在界面上直接断掉。这里统一成同一条形状与颜色，
-   拇指是 mint / 深青玻璃条，hover、拖动时逐档提亮。
+html::-webkit-scrollbar {
+    display: none; /* 旧 Chromium / Safari */
+}
+
+/* --- 块内滚动条：弹窗正文 / 代码块 / 表格 ---
+   这些原本用系统滚动条：深色面板上横着一条亮灰，浅色面板上又是一条深灰，材质直接断掉。
+   统一成同一条形状与颜色，拇指是 mint / 深青玻璃条，hover、拖动时逐档提亮。
    只列真正会滚的容器，不写 `*`：全站绝大多数元素不滚动，`*` 还会顺手改掉
    未来新增的、本该保持系统外观的元素（比如 textarea）。
+   它们在面板内部：轨道透明就够，不需要也不该再套一层 JS 浮层。
    博客侧栏目录（.blog-toc）故意不在此列 —— 它用上下两道渐隐提示还有内容，
    加回滚动条会把那两个设计一起顶掉（见 blog/template/post.html 的 .blog-toc）。 */
-html,
 .site-modal-body,
 pre,
 .table-wrapper {
@@ -1558,7 +1563,6 @@ pre,
     scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-html::-webkit-scrollbar,
 .site-modal-body::-webkit-scrollbar,
 pre::-webkit-scrollbar,
 .table-wrapper::-webkit-scrollbar {
@@ -1566,11 +1570,9 @@ pre::-webkit-scrollbar,
     height: var(--scrollbar-size);
 }
 
-html::-webkit-scrollbar-track,
 .site-modal-body::-webkit-scrollbar-track,
 pre::-webkit-scrollbar-track,
 .table-wrapper::-webkit-scrollbar-track,
-html::-webkit-scrollbar-corner,
 .site-modal-body::-webkit-scrollbar-corner,
 pre::-webkit-scrollbar-corner,
 .table-wrapper::-webkit-scrollbar-corner {
@@ -1579,7 +1581,6 @@ pre::-webkit-scrollbar-corner,
 
 /* 内缩 2px（border + padding-box）：拇指不贴边，读起来是一条圆角玻璃条；
    直接铺满整条槽会变成一根粗方块，深色下尤其抢眼。 */
-html::-webkit-scrollbar-thumb,
 .site-modal-body::-webkit-scrollbar-thumb,
 pre::-webkit-scrollbar-thumb,
 .table-wrapper::-webkit-scrollbar-thumb {
@@ -1589,18 +1590,75 @@ pre::-webkit-scrollbar-thumb,
     background-clip: padding-box;
 }
 
-html::-webkit-scrollbar-thumb:hover,
 .site-modal-body::-webkit-scrollbar-thumb:hover,
 pre::-webkit-scrollbar-thumb:hover,
 .table-wrapper::-webkit-scrollbar-thumb:hover {
     background-color: var(--scrollbar-thumb-hover);
 }
 
-html::-webkit-scrollbar-thumb:active,
 .site-modal-body::-webkit-scrollbar-thumb:active,
 pre::-webkit-scrollbar-thumb:active,
 .table-wrapper::-webkit-scrollbar-thumb:active {
     background-color: var(--scrollbar-thumb-active);
+}
+
+/* --- 整页浮层滚动条 ---
+   轨道 fixed 在窗口右缘、pointer-events 只开在拇指上：浮在内容之上但不挡点击，
+   也不参与布局（这正是原生经典条做不到的那一点）。
+   宽度取 --scrollbar-size，拇指再内缩 2px —— 和上面弹窗里那枚逐像素对齐。
+   z-index 120：高于导航（100）、低于顶部进度条（200）；<dialog> 在 top layer，
+   弹窗打开时天然压住它（何况下面还有一条 body.modal-open 的抑制规则）。 */
+.page-scrollbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: var(--scrollbar-size);
+    height: 100vh;
+    height: 100dvh;
+    z-index: 120;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.22s ease;
+}
+
+.page-scrollbar[hidden] {
+    display: none;
+}
+
+.page-scrollbar.is-visible {
+    opacity: 1;
+}
+
+.page-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: var(--scrollbar-thumb);
+    background-clip: padding-box;
+    pointer-events: auto;
+    cursor: default;
+    transition: background-color 0.2s;
+}
+
+.page-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+.page-scrollbar.is-dragging .page-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-active);
+}
+
+/* 弹窗锁滚动（body fixed）时整页条没有意义，直接压掉；
+   否则拇指会停在锁住那一刻的位置，看着像卡住 */
+body.modal-open .page-scrollbar {
+    opacity: 0 !important;
+}
+
+body.modal-open .page-scrollbar-thumb {
+    pointer-events: none;
 }
 
 /* ===== TRANSITIONS ===== */
@@ -1961,7 +2019,7 @@ pre::-webkit-scrollbar-thumb:active,
 /* Print */
 @media print {
     nav, .scroll-progress, .hamburger, .theme-toggle,
-    .fab-group, footer, .hero::before, .hero .typewriter, .cta-buttons {
+    .fab-group, .page-scrollbar, footer, .hero::before, .hero .typewriter, .cta-buttons {
         display: none !important;
     }
     body {

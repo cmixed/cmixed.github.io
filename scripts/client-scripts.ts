@@ -1,4 +1,4 @@
-/* 站点脚本（主题 / 指针特效 / 列表搜索 / 列表排序 / 浮动操作）的编译入口。
+/* 站点脚本（主题 / 指针特效 / 列表搜索 / 列表排序 / 浮动操作 / 整页滚动条）的编译入口。
  *
  * 这几个脚本必须是「固定文件名的经典脚本」：theme 要在 <head> 里同步跑完（首帧前定下主题，
  * 否则会闪），另外几个被 HTML 直接 <script src>。所以它们不进 Vite 的打包图（进去会被加 hash、
@@ -11,11 +11,11 @@ import { join } from 'node:path';
 import { transform } from 'esbuild';
 import type { Plugin } from 'vite-plus';
 
-const CLIENT_SCRIPTS = ['theme', 'cursor', 'search', 'sort', 'fab'] as const;
+const CLIENT_SCRIPTS = ['theme', 'cursor', 'search', 'sort', 'fab', 'scrollbar'] as const;
 type ClientScript = (typeof CLIENT_SCRIPTS)[number];
 
 const SOURCE_DIR = join(import.meta.dirname, '..', 'src', 'client');
-const PUBLIC_PATH = /^\/(theme|cursor|search|sort|fab)\.js$/;
+const PUBLIC_PATH = /^\/(theme|cursor|search|sort|fab|scrollbar)\.js$/;
 
 async function compile(name: ClientScript): Promise<string> {
   const source = await readFile(join(SOURCE_DIR, `${name}.ts`), 'utf8');
@@ -46,7 +46,7 @@ export function clientScripts(): Plugin {
   return {
     name: 'cmixed:client-scripts',
 
-    // dev：/theme.js、/cursor.js、/search.js、/sort.js、/fab.js 现编译现发
+    // dev：/theme.js、/cursor.js、/search.js、/sort.js、/fab.js、/scrollbar.js 现编译现发
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const name = PUBLIC_PATH.exec((req.url || '').split('?')[0])?.[1] as
