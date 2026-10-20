@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite-plus';
+import { clientScripts } from './scripts/client-scripts';
 
 export default defineConfig({
+  plugins: [clientScripts()],
   lint: {
     plugins: ['oxc', 'typescript', 'unicorn'],
     categories: {

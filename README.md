@@ -34,7 +34,7 @@
 - 图片 AVIF 优先：构建脚本把文章图片转成 AVIF；Mermaid 图表在构建时预渲染，运行时零渲染开销
 - 深色 / 浅色主题切换（localStorage 持久化；首次访问按系统 `prefers-color-scheme` 初始化）
 - 全站导航栏统一：主页、博客列表 / 文章、资源列表 / 详情、三套 404 页共用同一套 58px 高的 sticky 导航（同一材质层、同一内边距断点）；移动端抽屉关闭时不产生横向溢出，极窄屏（≤360px）自动让位
-- 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`public/cursor.js` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
+- 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`src/client/cursor.ts` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
 - 完整 SEO：OpenGraph、JSON-LD 结构化数据、各区块 Sitemap 与 RSS
 - GitHub Actions 自动执行 `vp check` + `vp test`、`vp run build` 并部署到 GitHub Pages
 
@@ -60,7 +60,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 ### 指针特效层
 
-`public/cursor.js`，全站共用一份：折线尾迹（相邻采样点连直线、越新越粗越亮，280ms 淡出）+ 点击波纹（全站）+ 光标光晕（220px，80ms 缓动跟随）+ 卡片追光（把指针位置写进卡片的 `--mx/--my`，配合 `@property --glare` 做淡进淡出）。性能约定：单 canvas + 单 `requestAnimationFrame`，每帧只清"上一帧画过的包围盒"，指针静止后循环自停（实测静止 2 秒 `clearRect` 调用为 0 次）；触屏只保留点击波纹；`prefers-reduced-motion` 下整个文件不启动。
+`src/client/cursor.ts`（构建成 `dist/cursor.js`），全站共用一份：折线尾迹（相邻采样点连直线、越新越粗越亮，280ms 淡出）+ 点击波纹（全站）+ 光标光晕（220px，80ms 缓动跟随）+ 卡片追光（把指针位置写进卡片的 `--mx/--my`，配合 `@property --glare` 做淡进淡出）。性能约定：单 canvas + 单 `requestAnimationFrame`，每帧只清"上一帧画过的包围盒"，指针静止后循环自停（实测静止 2 秒 `clearRect` 调用为 0 次）；触屏只保留点击波纹；`prefers-reduced-motion` 下整个文件不启动。
 
 ### 主题切换：圆形揭示
 
@@ -77,6 +77,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 ```
 ├── src/
 │   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染
+│   ├── client/          # 全站共用的经典脚本（TS）：theme / cursor / search
 │   ├── style.css        # 全站样式与 Mica Alt 材质（token 的唯一来源）
 │   ├── data/            # projects.json / skills.json
 │   └── lib/             # 构建工具：front-matter 解析、日期与 git 时间
@@ -89,8 +90,8 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 │   ├── file/            # 资源：<category>/<slug>/index.md（+ 附带文件）
 │   ├── template/        # 详情页模板
 │   └── build.ts
-├── public/              # 静态资源：theme.js / cursor.js / search.js / 404.html / 图标 / og-image
-├── scripts/             # optimize-images.ts（PNG → AVIF）
+├── public/              # 原样拷贝的静态资源：404.html / 图标 / og-image / robots.txt / sitemap.xml
+├── scripts/             # optimize-images.ts（PNG → AVIF）、client-scripts.ts（客户端脚本编译）
 ├── docs/                # 迁移计划与报告
 ├── index.html           # 主站入口
 └── vite.config.ts       # 多页构建与 HTML 入口
@@ -119,7 +120,7 @@ vp dev
 vp run build
 ```
 
-构建顺序：图片优化（PNG → AVIF）→ Vite 主站 → highlight.js 裁剪 → 博客 → 资源小窝。产物输出到 `dist/`（主站 `index.html`、`blog/`、`nook/`、`assets/`），可直接静态托管。
+构建顺序：图片优化（PNG → AVIF）→ Vite 主站（含 `src/client/*.ts` → `dist/*.js`）→ highlight.js 裁剪 → 博客 → 资源小窝。产物输出到 `dist/`（主站 `index.html`、`blog/`、`nook/`、`assets/`），可直接静态托管。
 
 ## 内容维护
 
@@ -183,6 +184,12 @@ tags: [标签1, 标签2]
 | `vp run optimize-images` | PNG → AVIF 图片转换 |
 
 > **`vp build` 只跑 Vite。** 博客页、小窝页、highlight.js 裁剪是 `package.json` 里 `build` 脚本的后继步骤，所以整站构建必须用 **`vp run build`**；直接敲 `vp build` 会得到一个没有文章页和小窝页的 `dist/`。
+
+## 工程约定
+
+- **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
+- **三个全站脚本仍是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译成 `dist/<name>.js` —— `vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./theme.js` 这类引用因此保持稳定。
+- **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
 
 ## 兼容性
 
