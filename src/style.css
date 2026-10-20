@@ -14,6 +14,11 @@
 }
 
 :root {
+    /* 区块标题的字号与行盒：首页的 section-header 与博客 / 资源小窝的列表页标题共用。
+       放在 :root 而不是 .section-header 上，是因为列表页标题不是 section-header；
+       两处必须同尺寸，否则从首页点进列表页会看到标题突然缩水。 */
+    --section-header-size: 1.75rem;
+    --section-header-line: 1.15;
     /* accent 只作「填充 / 描边」：白字压在它上面 5.47:1，达标。
        填充值两个主题共用 —— 切主题时强调色的形制不变，只换曝光。 */
     --primary: #0f766e;
@@ -488,6 +493,11 @@ body.nav-open::before {
 }
 
 .hero-content {
+    /* 宽度必须由父级决定，不能是 shrink-to-fit：hero 是 flex 行容器，
+       flex item 的自动宽度会跟着最宽的子元素走 —— 打字机逐字变长时，
+       整个 hero-content（以及下面 width:100% 的按钮）会逐字变宽。
+       写死 100% 后按钮宽度只跟视口有关，打字机不再影响布局。 */
+    width: 100%;
     max-width: 720px;
     text-align: center;
     position: relative;
@@ -731,9 +741,8 @@ section {
     /* 字号与行盒由同一对变量管：区块标题要和右侧「查看全部」胶囊等高，
        两者都从这里推导，改一个数就同时跟着变（窄屏只覆盖字号）。
        行盒 1.15 而不是继承 body 的 1.6：那是给正文读的，标题只要一行，
-       1.6 会把它撑成 45px 的胖条，胶囊也得跟着变胖。 */
-    --section-header-size: 1.75rem;
-    --section-header-line: 1.15;
+       1.6 会把它撑成 45px 的胖条，胶囊也得跟着变胖。
+       变量本身定义在 :root —— 列表页标题也要用同一个尺寸。 */
     font-size: var(--section-header-size);
     line-height: var(--section-header-line);
     font-weight: 700;
@@ -1523,12 +1532,17 @@ a.changelog-item:hover {
 }
 
 /* ===== SCROLLBAR ===== */
-/* 隐藏原生滚动条：固定定位的导航栏才能铺到窗口最右（否则右边会缺滚动条槽那么一块）。
-   滚动仍可用滚轮 / 键盘 / 触控板，阅读位置由顶部 .scroll-progress 进度条反馈。 */
-html { scrollbar-width: none; } /* Firefox 64+ / Chromium 121+ */
-html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
+/* 整页滚动条与内容区共用同一套皮肤（规则在下面）。
+   早期整页滚动条是隐藏的，为的是让 sticky 导航铺满窗口右边；代价是整页没有任何
+   「还能滚多远」的反馈。现在两页的深浅主题都已经有 `--scrollbar-*`，整页也一起上皮肤：
+   导航右侧留出滚动条槽是常规网页形态，进度仍由顶部 .scroll-progress 反馈。
+   `scrollbar-gutter: stable` 预留槽位：弹窗打开时 body 变 fixed、滚动条会消失，
+   没有预留的话背后的页面会横移 10px。覆盖式滚动条（移动端 / macOS）不受影响。 */
+html {
+    scrollbar-gutter: stable;
+}
 
-/* --- 内容区滚动条：全站一套 ---
+/* --- 整页 + 内容区滚动条：全站一套 ---
    弹窗正文、代码块、表格这些「块内滚动」原本用系统滚动条：深色面板上横着一条亮灰，
    浅色面板上又是一条深灰，材质在界面上直接断掉。这里统一成同一条形状与颜色，
    拇指是 mint / 深青玻璃条，hover、拖动时逐档提亮。
@@ -1536,6 +1550,7 @@ html::-webkit-scrollbar { display: none; } /* 旧 Chromium / Safari */
    未来新增的、本该保持系统外观的元素（比如 textarea）。
    博客侧栏目录（.blog-toc）故意不在此列 —— 它用上下两道渐隐提示还有内容，
    加回滚动条会把那两个设计一起顶掉（见 blog/template/post.html 的 .blog-toc）。 */
+html,
 .site-modal-body,
 pre,
 .table-wrapper {
@@ -1543,6 +1558,7 @@ pre,
     scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
+html::-webkit-scrollbar,
 .site-modal-body::-webkit-scrollbar,
 pre::-webkit-scrollbar,
 .table-wrapper::-webkit-scrollbar {
@@ -1550,9 +1566,11 @@ pre::-webkit-scrollbar,
     height: var(--scrollbar-size);
 }
 
+html::-webkit-scrollbar-track,
 .site-modal-body::-webkit-scrollbar-track,
 pre::-webkit-scrollbar-track,
 .table-wrapper::-webkit-scrollbar-track,
+html::-webkit-scrollbar-corner,
 .site-modal-body::-webkit-scrollbar-corner,
 pre::-webkit-scrollbar-corner,
 .table-wrapper::-webkit-scrollbar-corner {
@@ -1561,6 +1579,7 @@ pre::-webkit-scrollbar-corner,
 
 /* 内缩 2px（border + padding-box）：拇指不贴边，读起来是一条圆角玻璃条；
    直接铺满整条槽会变成一根粗方块，深色下尤其抢眼。 */
+html::-webkit-scrollbar-thumb,
 .site-modal-body::-webkit-scrollbar-thumb,
 pre::-webkit-scrollbar-thumb,
 .table-wrapper::-webkit-scrollbar-thumb {
@@ -1570,12 +1589,14 @@ pre::-webkit-scrollbar-thumb,
     background-clip: padding-box;
 }
 
+html::-webkit-scrollbar-thumb:hover,
 .site-modal-body::-webkit-scrollbar-thumb:hover,
 pre::-webkit-scrollbar-thumb:hover,
 .table-wrapper::-webkit-scrollbar-thumb:hover {
     background-color: var(--scrollbar-thumb-hover);
 }
 
+html::-webkit-scrollbar-thumb:active,
 .site-modal-body::-webkit-scrollbar-thumb:active,
 pre::-webkit-scrollbar-thumb:active,
 .table-wrapper::-webkit-scrollbar-thumb:active {
@@ -1613,8 +1634,7 @@ pre::-webkit-scrollbar-thumb:active,
     /* 筛选标签要够大的点击目标（视觉尺寸仍是 --chip-*，只把高度撑到 44px）。
        撑高之后短标签（AI / Git / x86）在 999px 圆角下会变成「圆环」——
        描边变清楚以前看不出来，现在很扎眼，所以同时给个最小宽度，形状回到胶囊。 */
-    .blog-tag,
-    .nook-filter {
+    .list-chip {
         min-height: 44px;
         min-width: 4rem;
         justify-content: center;
@@ -1688,8 +1708,11 @@ pre::-webkit-scrollbar-thumb:active,
         padding: 3rem 1.5rem;
     }
 
-    .section-header {
+    :root {
         --section-header-size: 1.5rem;
+    }
+
+    .section-header {
         gap: 0.75rem;
     }
 
@@ -2047,6 +2070,120 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .search-empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
 .search-empty p { font-size: 0.9rem; }
 
+/* ===== 列表页头部（博客 / 资源小窝共用） =====
+   两页结构完全一致：标题一行，小字与排序共用下一行（小字靠左、排序靠右）。
+   标题直接取首页区块标题的尺寸（--section-header-size / -line），从首页点进列表页
+   不会看到字号跳变；小字的行盒与排序控件同高，两者的上下边缘严丝合缝 ——
+   排序因此读起来像小字那一行的右端，而不是另起一块控件。
+   排序做成一条分段胶囊（一个容器 + 三段），刻意与筛选胶囊区分：
+   筛选是实心 accent 的「标签」，排序是容器里浮起的「模式」。
+   窄屏允许换行，`.list-sort` 的 margin-left:auto 让它在第二行仍贴右。 */
+.list-head {
+    margin-bottom: 2.5rem;
+}
+
+.list-title {
+    font-size: var(--section-header-size);
+    line-height: var(--section-header-line);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+}
+
+.list-meta {
+    /* 行盒高度只在这里定义一次：小字与排序都读它，改一个数两边一起动 */
+    --list-row: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+}
+
+.list-sub {
+    font-size: 1.0625rem;
+    line-height: var(--list-row);
+    color: var(--text-dim);
+}
+
+.list-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.list-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1rem;
+    height: var(--list-row);
+    margin-left: auto;
+    padding: 0.15rem;
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+}
+
+.list-sort-label {
+    padding: 0 0.55rem 0 0.6rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.list-sort-btn {
+    height: 100%;
+    padding: 0 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--transition-speed), border-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.list-sort-btn:hover {
+    color: var(--primary-text);
+}
+
+/* 选中段用淡填 + accent 描边（不是筛选胶囊的实心 accent）：
+   同一张页面上，「我筛了哪个标签」和「我按什么排序」不该长得一模一样。 */
+.list-sort-btn[aria-pressed='true'] {
+    background: var(--primary-dim);
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+@media (max-width: 640px) {
+    .list-meta {
+        --list-row: 2.25rem;
+    }
+
+    .list-sub {
+        font-size: 0.95rem;
+    }
+}
+
+/* 触屏：排序要够得着，行盒跟着长高，小字与排序仍然等高 */
+@media (hover: none) and (pointer: coarse) {
+    .list-meta {
+        --list-row: 2.75rem;
+    }
+
+    .list-sort-btn {
+        padding: 0 0.85rem;
+    }
+}
+
 /* 触屏设备：加大点击区 */
 @media (hover: none) and (pointer: coarse) {
     .search-input { font-size: 1rem; padding: 0.85rem 0; }
@@ -2245,7 +2382,7 @@ html::after {
 
 /* --- 小标签：一套设计语言，两个角色 ---------------------------------
    只读（4px 方角）：卡片标签 / 项目状态 / 技能 / 分类 / 文章标签 / 代码语言角标
-   可点（胶囊）：列表页的筛选控件（.blog-tag / .nook-filter，紧接在下面）
+   可点（胶囊）：列表页的筛选控件（.list-chip，紧接在下面）
    两者共用 --chip-* 的尺寸、字体与 --mica-chip 的填色/描边/文字色；
    只靠「形状 + 状态」区分语义 —— 方角是信息，胶囊是可点，所以不会互相误认。 */
 .tech-tag,
@@ -2277,8 +2414,7 @@ html::after {
    胶囊在页面底色上几乎看不出边界，所以填充与描边都由 --chip-fill / --chip-border
    单独给（见文件开头的 token 注释）。选中用实心 accent + 白字（5.47:1），
    一眼看出「已筛选」；三步的填充是单调变实的：未激活 < hover < 选中。 */
-.blog-tag,
-.nook-filter {
+.list-chip {
     display: inline-flex;
     align-items: center;
     padding: var(--chip-pad-y) var(--chip-pad-x);
@@ -2296,15 +2432,13 @@ html::after {
     transition: background 0.3s, border-color 0.3s, color 0.3s;
 }
 
-.blog-tag:hover,
-.nook-filter:hover {
+.list-chip:hover {
     background: var(--chip-fill-hover);
     border-color: var(--primary);
     color: var(--primary-text);
 }
 
-.blog-tag.active,
-.nook-filter.active {
+.list-chip.active {
     background: var(--primary);
     border-color: var(--primary);
     color: #fff;

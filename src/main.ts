@@ -303,8 +303,16 @@ window.addEventListener(
 );
 
 /* ===== 页脚悬浮框（关于本站 / 更新日志） =====
-   内容来自构建期生成的 site-meta.json（README 渲染结果 + git 提交记录，见
-   scripts/site-meta.ts）：第一次打开才请求，之后留在内存里。
+   内容来自构建期生成的两份 JSON（见 scripts/site-meta.ts）：
+   - site-about.json   README 渲染结果（gzip 约 14KB）
+   - site-commits.json 提交记录（gzip 约 8.5KB）
+   拆成两份是因为两个入口互不相干：点「关于本站」不该顺带下载 278 条提交
+   （合成一份时首次打开要等 68.8KB / gzip 22.7KB 走完才渲染）。
+   下载时机：
+   - 页面 load 后的空闲时段预取（关于本站先发，提交记录排在它之后，慢网不互相拖）
+   - 入口被悬停 / 按下 / 键盘聚焦时立刻预热
+   - 省流量模式（saveData）下不预取，点开时才下载
+   打开时数据如果已经到了，直接同步渲染 —— 连「载入中…」那一帧都不会出现。
    悬浮框本体是原生 <dialog>，ESC、焦点陷阱、遮罩、关闭后焦点归位都由浏览器负责。 */
 interface ChangelogEntry {
   hash: string;
@@ -314,8 +322,12 @@ interface ChangelogEntry {
   subject: string;
 }
 
-interface SiteMeta {
-  about: { html: string; updated: string | null };
+interface AboutData {
+  html: string;
+  updated: string | null;
+}
+
+interface CommitsData {
   changelog: ChangelogEntry[];
   total: number;
   repo: string | null;
@@ -326,6 +338,47 @@ type MetaKind = 'about' | 'changelog';
 const META_HASH: Record<MetaKind, string> = { about: 'about-site', changelog: 'changelog' };
 const META_TITLE: Record<MetaKind, string> = { about: '关于本站', changelog: '更新日志' };
 const CHANGELOG_STEP = 80;
+const META_BASE = import.meta.env.MODE === 'production' ? './' : '/';
+
+/**
+ * 一份 JSON 的「缓存 + 单飞请求」。
+ * peek 让 openMeta 判断能不能同步渲染；失败不缓存，下次点开还能重试。
+ */
+function createMetaLoader<T>(file: string): { peek: () => T | null; load: () => Promise<T> } {
+  let data: T | null = null;
+  let request: Promise<T> | null = null;
+  return {
+    peek: () => data,
+    load(): Promise<T> {
+      if (data) return Promise.resolve(data);
+      if (!request) {
+        request = fetch(META_BASE + file)
+          .then((res) => {
+            if (!res.ok) throw new Error(`${file} ${res.status}`);
+            return res.json() as Promise<T>;
+          })
+          .then(
+            (json) => {
+              data = json;
+              return json;
+            },
+            (error: unknown) => {
+              request = null;
+              throw error;
+            }
+          );
+      }
+      return request;
+    },
+  };
+}
+
+const aboutMeta = createMetaLoader<AboutData>('site-about.json');
+const commitsMeta = createMetaLoader<CommitsData>('site-commits.json');
+const META_LOAD: Record<MetaKind, () => Promise<AboutData | CommitsData>> = {
+  about: () => aboutMeta.load(),
+  changelog: () => commitsMeta.load(),
+};
 
 const metaDialog = document.getElementById('siteModal') as HTMLDialogElement | null;
 const metaTitle = document.getElementById('siteModalTitle') as HTMLElement | null;
@@ -333,8 +386,6 @@ const metaSub = document.getElementById('siteModalSub') as HTMLElement | null;
 const metaBody = document.getElementById('siteModalBody') as HTMLElement | null;
 const metaClose = document.getElementById('siteModalClose') as HTMLButtonElement | null;
 
-let metaData: SiteMeta | null = null;
-let metaRequest: Promise<SiteMeta> | null = null;
 let changelogShown = CHANGELOG_STEP;
 /** 打开前的 hash 位置：关闭时还回去，不至于把用户滚到别的锚点这件事弄丢 */
 let metaReturnHash = '';
@@ -355,24 +406,18 @@ function unlockScroll(): void {
   window.scrollTo({ top: metaReturnScroll, behavior: 'instant' });
 }
 
-function loadMeta(): Promise<SiteMeta> {
-  if (metaData) return Promise.resolve(metaData);
-  if (!metaRequest) {
-    const base = import.meta.env.MODE === 'production' ? './' : '/';
-    metaRequest = fetch(base + 'site-meta.json').then((res) => {
-      if (!res.ok) throw new Error(`site-meta.json ${res.status}`);
-      return res.json() as Promise<SiteMeta>;
-    });
-    metaRequest.then(
-      (data) => {
-        metaData = data;
-      },
-      () => {
-        metaRequest = null; // 失败不缓存，下次点开还能重试
-      }
-    );
-  }
-  return metaRequest;
+/** 省流量模式下不预取：用户显式点开时再下载。 */
+function prefetchAllowed(): boolean {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  return !connection?.saveData;
+}
+
+/** 预热：只把请求发出去，结果留在 loader 的缓存里；失败静默（点开时会再试）。 */
+function prefetchMeta(kind: MetaKind): void {
+  if (!prefetchAllowed()) return;
+  void META_LOAD[kind]().catch(() => {
+    /* 预取失败不需要打扰用户 */
+  });
 }
 
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
@@ -389,7 +434,7 @@ function changelogItem(entry: ChangelogEntry, repo: string | null): string {
   )}" target="_blank" rel="noopener noreferrer">${inner}</a></li>`;
 }
 
-function renderChangelog(meta: SiteMeta): void {
+function renderChangelog(meta: CommitsData): void {
   if (!metaBody) return;
   const entries = meta.changelog.slice(0, changelogShown);
   if (entries.length === 0) {
@@ -430,29 +475,37 @@ function renderChangelog(meta: SiteMeta): void {
   }
 }
 
-function renderMeta(meta: SiteMeta, kind: MetaKind): void {
+function renderAbout(meta: AboutData): void {
   if (!metaBody) return;
-  if (kind === 'about') {
-    if (metaSub) {
-      metaSub.textContent = meta.about.updated
-        ? `README.md · 更新于 ${meta.about.updated}`
-        : 'README.md';
-    }
-    // 构建期渲染、只来自仓库自己的 README，可以直接当 HTML 插入
-    metaBody.innerHTML = meta.about.html;
-    metaBody.scrollTop = 0;
-  } else {
-    changelogShown = CHANGELOG_STEP;
-    renderChangelog(meta);
-    metaBody.scrollTop = 0;
+  if (metaSub) {
+    metaSub.textContent = meta.updated ? `README.md · 更新于 ${meta.updated}` : 'README.md';
   }
+  // 构建期渲染、只来自仓库自己的 README，可以直接当 HTML 插入
+  metaBody.innerHTML = meta.html;
+  metaBody.scrollTop = 0;
+}
+
+function renderMeta(kind: MetaKind, data: AboutData | CommitsData): void {
+  if (kind === 'about') {
+    renderAbout(data as AboutData);
+    return;
+  }
+  changelogShown = CHANGELOG_STEP;
+  renderChangelog(data as CommitsData);
+  metaBody?.scrollTo(0, 0);
 }
 
 async function openMeta(kind: MetaKind): Promise<void> {
   if (!metaDialog || !metaBody) return;
+  const cached = kind === 'about' ? aboutMeta.peek() : commitsMeta.peek();
+  // 先发请求、再开弹窗：弹窗的第一帧不等网络。
+  // 缓存命中时连「载入中…」都不写，直接同步渲染，视觉上没有任何过渡。
+  const pending = cached ? null : META_LOAD[kind]();
+
   if (metaTitle) metaTitle.textContent = META_TITLE[kind];
-  if (metaSub) metaSub.textContent = '';
-  metaBody.innerHTML = '<p class="site-modal-loading">载入中…</p>';
+  if (!cached && metaSub) metaSub.textContent = '';
+  if (cached) renderMeta(kind, cached);
+  else metaBody.innerHTML = '<p class="site-modal-loading">载入中…</p>';
 
   const ourHash = `#${META_HASH[kind]}`;
   metaReturnHash = location.hash === ourHash ? '' : location.hash;
@@ -462,8 +515,9 @@ async function openMeta(kind: MetaKind): Promise<void> {
   }
   history.replaceState(null, '', ourHash);
 
+  if (!pending) return;
   try {
-    renderMeta(await loadMeta(), kind);
+    renderMeta(kind, await pending);
   } catch {
     if (metaSub) metaSub.textContent = '';
     metaBody.innerHTML = '<p class="changelog-empty">内容加载失败，请刷新后重试。</p>';
@@ -485,11 +539,37 @@ if (metaDialog && metaBody) {
   });
   metaClose?.addEventListener('click', closeMeta);
 
-  // 页脚的两个链接 + 首页 hero 的两颗轻档按钮共用同一套 wiring
+  // 页脚的两个链接 + 首页 hero 的两颗轻档按钮共用同一套 wiring。
+  // 悬停 / 按下 / 聚焦都算「用户要去点它」，立刻把对应那份预热起来。
   document.querySelectorAll<HTMLButtonElement>('[data-meta]').forEach((button) => {
     const kind = button.dataset.meta as MetaKind;
+    const warm = (): void => prefetchMeta(kind);
+    button.addEventListener('pointerenter', warm);
+    button.addEventListener('pointerdown', warm);
+    button.addEventListener('focusin', warm);
     button.addEventListener('click', () => void openMeta(kind));
   });
+
+  // 空闲预取：先关于本站（大、也是首开慢的那一个），等它落地后再排提交记录。
+  // 两份同时发只会在慢网上互相抢带宽，把「用户最可能先点的那一份」拖慢。
+  const idle = (fn: () => void): void => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => fn(), { timeout: 2500 });
+    } else {
+      setTimeout(fn, 1500);
+    }
+  };
+  const warmUp = (): void => {
+    if (!prefetchAllowed()) return;
+    idle(() => {
+      void aboutMeta
+        .load()
+        .catch(() => undefined)
+        .then(() => idle(() => prefetchMeta('changelog')));
+    });
+  };
+  if (document.readyState === 'complete') warmUp();
+  else window.addEventListener('load', warmUp, { once: true });
 
   // 直达链接：#about-site / #changelog
   const initial = (Object.keys(META_HASH) as MetaKind[]).find(
