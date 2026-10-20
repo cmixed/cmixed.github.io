@@ -485,7 +485,8 @@ if (metaDialog && metaBody) {
   });
   metaClose?.addEventListener('click', closeMeta);
 
-  document.querySelectorAll<HTMLButtonElement>('.footer-link[data-meta]').forEach((button) => {
+  // 页脚的两个链接 + 首页 hero 的两颗轻档按钮共用同一套 wiring
+  document.querySelectorAll<HTMLButtonElement>('[data-meta]').forEach((button) => {
     const kind = button.dataset.meta as MetaKind;
     button.addEventListener('click', () => void openMeta(kind));
   });

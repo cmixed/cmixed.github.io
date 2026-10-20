@@ -3,6 +3,7 @@
 <head>
     <script src="../theme.js"></script>
     <script defer src="../cursor.js"></script>
+    <script defer src="../fab.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{description}}">
@@ -117,23 +118,10 @@
         }
 
         @media print {
-            .nook-detail-actions, .nook-detail-back, .fab-group { display: none !important; }
+            .nook-detail-actions, .nook-detail-back { display: none !important; }
             body { background: white !important; color: black !important; }
             .nook-detail-content { border-top: 1px solid #ccc; }
         }
-
-        .fab-group {
-            position: fixed; bottom: 2rem; right: 2rem;
-            display: flex; flex-direction: column; gap: 0.5rem; z-index: 50;
-        }
-        .fab-btn {
-            width: 40px; height: 40px;
-            background: var(--mica-raised); border: 1px solid var(--border); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: border-color 0.3s, color 0.3s, background 0.3s;
-            color: var(--text-dim); font-size: 1rem; text-decoration: none;
-        }
-        .fab-btn:hover { border-color: var(--primary); color: var(--primary-text); }
     </style>
 </head>
 <body>
@@ -171,23 +159,10 @@
         <div class="nook-detail-content">{{content}}</div>
     </div>
 
-    <div class="fab-group">
-        <a href="./" class="fab-btn" title="资源小窝主页">&#9750;</a>
-        <button class="fab-btn" id="backToTop" title="返回顶部">&uarr;</button>
-        <button class="fab-btn" id="goBottom" title="直达底部">&darr;</button>
-    </div>
-
     <script>
         (function() {
             document.getElementById('themeToggle').addEventListener('click', function() {
                 window.toggleTheme();
-            });
-
-            document.getElementById('backToTop').addEventListener('click', function() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            document.getElementById('goBottom').addEventListener('click', function() {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             });
         })();
     </script>

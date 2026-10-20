@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="src/style.css">
     <script src="./theme.js"></script>
     <script defer src="./cursor.js"></script>
+    <script defer src="./fab.js"></script>
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -88,9 +89,10 @@
                 </div>
 
                 <div class="cta-buttons">
-                    <a href="#projects" class="btn">项目</a>
-                    <a href="blog/" class="btn btn-primary">博客</a>
-                    <a href="nook/" class="btn">资源</a>
+                    <button type="button" class="btn btn-quiet" data-meta="about" aria-haspopup="dialog">关于本站</button>
+                    <a href="blog/" class="btn btn-strong">个人博客</a>
+                    <a href="nook/" class="btn btn-strong">资源小窝</a>
+                    <button type="button" class="btn btn-quiet" data-meta="changelog" aria-haspopup="dialog">更新日志</button>
                 </div>
             </div>
         </section>
@@ -137,19 +139,19 @@
         </section>
 
         <section id="blog-preview">
-            <div class="section-header">博客</div>
-            <div class="blog-preview-grid" id="blogPreviewGrid"></div>
-            <div class="blog-preview-more">
-                <a href="blog/" class="btn">查看全部 &rarr;</a>
+            <div class="section-header">
+                博客
+                <a href="blog/" class="section-more">查看全部 <span aria-hidden="true">&rarr;</span></a>
             </div>
+            <div class="blog-preview-grid" id="blogPreviewGrid"></div>
         </section>
 
         <section id="nook-preview">
-            <div class="section-header">资源</div>
-            <div class="nook-preview-grid" id="nookPreviewGrid"></div>
-            <div class="nook-preview-more">
-                <a href="nook/" class="btn">查看全部 &rarr;</a>
+            <div class="section-header">
+                资源
+                <a href="nook/" class="section-more">查看全部 <span aria-hidden="true">&rarr;</span></a>
             </div>
+            <div class="nook-preview-grid" id="nookPreviewGrid"></div>
         </section>
 
         <section id="contact">
