@@ -36,7 +36,7 @@
 - 全站导航栏统一：主页、博客列表 / 文章、资源列表 / 详情、三套 404 页共用同一套 58px 高的 sticky 导航（同一材质层、同一内边距断点）；移动端抽屉关闭时不产生横向溢出，极窄屏（≤360px）自动让位
 - 可访问性与动效降级：语义化标签与 aria 标注（主题开关 / 搜索 / 搜索清除 / 菜单都有可读名称）、键盘可达；动效统一完整播放（不再提供站内「降级动效」开关），仅在系统开启 `prefers-reduced-motion` 时降级 —— 漂移、掠光、指针特效层全部停掉（`public/cursor.js` 直接不启动）；系统开启 `prefers-reduced-transparency` 时则整体退回不透明表面并隐藏全部光效层
 - 完整 SEO：OpenGraph、JSON-LD 结构化数据、各区块 Sitemap 与 RSS
-- GitHub Actions 自动执行 `vp check` + `vp test`、构建并部署到 GitHub Pages
+- GitHub Actions 自动执行 `pnpm check` + `pnpm test`、`pnpm build` 并部署到 GitHub Pages
 
 ## 设计说明
 
@@ -157,21 +157,21 @@ tags: [标签1, 标签2]
 
 ## 可用命令
 
-Vite+ 提供 `vp` CLI。全局安装后可直接运行 `vp dev`、`vp check`；未全局安装时用 `pnpm exec vp ...` 调用。项目脚本封装了常用流程：
+**统一入口是 `pnpm <script>`**：所有脚本都定义在 `package.json` 里，内部调用 Vite+ 的 `vp` CLI，所以不需要全局安装 `vp`。本地手动执行、`.husky/pre-commit` 钩子、GitHub Actions 用的是同一套写法（不要再混用 `vp check` 或 `pnpm exec vp check`）。
 
 | 命令 | 说明 |
 |------|------|
-| `pnpm dev` | 启动开发服务器（`vp dev`） |
+| `pnpm dev` | 启动开发服务器 |
 | `pnpm build` | 完整构建：图片优化 + 主站 + 博客 + 资源小窝 |
-| `pnpm preview` | 预览构建产物（`vp preview`） |
+| `pnpm preview` | 预览构建产物 |
 | `pnpm blog` | 仅构建博客（含 highlight.js 裁剪） |
 | `pnpm nook` | 仅构建资源小窝 |
-| `pnpm check` | 格式 + Lint + 类型检查（`vp check`） |
+| `pnpm check` | 格式 + Lint + 类型检查 |
 | `pnpm check:fix` | 自动修复格式与 lint 问题 |
 | `pnpm lint` | Oxlint 检查（`lint:fix` 自动修复） |
 | `pnpm format` | Oxfmt 格式化（`format:check` 只检查不写入） |
 | `pnpm typecheck` | TypeScript 类型检查（`typecheck:watch` 监听） |
-| `pnpm test` | 运行测试（`vp test run`；`test:watch` 监听） |
+| `pnpm test` | 运行测试（`test:watch` 监听） |
 | `pnpm optimize-images` | PNG → AVIF 图片转换 |
 
 ## 兼容性
@@ -184,8 +184,8 @@ Vite+ 提供 `vp` CLI。全局安装后可直接运行 `vp dev`、`vp check`；�
 
 推送 `main` 分支后，GitHub Actions 使用 [`setup-vp`](https://github.com/voidzero-dev/setup-vp) 自动执行：
 
-1. **check**：`vp check` → `vp test`
-2. **build**：`vp run build`（图片优化 + 主站 + 博客 + 资源小窝）
+1. **check**：`pnpm check` → `pnpm test`
+2. **build**：`pnpm build`（图片优化 + 主站 + 博客 + 资源小窝）
 3. **deploy**：部署到 GitHub Pages
 
 ## License
