@@ -213,9 +213,16 @@
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
+  /* 悬浮框打开时整层已被 CSS 藏掉（见 style.css「body.modal-open .fx-layer」）：
+     这里再早退一次，连 canvas 重绘和尾迹数组都不必维护。 */
+  function suspended(): boolean {
+    return doc.body.classList.contains('modal-open');
+  }
+
   addEventListener(
     'pointermove',
     (e: PointerEvent) => {
+      if (suspended()) return;
       if (e.pointerType && e.pointerType !== 'mouse') return;
       if (!mouseSeen) {
         mouseSeen = true;
@@ -235,6 +242,7 @@
   addEventListener(
     'pointerdown',
     (e: PointerEvent) => {
+      if (suspended()) return;
       if (e.button !== undefined && e.button !== 0) return;
       ripples.push({ x: e.clientX, y: e.clientY, t: performance.now() });
       ensure();
@@ -254,6 +262,22 @@
       ensure();
     }
   });
+
+  /* 弹窗关闭时擦掉画布：整层在弹窗期间是 visibility:hidden，像素会原地保留，
+     不擦的话关闭瞬间会闪一下「打开前那一帧」的光晕（指针早就不在那里了）。
+     另外把「见过鼠标」也复位，下一次 pointermove 会从指针当前位置重新起光。 */
+  function resetFx(): void {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    prevBox = null;
+    trail.length = 0;
+    ripples.length = 0;
+    mouseSeen = false;
+    inside = true;
+    mx = hx = -1e4;
+    my = hy = -1e4;
+  }
+
+  doc.getElementById('siteModal')?.addEventListener('close', resetFx);
 
   /* --- 卡片追光 ---
      镜面高光跟着指针走（用的是卡片自己的 --mx/--my，见 src/style.css 的「面」）。

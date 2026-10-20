@@ -2892,6 +2892,17 @@ nav,
    抽屉自带 backdrop-filter，底下任何还在动的层都会让它每帧重模糊整屏。 */
 body.nav-open::after { animation-play-state: paused; }
 
+/* 悬浮框同理：::backdrop 是全屏 6px 模糊，底下任何还在动的层都会让它每帧
+   重模糊整屏。弹窗只开几百毫秒到几分钟，漂移停住完全看不出来，
+   但少掉的是一整屏、每帧一次的模糊。 */
+body.modal-open::after { animation-play-state: paused; }
+
+/* 光标特效层是一整块 canvas，画在 backdrop 下面：弹窗一打开，它只会变成
+   一层被模糊 + 压暗的残影，指针一动还要重画 → 触发全屏重新模糊。
+   藏掉之后既没有「鼠标静止」的错觉（残影本来也看不见），也不再参与合成。
+   尾迹数据会在 280ms 内自然过期，关闭弹窗后从当前指针位置重新开始。 */
+body.modal-open .fx-layer { visibility: hidden; }
+
 /* 打印：去掉颗粒、点阵与洗色，避免纸上出现灰噪点与色块 */
 @media print {
     html::before,

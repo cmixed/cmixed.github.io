@@ -306,12 +306,16 @@ window.addEventListener(
    内容来自构建期生成的两份 JSON（见 scripts/site-meta.ts）：
    - site-about.json   README 渲染结果（gzip 约 14KB）
    - site-commits.json 提交记录（gzip 约 8.5KB）
-   拆成两份是因为两个入口互不相干：点「关于本站」不该顺带下载 278 条提交
+   拆成两份是因为两个入口互不相干：点「关于本站」不该顺带下载 281 条提交
    （合成一份时首次打开要等 68.8KB / gzip 22.7KB 走完才渲染）。
    下载时机：
-   - 页面 load 后的空闲时段预取（关于本站先发，提交记录排在它之后，慢网不互相拖）
-   - 入口被悬停 / 按下 / 键盘聚焦时立刻预热
+   - 模块一执行就并行预取两份（不等 load、不等 idle —— 用户常在 1s 内点击）
+   - 入口被悬停 / 按下 / 键盘聚焦时再预热一次（极慢网下的补救，请求会去重）
    - 省流量模式（saveData）下不预取，点开时才下载
+   缓存：
+   - 内存：本次页面内只请求一次
+   - localStorage（stale-while-revalidate）：跨会话，先同步渲染上次的内容，
+     后台再刷新；新内容到了，如果用户还停在顶部、且刚打开不到 1.5s，才原地替换
    打开时数据如果已经到了，直接同步渲染 —— 连「载入中…」那一帧都不会出现。
    悬浮框本体是原生 <dialog>，ESC、焦点陷阱、遮罩、关闭后焦点归位都由浏览器负责。 */
 interface ChangelogEntry {
@@ -341,40 +345,85 @@ const CHANGELOG_STEP = 80;
 const META_BASE = import.meta.env.MODE === 'production' ? './' : '/';
 
 /**
- * 一份 JSON 的「缓存 + 单飞请求」。
- * peek 让 openMeta 判断能不能同步渲染；失败不缓存，下次点开还能重试。
+ * 一份 JSON 的「两层缓存 + 单飞请求」。
+ * - 内存：页面打开期间只有一份；
+ * - localStorage：跨会话。GitHub Pages 的 Cache-Control 只有 10 分钟，过了就要重新
+ *   走网络；而「打开页面立刻点」等不了那一次往返，所以先拿上一次的内容顶上
+ *   （stale-while-revalidate），新版本到了再换。
+ * peek 让 openMeta 判断能不能同步渲染；isStale 表示这份来自磁盘、值得后台刷新。
+ * 失败不缓存，下次点开还能重试。
  */
-function createMetaLoader<T>(file: string): { peek: () => T | null; load: () => Promise<T> } {
+interface StoredMeta<T> {
+  savedAt: number;
+  data: T;
+}
+
+const META_STORE_PREFIX = 'site-meta:';
+
+function readStoredMeta<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(META_STORE_PREFIX + key);
+    if (!raw) return null;
+    const stored = JSON.parse(raw) as StoredMeta<T>;
+    // 结构不对就当没有：宁可多等一次网络，也不要拿坏数据去渲染
+    if (!stored || typeof stored.savedAt !== 'number' || !stored.data) return null;
+    return stored.data;
+  } catch {
+    return null; // 隐私模式、配额满、坏 JSON：都退化成「没有缓存」
+  }
+}
+
+function writeStoredMeta<T>(key: string, data: T): void {
+  try {
+    localStorage.setItem(META_STORE_PREFIX + key, JSON.stringify({ savedAt: Date.now(), data }));
+  } catch {
+    /* 写不进去就算了，下一次还是走网络 */
+  }
+}
+
+function createMetaLoader<T>(
+  file: string,
+  storeKey: string
+): { peek: () => T | null; isStale: () => boolean; load: () => Promise<T> } {
   let data: T | null = null;
+  let stale = false;
   let request: Promise<T> | null = null;
   return {
-    peek: () => data,
-    load(): Promise<T> {
-      if (data) return Promise.resolve(data);
-      if (!request) {
-        request = fetch(META_BASE + file)
-          .then((res) => {
-            if (!res.ok) throw new Error(`${file} ${res.status}`);
-            return res.json() as Promise<T>;
-          })
-          .then(
-            (json) => {
-              data = json;
-              return json;
-            },
-            (error: unknown) => {
-              request = null;
-              throw error;
-            }
-          );
+    peek: () => {
+      if (!data) {
+        data = readStoredMeta<T>(storeKey);
+        stale = data !== null;
       }
+      return data;
+    },
+    isStale: () => stale,
+    load(): Promise<T> {
+      if (request) return request;
+      if (data && !stale) return Promise.resolve(data);
+      request = fetch(META_BASE + file)
+        .then((res) => {
+          if (!res.ok) throw new Error(`${file} ${res.status}`);
+          return res.json() as Promise<T>;
+        })
+        .then(
+          (json) => {
+            data = json;
+            stale = false;
+            writeStoredMeta(storeKey, json);
+            return json;
+          },
+          (error: unknown) => {
+            request = null;
+            throw error;
+          }
+        );
       return request;
     },
   };
 }
 
-const aboutMeta = createMetaLoader<AboutData>('site-about.json');
-const commitsMeta = createMetaLoader<CommitsData>('site-commits.json');
+const aboutMeta = createMetaLoader<AboutData>('site-about.json', 'about:v1');
+const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v1');
 const META_LOAD: Record<MetaKind, () => Promise<AboutData | CommitsData>> = {
   about: () => aboutMeta.load(),
   changelog: () => commitsMeta.load(),
@@ -418,6 +467,17 @@ function prefetchMeta(kind: MetaKind): void {
   void META_LOAD[kind]().catch(() => {
     /* 预取失败不需要打扰用户 */
   });
+}
+
+/* 一上来就并行拉两份，不等 load、也不等空闲。
+   以前是 load → requestIdleCallback(timeout 2500) → 关于本站 → 再一个 idle → 更新日志：
+   load 本身要等首页所有图片，rIC 又要等主线程空闲，而用户经常在 1s 内就点开，
+   于是「点的时候两份文件都还没开始下载」—— 这才是首点几秒的来源（渲染只要几十毫秒）。
+   两份合计 gzip ≈ 25KB，比首屏任何一张图都小，且是异步请求，不阻塞渲染。
+   saveData 下仍然不预取（见 prefetchAllowed），点开时才下载。 */
+if (prefetchAllowed()) {
+  prefetchMeta('about');
+  prefetchMeta('changelog');
 }
 
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
@@ -495,17 +555,38 @@ function renderMeta(kind: MetaKind, data: AboutData | CommitsData): void {
   metaBody?.scrollTo(0, 0);
 }
 
+/** 两份内容是否相同：后台刷新回来时用它决定要不要重渲染（避免白闪一次）。 */
+function sameMeta(kind: MetaKind, a: AboutData | CommitsData, b: AboutData | CommitsData): boolean {
+  if (kind === 'about') {
+    const before = a as AboutData;
+    const after = b as AboutData;
+    return before.html === after.html && before.updated === after.updated;
+  }
+  const before = a as CommitsData;
+  const after = b as CommitsData;
+  return (
+    before.total === after.total &&
+    before.repo === after.repo &&
+    before.changelog.length === after.changelog.length &&
+    before.changelog.every((entry, i) => entry.hash === after.changelog[i]?.hash)
+  );
+}
+
 async function openMeta(kind: MetaKind): Promise<void> {
   if (!metaDialog || !metaBody) return;
   const cached = kind === 'about' ? aboutMeta.peek() : commitsMeta.peek();
+  const stale = kind === 'about' ? aboutMeta.isStale() : commitsMeta.isStale();
   // 先发请求、再开弹窗：弹窗的第一帧不等网络。
-  // 缓存命中时连「载入中…」都不写，直接同步渲染，视觉上没有任何过渡。
-  const pending = cached ? null : META_LOAD[kind]();
+  // 命中内存时连「载入中…」都不写，直接同步渲染，视觉上没有任何过渡；
+  // 命中 localStorage 时也先渲染，同时发请求做一次后台刷新（stale-while-revalidate）。
+  const pending = !cached || stale ? META_LOAD[kind]() : null;
 
   if (metaTitle) metaTitle.textContent = META_TITLE[kind];
   if (!cached && metaSub) metaSub.textContent = '';
   if (cached) renderMeta(kind, cached);
   else metaBody.innerHTML = '<p class="site-modal-loading">载入中…</p>';
+
+  const openedAt = performance.now();
 
   const ourHash = `#${META_HASH[kind]}`;
   metaReturnHash = location.hash === ourHash ? '' : location.hash;
@@ -517,8 +598,21 @@ async function openMeta(kind: MetaKind): Promise<void> {
 
   if (!pending) return;
   try {
-    renderMeta(kind, await pending);
+    const fresh = await pending;
+    if (!cached) {
+      renderMeta(kind, fresh);
+    } else if (
+      !sameMeta(kind, cached, fresh) &&
+      metaBody.scrollTop === 0 &&
+      performance.now() - openedAt < 1500
+    ) {
+      // 只有「刚打开、还没滚动」才原地换：否则会把正在读的位置跳走。
+      // 换不换都不影响下一次打开 —— load() 已经把新内容写进两层缓存。
+      renderMeta(kind, fresh);
+    }
   } catch {
+    // 有旧内容就先留着：旧 README / 旧提交记录比一句错误有用
+    if (cached) return;
     if (metaSub) metaSub.textContent = '';
     metaBody.innerHTML = '<p class="changelog-empty">内容加载失败，请刷新后重试。</p>';
   }
@@ -549,27 +643,6 @@ if (metaDialog && metaBody) {
     button.addEventListener('focusin', warm);
     button.addEventListener('click', () => void openMeta(kind));
   });
-
-  // 空闲预取：先关于本站（大、也是首开慢的那一个），等它落地后再排提交记录。
-  // 两份同时发只会在慢网上互相抢带宽，把「用户最可能先点的那一份」拖慢。
-  const idle = (fn: () => void): void => {
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(() => fn(), { timeout: 2500 });
-    } else {
-      setTimeout(fn, 1500);
-    }
-  };
-  const warmUp = (): void => {
-    if (!prefetchAllowed()) return;
-    idle(() => {
-      void aboutMeta
-        .load()
-        .catch(() => undefined)
-        .then(() => idle(() => prefetchMeta('changelog')));
-    });
-  };
-  if (document.readyState === 'complete') warmUp();
-  else window.addEventListener('load', warmUp, { once: true });
 
   // 直达链接：#about-site / #changelog
   const initial = (Object.keys(META_HASH) as MetaKind[]).find(

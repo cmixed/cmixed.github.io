@@ -78,7 +78,13 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 两个悬浮框，内容**在构建期就定型**。`scripts/site-meta.ts` 是一个和 `client-scripts.ts` 同形式的 Vite 插件：`vp build` 时 emit 成 `dist/site-about.json` 与 `dist/site-commits.json`，`vp dev` 时用中间件现读现算 —— 所以改完 README 刷新就生效，`package.json` 里也不用为此多加一步构建。「关于本站」是 `README.md` 经 marked 渲染（**默认配置**，不套博客那套 mermaid / 代码块角标的 renderer；仓库内相对链接如 `LICENSE` 改写成 GitHub 上的对应地址，站外链接补 `target` / `rel`），「更新日志」取 `git log`（约定式提交拆成 `type` / `scope` 与标题，按日期分组，最多带 400 条）。
 
-**为什么拆成两个文件**：合成一份时是 68.8KB（gzip 22.7KB），首开要等整包走完才渲染，其中一半多是「关于本站」根本用不到的提交记录（278 条）。现在按入口拆开（README 的 HTML 约 34KB / gzip 14.7KB，提交记录约 35KB / gzip 8.6KB），各自只取需要的那份。**下载时机**也不是「第一次点开才下」：页面 `load` 后的空闲时段先预取「关于本站」，等它落地再排提交记录（慢网下两份并行只会互相拖慢最可能先点的那份）；入口被悬停 / 按下 / 键盘聚焦时立即预热；`navigator.connection.saveData` 为真时整段跳过。数据到得比点击早时，弹窗直接同步渲染，连「载入中…」那一帧都不会出现。直达链接（`#about-site` / `#changelog`）另在 `index.html` 的 `<head>` 里按 hash 注入 `<link rel="preload" as="fetch" crossorigin>`，解析阶段就开始下载。拿不到 git（比如源码压缩包）就降级成「暂无记录」，不影响页面。CI 的 build job 本来就 `fetch-depth: 0`，历史是完整的。
+**为什么拆成两个文件**：合成一份时是 68.8KB（gzip 22.7KB），首开要等整包走完才渲染，其中一半多是「关于本站」根本用不到的提交记录（约 280 条）。现在按入口拆开（README 的 HTML 约 40KB / gzip 16.6KB，提交记录约 35KB / gzip 8.6KB），各自只取需要的那份。
+
+**下载时机**：`main.ts` 一执行就**并行预取两份**，不等 `load`、也不等 `requestIdleCallback`。这两条以前都踩过坑：`load` 要等首页所有图片，rIC 又要等主线程空闲（`timeout` 2.5s），而用户经常在 1s 内就点开 —— 结果就是「点的时候两份文件还没开始下载」，等的那几秒全在网络上（实测渲染本身只要 25~45ms，CPU 降速 6× 也才 150ms）。两份合计 gzip 约 25KB，异步、不阻塞首屏，比任何一张图都小；`navigator.connection.saveData` 为真时整段跳过，点开时才下载。入口的悬停 / 按下 / 键盘聚焦仍会再预热一次（极慢网下的补救，loader 内部单飞，不会重复请求）。
+
+**跨会话**再叠一层 `localStorage`（stale-while-revalidate，键名 `site-meta:about:v1` / `site-meta:commits:v1`）：点开先用上一次的内容同步渲染（0ms），同时后台刷新；新内容到了，只有用户还停在顶部、且打开不到 1.5s 时才原地替换，否则只更新缓存，不影响正在读的位置。GitHub Pages 的 `Cache-Control` 只有 10 分钟，过了就要重新走网络 —— 这一层让「打开页面立刻点」不再受它影响。写不进去（隐私模式、配额满）就静默退化成纯网络。直达链接（`#about-site` / `#changelog`）另在 `index.html` 的 `<head>` 里按 hash 注入 `<link rel="preload" as="fetch" crossorigin>`，解析阶段就开始下载。拿不到 git（比如源码压缩包）就降级成「暂无记录」，不影响页面。CI 的 build job 本来就 `fetch-depth: 0`，历史是完整的。
+
+弹窗打开期间还有两处必须停：`body.modal-open::after` 把背景漂移暂停、`.fx-layer`（整屏指针 canvas）隐藏。`::backdrop` 是全屏 6px 模糊，底下任何还在动的层都会让它每帧重模糊整屏 —— 这和移动端抽屉的 `body.nav-open::after` 是同一条规则；光标层画在 backdrop 下面，留着只会变成一层被模糊的残影，指针一动还会再次触发重模糊，读起来就是「鼠标静止」。关掉弹窗时画布会清空，避免闪回打开前那一帧的光晕。
 
 框体是原生 `<dialog>` + `showModal()`：ESC 关闭、焦点陷阱、`::backdrop`、关闭后焦点回到页脚按钮，全是浏览器给的，没有手写焦点管理。材质同样没另写一份 —— `.site-modal` 直接进了文件末尾那条共享面板选择器，底色、受光边、颗粒、贴地阴影自动继承；新增的只有尺寸、圆角、`::backdrop`（`rgba(var(--bg-rgb), .55)` + 6px 模糊：暗色压一层底色、浅色铺一层薄纱，都不用纯黑）和进场的淡入位移（`prefers-reduced-motion` 下不做）。直达链接是 `#about-site` / `#changelog`（`replaceState`；关闭时把打开前的 hash 还回去 —— 页脚在主页，这个位置本来就属于锚点导航）。更新日志每行是「hash 方角标签 + 类型标签 + 标题」，标签复用只读小标签那套材质（`.changelog-hash` / `.changelog-type` 直接挂在共享选择器上，不新增材质）；超过 80 条给一个「展开更多」，数据已经在本地，不再请求。窄屏（≤600px）标题换到标签下面一行，否则两个标签吃掉三分之二宽度、标题挤成三行右边还空着。
 
