@@ -193,6 +193,9 @@ importers:
       mermaid:
         specifier: ^11.17.0
         version: 11.17.2
+      puppeteer:
+        specifier: 25.10.0
+        version: 25.10.0
       sharp:
         specifier: ^0.35.3
         version: 0.35.4(@types/node@26.4.1)
