@@ -102,9 +102,15 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 # 安装依赖（内部调用 pnpm，尊重 pnpm-lock.yaml）
 vp install
 
+# 一次性：接上 git 钩子（提交前自动跑 vp check + vp test）
+# 写进本地 .git/config，不随仓库分发，每个克隆做一次即可
+vp hooks enable --hooks-dir .husky
+
 # 启动开发服务器
 vp dev
 ```
+
+钩子由 `.husky/pre-commit` 定义，分发器会先把 `node_modules/.bin` 加进 `PATH`，所以它用的是项目内锁定的 `vp`，即使没装全局 Vite+ 也能跑；需要临时跳过用 `git commit --no-verify`。
 
 ## 构建
 
