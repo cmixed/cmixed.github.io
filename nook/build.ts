@@ -21,6 +21,8 @@ interface ResourceData {
   pin: boolean;
   size: string;
   date: string;
+  /** 最后更新时间：frontmatter 的 updated，没写就等同创建时间（排序用） */
+  updated: string;
   tags: string[];
   description: string;
   body: string;
@@ -34,6 +36,7 @@ interface ResourceMeta extends Record<string, unknown> {
   url?: string;
   pin?: boolean | string;
   date?: string;
+  updated?: string;
   tags?: string[];
   description?: string;
 }
@@ -138,6 +141,7 @@ function discoverResources(): ResourceData[] {
         pin: isPinned,
         size: fileSize,
         date: resourceDate,
+        updated: meta.updated || resourceDate,
         tags: Array.isArray(meta.tags) ? meta.tags : [],
         description,
         body,
@@ -154,11 +158,13 @@ function discoverResources(): ResourceData[] {
 }
 
 function renderFilters(categories: string[]): string {
-  const allBtn = `<button class="nook-filter active" data-category="">全部</button>`;
+  const allBtn = `<button type="button" class="list-chip active" data-category="">全部</button>`;
   const catBtns = categories
     .map(
       (cat) =>
-        `<button class="nook-filter" data-category="${escapeXml(cat)}">${CATEGORY_ICONS[cat] || ''} ${CATEGORY_NAMES[cat] || cat}</button>`
+        `<button type="button" class="list-chip" data-category="${escapeXml(cat)}">${
+          CATEGORY_ICONS[cat] || ''
+        } ${CATEGORY_NAMES[cat] || cat}</button>`
     )
     .join('');
   return allBtn + catBtns;
@@ -192,7 +198,7 @@ function renderResources(resources: ResourceData[]): string {
         .join(' ')
         .toLowerCase();
 
-      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}" data-search="${escapeXml(searchKey)}">
+      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}" data-date="${escapeXml(r.date)}" data-updated="${escapeXml(r.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="nook-card-header">
                 <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
                 <span class="nook-card-category">${icon} ${catName}</span>
@@ -302,6 +308,14 @@ async function build(): Promise<void> {
     /* search.js is optional */
   }
 
+  // Copy shared list-sort script from dist root
+  const sortSrc = join(__dirname, '..', 'dist', 'sort.js');
+  try {
+    copyFileSync(sortSrc, join(outDir, 'sort.js'));
+  } catch {
+    /* sort.js is optional */
+  }
+
   // Copy the shared floating-action script from dist root
   const fabSrc = join(__dirname, '..', 'dist', 'fab.js');
   try {
@@ -333,6 +347,7 @@ async function build(): Promise<void> {
     pin: r.pin,
     size: r.size,
     date: r.date,
+    updated: r.updated,
     tags: r.tags,
     description: r.description,
   }));

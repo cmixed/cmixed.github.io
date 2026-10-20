@@ -602,9 +602,17 @@ ${sitemapUrls}
 
   // Generate static blog list page
   const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
-  const tagsHtml = allTags
-    .map((t) => `<a href="./?tag=${encodeURIComponent(t)}" class="blog-tag">${escapeXml(t)}</a>`)
-    .join('');
+  // 「全部」与筛选标签用同一套胶囊（.list-chip），和资源小窝的分类栏同构：
+  // 首项是「全部」、默认激活，点它等于清掉筛选。
+  const tagsHtml = [
+    '<a href="./" class="list-chip active" data-tag="">全部</a>',
+    ...allTags.map(
+      (t) =>
+        `<a href="./?tag=${encodeURIComponent(t)}" class="list-chip" data-tag="${escapeXml(
+          t
+        )}">${escapeXml(t)}</a>`
+    ),
+  ].join('');
   const postsHtml = posts
     .map((p) => {
       const pinMark = p.pinned ? '📌 ' : '';
@@ -646,6 +654,14 @@ ${sitemapUrls}
     copyFileSync(searchSrc, join(outDir, 'search.js'));
   } catch {
     /* search.js is optional */
+  }
+
+  // Copy shared list-sort script from dist root
+  const sortSrc = join(__dirname, '..', 'dist', 'sort.js');
+  try {
+    copyFileSync(sortSrc, join(outDir, 'sort.js'));
+  } catch {
+    /* sort.js is optional */
   }
 
   // Copy the shared floating-action script from dist root

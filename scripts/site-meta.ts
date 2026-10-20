@@ -5,11 +5,15 @@
  *     不要博客那套 mermaid / 代码块角标的自定义 renderer）
  *   - 更新日志 = git 提交记录（约定式提交拆出 type / scope）
  *
- * 打成一个 site-meta.json，和 scripts/client-scripts.ts 一样用 Vite 插件发：
- *   - vp build：generateBundle 里 emit 成 dist/site-meta.json
+ * 拆成两个文件（和 scripts/client-scripts.ts 一样用 Vite 插件发）：
+ *   - site-about.json   README 渲染结果（gzip 约 14KB）
+ *   - site-commits.json 提交记录（gzip 约 8.5KB）
+ *   - vp build：generateBundle 里分别 emit 到 dist/
  *   - vp dev：中间件现读现算（改了 README 刷新就有，不用重启）
- * 这样 package.json 里不用再多一步构建，主站也不会为了这两块内容背上运行时依赖
- * （首页只在第一次点开时才 fetch 它，约 30KB）。
+ * 拆开的理由：两份内容差一倍多，而两个入口互不相干 —— 点「关于本站」不该顺带
+ * 下载 278 条提交。合成一份时首次打开要等 68.8KB（gzip 22.7KB）走完才渲染。
+ * 这样 package.json 里不用多一步构建，主站也不为这两块内容背运行时依赖
+ * （首页在 load 后的空闲时段预取，见 src/main.ts）。
  *
  * CI 注意：git 历史要完整（部署 workflow 的 checkout 已经是 fetch-depth: 0）；
  * 拿不到 git（比如源码压缩包）时降级成「暂无记录」，不影响页面。 */
@@ -23,8 +27,9 @@ import { getGitLastModified } from '../src/lib/build-utils';
 const ROOT = join(import.meta.dirname, '..');
 const README_PATH = join(ROOT, 'README.md');
 
-/** 产物文件名。首页按相对路径 fetch（生产 `./site-meta.json`、开发 `/site-meta.json`）。 */
-export const META_FILE = 'site-meta.json';
+/** 产物文件名。首页按相对路径 fetch（生产 `./xxx.json`、开发 `/xxx.json`）。 */
+export const ABOUT_FILE = 'site-about.json';
+export const COMMITS_FILE = 'site-commits.json';
 
 /** 最多带多少条提交。一次带全，前端「展开更多」只是在本地多渲染一段，不用再请求。 */
 const MAX_COMMITS = 400;
@@ -40,17 +45,18 @@ export interface ChangelogEntry {
   subject: string;
 }
 
-export interface SiteMeta {
-  about: {
-    /** README 渲染后的 HTML（相对链接已改写成 GitHub 上的地址） */
-    html: string;
-    /** README 最后一次提交的日期（YYYY-MM-DD），非 git 环境为 null */
-    updated: string | null;
-  };
+export interface AboutMeta {
+  /** README 渲染后的 HTML（相对链接已改写成 GitHub 上的地址） */
+  html: string;
+  /** README 最后一次提交的日期（YYYY-MM-DD），非 git 环境为 null */
+  updated: string | null;
+}
+
+export interface CommitsMeta {
   changelog: ChangelogEntry[];
   /** 仓库里的提交总数（可能大于 changelog.length） */
   total: number;
-  /** 仓库主页地址，用于把 README 里的相对链接和提交 hash 指回 GitHub；拿不到为 null */
+  /** 仓库主页地址，用于把提交 hash 指回 GitHub；拿不到为 null */
   repo: string | null;
 }
 
@@ -158,30 +164,33 @@ function readCommits(): { changelog: ChangelogEntry[]; total: number } {
   }
 }
 
-export async function buildSiteMeta(): Promise<SiteMeta> {
-  const repo = readRepoUrl();
+export async function buildAbout(): Promise<AboutMeta> {
   const markdown = await readFile(README_PATH, 'utf-8');
-  const { changelog, total } = readCommits();
   return {
-    about: {
-      html: renderAboutHtml(markdown, repo),
-      updated: getGitLastModified(README_PATH),
-    },
-    changelog,
-    total,
-    repo,
+    html: renderAboutHtml(markdown, readRepoUrl()),
+    updated: getGitLastModified(README_PATH),
   };
+}
+
+export function buildCommits(): CommitsMeta {
+  const { changelog, total } = readCommits();
+  return { changelog, total, repo: readRepoUrl() };
 }
 
 export function siteMeta(): Plugin {
   return {
     name: 'cmixed:site-meta',
 
-    // dev：/site-meta.json 现读现发（README / 提交记录改了刷新就生效）
+    // dev：两份 JSON 现读现发（README / 提交记录改了刷新就生效）
     configureServer(server) {
+      const producers: Record<string, () => Promise<unknown>> = {
+        [`/${ABOUT_FILE}`]: () => buildAbout(),
+        [`/${COMMITS_FILE}`]: () => Promise.resolve(buildCommits()),
+      };
       server.middlewares.use((req, res, next) => {
-        if ((req.url || '').split('?')[0] !== `/${META_FILE}`) return next();
-        buildSiteMeta().then(
+        const produce = producers[(req.url || '').split('?')[0]];
+        if (!produce) return next();
+        produce().then(
           (meta) => {
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.setHeader('Cache-Control', 'no-cache');
@@ -194,11 +203,13 @@ export function siteMeta(): Plugin {
 
     // build：写进 dist/ 根目录，和首页同级
     async generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: META_FILE,
-        source: JSON.stringify(await buildSiteMeta()),
-      });
+      const files: Array<[string, unknown]> = [
+        [ABOUT_FILE, await buildAbout()],
+        [COMMITS_FILE, buildCommits()],
+      ];
+      for (const [fileName, data] of files) {
+        this.emitFile({ type: 'asset', fileName, source: JSON.stringify(data) });
+      }
     },
   };
 }

@@ -24,6 +24,23 @@
     <link rel="alternate" type="application/rss+xml" title="cmixed 博客 RSS" href="blog/feed.xml">
     <title>cmixed · 技术博客</title>
 
+    <!-- 直达链接（#about-site / #changelog）时，在解析阶段就把对应 JSON 的下载排上队。
+         否则要等 main.ts 里的 openMeta 才发请求，弹窗会先画一帧「载入中…」。
+         两个入口各自只预载自己那份（关于本站 / 提交记录已经是两个文件）。 -->
+    <script>
+        (function () {
+            var file = location.hash === '#about-site' ? 'site-about.json'
+                : location.hash === '#changelog' ? 'site-commits.json' : '';
+            if (!file) return;
+            var link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'fetch';
+            link.crossOrigin = 'anonymous';
+            link.href = './' + file;
+            document.head.appendChild(link);
+        })();
+    </script>
+
     <link rel="preconnect" href="https://github.com">
     <link rel="dns-prefetch" href="https://github.com">
 
@@ -181,7 +198,7 @@
         </div>
     </footer>
 
-    <!-- 页脚两个入口共用一个悬浮框：内容由 /site-meta.json 在第一次打开时取回 -->
+    <!-- 页脚两个入口共用一个悬浮框：内容来自两份按需取回的 JSON（关于本站 / 更新日志） -->
     <dialog class="site-modal" id="siteModal" aria-labelledby="siteModalTitle">
         <div class="site-modal-head">
             <div>

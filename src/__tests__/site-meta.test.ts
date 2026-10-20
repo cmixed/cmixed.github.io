@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
+  buildAbout,
+  buildCommits,
   normalizeRepoUrl,
   parseCommitLine,
   parseCommits,
@@ -115,5 +117,15 @@ describe('renderAboutHtml', () => {
   it('代码块保留语言类名（供等宽样式命中）', () => {
     const html = renderAboutHtml('```bash\nvp build\n```\n', null);
     expect(html).toContain('<pre><code class="language-bash">');
+  });
+});
+
+describe('buildAbout / buildCommits', () => {
+  it('两份载荷各自独立，不再互相夹带', async () => {
+    const about = await buildAbout();
+    expect(Object.keys(about).sort()).toEqual(['html', 'updated']);
+
+    const commits = buildCommits();
+    expect(Object.keys(commits).sort()).toEqual(['changelog', 'repo', 'total']);
   });
 });
