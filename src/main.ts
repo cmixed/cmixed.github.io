@@ -301,3 +301,198 @@ window.addEventListener(
   },
   { passive: true }
 );
+
+/* ===== 页脚悬浮框（关于本站 / 更新日志） =====
+   内容来自构建期生成的 site-meta.json（README 渲染结果 + git 提交记录，见
+   scripts/site-meta.ts）：第一次打开才请求，之后留在内存里。
+   悬浮框本体是原生 <dialog>，ESC、焦点陷阱、遮罩、关闭后焦点归位都由浏览器负责。 */
+interface ChangelogEntry {
+  hash: string;
+  date: string;
+  type: string | null;
+  scope: string | null;
+  subject: string;
+}
+
+interface SiteMeta {
+  about: { html: string; updated: string | null };
+  changelog: ChangelogEntry[];
+  total: number;
+  repo: string | null;
+}
+
+type MetaKind = 'about' | 'changelog';
+
+const META_HASH: Record<MetaKind, string> = { about: 'about-site', changelog: 'changelog' };
+const META_TITLE: Record<MetaKind, string> = { about: '关于本站', changelog: '更新日志' };
+const CHANGELOG_STEP = 80;
+
+const metaDialog = document.getElementById('siteModal') as HTMLDialogElement | null;
+const metaTitle = document.getElementById('siteModalTitle') as HTMLElement | null;
+const metaSub = document.getElementById('siteModalSub') as HTMLElement | null;
+const metaBody = document.getElementById('siteModalBody') as HTMLElement | null;
+const metaClose = document.getElementById('siteModalClose') as HTMLButtonElement | null;
+
+let metaData: SiteMeta | null = null;
+let metaRequest: Promise<SiteMeta> | null = null;
+let changelogShown = CHANGELOG_STEP;
+/** 打开前的 hash 位置：关闭时还回去，不至于把用户滚到别的锚点这件事弄丢 */
+let metaReturnHash = '';
+/** 打开前的滚动位置：body 在锁滚动期间是 fixed，关闭时要滚回来 */
+let metaReturnScroll = 0;
+
+/** 锁住背景滚动（细节见 style.css 里 body.modal-open 的注释） */
+function lockScroll(): void {
+  metaReturnScroll = window.scrollY;
+  document.body.style.top = `-${metaReturnScroll}px`;
+  document.body.classList.add('modal-open');
+}
+
+function unlockScroll(): void {
+  if (!document.body.classList.contains('modal-open')) return;
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo({ top: metaReturnScroll, behavior: 'instant' });
+}
+
+function loadMeta(): Promise<SiteMeta> {
+  if (metaData) return Promise.resolve(metaData);
+  if (!metaRequest) {
+    const base = import.meta.env.MODE === 'production' ? './' : '/';
+    metaRequest = fetch(base + 'site-meta.json').then((res) => {
+      if (!res.ok) throw new Error(`site-meta.json ${res.status}`);
+      return res.json() as Promise<SiteMeta>;
+    });
+    metaRequest.then(
+      (data) => {
+        metaData = data;
+      },
+      () => {
+        metaRequest = null; // 失败不缓存，下次点开还能重试
+      }
+    );
+  }
+  return metaRequest;
+}
+
+function changelogItem(entry: ChangelogEntry, repo: string | null): string {
+  const inner = `<span class="changelog-hash">${escapeHtml(entry.hash)}</span>${
+    entry.type
+      ? `<span class="changelog-type">${escapeHtml(
+          entry.scope ? `${entry.type}/${entry.scope}` : entry.type
+        )}</span>`
+      : ''
+  }<span class="changelog-subject">${escapeHtml(entry.subject)}</span>`;
+  if (!repo) return `<li><div class="changelog-item">${inner}</div></li>`;
+  return `<li><a class="changelog-item" href="${escapeHtml(
+    `${repo}/commit/${entry.hash}`
+  )}" target="_blank" rel="noopener noreferrer">${inner}</a></li>`;
+}
+
+function renderChangelog(meta: SiteMeta): void {
+  if (!metaBody) return;
+  const entries = meta.changelog.slice(0, changelogShown);
+  if (entries.length === 0) {
+    if (metaSub) metaSub.textContent = '';
+    metaBody.innerHTML = '<p class="changelog-empty">没有可显示的提交记录。</p>';
+    return;
+  }
+  if (metaSub) {
+    metaSub.textContent =
+      entries.length < meta.total
+        ? `共 ${meta.total} 条提交 · 显示最近 ${entries.length} 条`
+        : `共 ${meta.total} 条提交 · 全部显示`;
+  }
+  const groups = new Map<string, ChangelogEntry[]>();
+  for (const entry of entries) {
+    const day = groups.get(entry.date);
+    if (day) day.push(entry);
+    else groups.set(entry.date, [entry]);
+  }
+  metaBody.innerHTML = Array.from(groups, ([date, dayEntries]) => {
+    const items = dayEntries.map((entry) => changelogItem(entry, meta.repo)).join('');
+    return `<div class="changelog-day"><div class="changelog-date"><span>${escapeHtml(
+      date
+    )}</span></div><ul class="changelog-list">${items}</ul></div>`;
+  }).join('');
+  if (entries.length < meta.changelog.length) {
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'changelog-more';
+    more.textContent = `展开更多（还有 ${meta.changelog.length - entries.length} 条）`;
+    more.addEventListener('click', () => {
+      const top = metaBody.scrollTop;
+      changelogShown += CHANGELOG_STEP;
+      renderChangelog(meta);
+      metaBody.scrollTop = top;
+    });
+    metaBody.appendChild(more);
+  }
+}
+
+function renderMeta(meta: SiteMeta, kind: MetaKind): void {
+  if (!metaBody) return;
+  if (kind === 'about') {
+    if (metaSub) {
+      metaSub.textContent = meta.about.updated
+        ? `README.md · 更新于 ${meta.about.updated}`
+        : 'README.md';
+    }
+    // 构建期渲染、只来自仓库自己的 README，可以直接当 HTML 插入
+    metaBody.innerHTML = meta.about.html;
+    metaBody.scrollTop = 0;
+  } else {
+    changelogShown = CHANGELOG_STEP;
+    renderChangelog(meta);
+    metaBody.scrollTop = 0;
+  }
+}
+
+async function openMeta(kind: MetaKind): Promise<void> {
+  if (!metaDialog || !metaBody) return;
+  if (metaTitle) metaTitle.textContent = META_TITLE[kind];
+  if (metaSub) metaSub.textContent = '';
+  metaBody.innerHTML = '<p class="site-modal-loading">载入中…</p>';
+
+  const ourHash = `#${META_HASH[kind]}`;
+  metaReturnHash = location.hash === ourHash ? '' : location.hash;
+  if (!metaDialog.open) {
+    metaDialog.showModal();
+    lockScroll();
+  }
+  history.replaceState(null, '', ourHash);
+
+  try {
+    renderMeta(await loadMeta(), kind);
+  } catch {
+    if (metaSub) metaSub.textContent = '';
+    metaBody.innerHTML = '<p class="changelog-empty">内容加载失败，请刷新后重试。</p>';
+  }
+}
+
+function closeMeta(): void {
+  metaDialog?.close();
+}
+
+if (metaDialog && metaBody) {
+  metaDialog.addEventListener('click', (event) => {
+    if (event.target === metaDialog) closeMeta();
+  });
+  metaDialog.addEventListener('close', () => {
+    unlockScroll();
+    history.replaceState(null, '', location.pathname + location.search + (metaReturnHash || ''));
+    metaReturnHash = '';
+  });
+  metaClose?.addEventListener('click', closeMeta);
+
+  document.querySelectorAll<HTMLButtonElement>('.footer-link[data-meta]').forEach((button) => {
+    const kind = button.dataset.meta as MetaKind;
+    button.addEventListener('click', () => void openMeta(kind));
+  });
+
+  // 直达链接：#about-site / #changelog
+  const initial = (Object.keys(META_HASH) as MetaKind[]).find(
+    (kind) => location.hash === `#${META_HASH[kind]}`
+  );
+  if (initial) void openMeta(initial);
+}
