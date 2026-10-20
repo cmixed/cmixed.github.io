@@ -9,6 +9,7 @@
     "node": ">=22.18.0"
   },
   "scripts": {
+    "prepare": "vp hooks enable --hooks-dir .husky",
     "dev": "vp dev",
     "blog": "tsx blog/build-hljs.ts && tsx blog/build.ts",
     "nook": "tsx nook/build.ts",
