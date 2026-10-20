@@ -316,6 +316,14 @@ async function build(): Promise<void> {
     /* sort.js is optional */
   }
 
+  // Copy shared floating scrollbar from dist root
+  const scrollbarSrc = join(__dirname, '..', 'dist', 'scrollbar.js');
+  try {
+    copyFileSync(scrollbarSrc, join(outDir, 'scrollbar.js'));
+  } catch {
+    /* scrollbar.js is optional */
+  }
+
   // Copy the shared floating-action script from dist root
   const fabSrc = join(__dirname, '..', 'dist', 'fab.js');
   try {
