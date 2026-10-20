@@ -25,7 +25,8 @@
     "typecheck:watch": "tsc --noEmit --watch",
     "test": "vp test run",
     "test:watch": "vp test",
-    "optimize-images": "tsx scripts/optimize-images.ts"
+    "optimize-images": "tsx scripts/optimize-images.ts",
+    "og-image": "tsx scripts/og-image.ts"
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.16.0",

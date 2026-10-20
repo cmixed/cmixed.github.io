@@ -90,12 +90,18 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 │   ├── file/            # 资源：<category>/<slug>/index.md（+ 附带文件）
 │   ├── template/        # 详情页模板
 │   └── build.ts
-├── public/              # 原样拷贝的静态资源：404.html / 图标 / og-image / robots.txt / sitemap.xml
-├── scripts/             # optimize-images.ts（PNG → AVIF）、client-scripts.ts（客户端脚本编译）
+├── public/              # 原样拷到站点根 —— 这里的目录结构就是 URL 结构
+│   ├── 404.html         #   /404.html（GitHub Pages 只认这个路径，挪走就没有自定义 404）
+│   ├── robots.txt       #   /robots.txt（爬虫只读根目录）
+│   ├── sitemap.xml      #   /sitemap.xml（由 robots.txt 声明）
+│   └── assets/          #   站内引用的图：og-image.png / icons/ / 签名 / 头像
+├── scripts/             # optimize-images.ts（PNG → AVIF）、client-scripts.ts（客户端脚本编译）、og-image.ts（分享卡）
 ├── docs/                # 迁移计划与报告
 ├── index.html           # 主站入口
 └── vite.config.ts       # 多页构建与 HTML 入口
 ```
+
+`public/` 不是素材仓库，它的目录结构就是站点 URL 结构。所以只把**路径被约定死的**文件留在根目录（`404.html` 是 GitHub Pages 的约定，`robots.txt` / `sitemap.xml` 是爬虫的约定），其余按用途收进 `assets/`：换目录就等于换 URL，而约定路径一挪就失效。
 
 ## 本地运行
 
@@ -182,6 +188,7 @@ tags: [标签1, 标签2]
 | `vp run typecheck` | TypeScript 类型检查（`typecheck:watch` 监听） |
 | `vp test` | 运行测试（`vp test watch` 监听模式） |
 | `vp run optimize-images` | PNG → AVIF 图片转换 |
+| `vp run og-image` | 重新生成分享卡 `public/assets/og-image.png` |
 
 > **`vp build` 只跑 Vite。** 博客页、小窝页、highlight.js 裁剪是 `package.json` 里 `build` 脚本的后继步骤，所以整站构建必须用 **`vp run build`**；直接敲 `vp build` 会得到一个没有文章页和小窝页的 `dist/`。
 
