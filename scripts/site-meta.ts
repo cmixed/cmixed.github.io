@@ -112,13 +112,33 @@ export function rewriteLinks(html: string, repoUrl: string | null): string {
   });
 }
 
+/**
+ * 按 h1/h2 把 README 切成一节一个 `<div class="readme-sec">`。
+ *
+ * 弹窗正文只有 ~700px 高，而整篇 README 排出来有 1.2 万像素：不切节的话，
+ * 每次打开都要同步排完整篇（弱机实测 200ms+，主线程一卡，光标也跟着停）。
+ * 切节后配合 style.css 里的 `content-visibility: auto`，只排视口附近那几节。
+ *
+ * 用 `<div>` 而不是 `<section>`：全站 `section { padding: 5rem 2rem }` 会把
+ * 每一节都撑高一截。h1/h2 是 marked 生成的顶层块，字符串切分就够，
+ * 不需要为构建期再引入一个 DOM 解析器。
+ */
+function wrapSections(html: string): string {
+  return html
+    .split(/(?=<h[12][\s>])/i)
+    .filter((part) => part.trim())
+    .map((part) => `<div class="readme-sec">${part}</div>`)
+    .join('');
+}
+
 /** README → 悬浮框里的 HTML。表格套一层 `.table-wrapper`，窄屏才能横向滚动。 */
 export function renderAboutHtml(markdown: string, repoUrl: string | null): string {
   let html = marked.parse(markdown, { async: false });
   html = rewriteLinks(html, repoUrl);
-  return html
+  html = html
     .replace(/<table>/g, '<div class="table-wrapper"><table>')
     .replace(/<\/table>/g, '</table></div>');
+  return wrapSections(html);
 }
 
 function git(args: string[]): string {

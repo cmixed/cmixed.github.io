@@ -15,7 +15,7 @@
  *   });
  *   search.refresh(); // 页面切换标签 / 分类或重新排序后调用
  *
- * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 编译成 dist/search.js。
+ * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 和 sort 一起编译成 dist/list.js。
  */
 (() => {
   function tokenize(query: string): string[] {

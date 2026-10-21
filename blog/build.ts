@@ -642,46 +642,6 @@ ${sitemapUrls}
   if (cssFiles.length > 0)
     writeFileSync(join(outDir, 'style.css'), readFileSync(join(cssDir, cssFiles[0]), 'utf-8'));
 
-  // Copy theme.js from dist root
-  const themeSrc = join(__dirname, '..', 'dist', 'theme.js');
-  try {
-    copyFileSync(themeSrc, join(outDir, 'theme.js'));
-  } catch {
-    /* theme.js is optional */
-  }
-
-  // Copy shared search script from dist root
-  const searchSrc = join(__dirname, '..', 'dist', 'search.js');
-  try {
-    copyFileSync(searchSrc, join(outDir, 'search.js'));
-  } catch {
-    /* search.js is optional */
-  }
-
-  // Copy shared list-sort script from dist root
-  const sortSrc = join(__dirname, '..', 'dist', 'sort.js');
-  try {
-    copyFileSync(sortSrc, join(outDir, 'sort.js'));
-  } catch {
-    /* sort.js is optional */
-  }
-
-  // Copy shared floating scrollbar from dist root
-  const scrollbarSrc = join(__dirname, '..', 'dist', 'scrollbar.js');
-  try {
-    copyFileSync(scrollbarSrc, join(outDir, 'scrollbar.js'));
-  } catch {
-    /* scrollbar.js is optional */
-  }
-
-  // Copy the shared floating-action script from dist root
-  const fabSrc = join(__dirname, '..', 'dist', 'fab.js');
-  try {
-    copyFileSync(fabSrc, join(outDir, 'fab.js'));
-  } catch {
-    /* fab.js is optional */
-  }
-
   // Copy vendor scripts (self-hosted highlight.js, mermaid.js)
   const vendorDir = join(__dirname, 'vendor');
   if (statSync(vendorDir).isDirectory()) {

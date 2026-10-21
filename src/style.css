@@ -1391,32 +1391,49 @@ footer {
     outline-offset: -2px;
 }
 
+/* 关于本站 = 一整篇 README（实测 1.2 万像素高），弹窗正文只有 ~700px。
+   不虚拟化的话，每次打开都要同步排完整篇：6× CPU 下 206ms，主线程一卡，
+   指针事件和光标 canvas 都排不上队，就是用户看到的「卡一下，鼠标不动」。
+   按 h1/h2 分节（见 scripts/site-meta.ts），只排视口附近那几节，实测降到 6ms。
+   contain-intrinsic-size 的 auto 会记住展开过的真实高度；550px 是后面那些短节的
+   平均值（前 4 节一渲染，估算总高与展开后的真实高度只差约 200px，滚动时几乎不抖）。 */
+.site-modal-body .readme-sec {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 550px;
+}
+
+/* 分节会切断外边距合并：每节首元素的上边距收进节内，节与节之间补回来。
+   h2 的 margin-top 是 2.5rem，补偿后整篇高度与不分节时一致。 */
+.site-modal-body .readme-sec > :first-child {
+    margin-top: 0;
+}
+
+.site-modal-body .readme-sec + .readme-sec {
+    margin-top: 2.5rem;
+}
+
 .site-modal-loading {
     color: var(--text-muted);
     font-size: 0.85rem;
 }
 
-/* 打开悬浮框时锁住背景滚动。两件事都不能少：
-   ① body 要变成 fixed —— 只写 overflow: hidden 的话视口滚动范围会塌成 0，
-      浏览器随即把滚动位置清成 0（页面"跳回页头"，关掉也回不到原处）；
-      top 由 JS 写成 -<打开时的滚动位置>，关闭时再滚回去。
-   ② body 一旦 fixed，主页那条 position: sticky 的导航栏就会跟着 body 偏移到屏幕外，
-      所以临时改成 fixed（它本来也是钉在视口顶端的，视觉上完全一致）。 */
-body.modal-open {
-    position: fixed;
-    left: 0;
-    right: 0;
+/* 打开悬浮框时锁住背景滚动。标记挂在 <html> 上，只写 overflow: hidden：
+   实测滚动位置原样保留（1200 → 1200）、滚轮被拦住，<dialog> 在 top layer 里
+   也不受影响。不要改成 body { position: fixed; top: -<Y> } —— 那会让整页重新
+   排版（关闭时还要 scrollTo 回去、把 sticky 导航临时改成 fixed），开一次弹窗
+   等于把长文整篇 reflow 一遍。 */
+html.modal-open {
     overflow: hidden;
 }
 
-body.modal-open nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+/* --- 更新日志：按日期分组，一行一条 --- */
+/* 80 条提交排出来约 3,900px，和 README 同一个问题：只排可见的那几天。
+   一天的估算给 340px（实际 300~500），往下滚会逐天校正。 */
+.changelog-day {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 340px;
 }
 
-/* --- 更新日志：按日期分组，一行一条 --- */
 .changelog-day + .changelog-day {
     margin-top: 1.35rem;
 }
@@ -1614,7 +1631,7 @@ pre::-webkit-scrollbar-thumb:active,
    也不参与布局（这正是原生经典条做不到的那一点）。
    宽度取 --scrollbar-size，拇指再内缩 2px —— 和上面弹窗里那枚逐像素对齐。
    z-index 120：高于导航（100）、低于顶部进度条（200）；<dialog> 在 top layer，
-   弹窗打开时天然压住它（何况下面还有一条 body.modal-open 的抑制规则）。 */
+   弹窗打开时天然压住它（何况下面还有一条 html.modal-open 的抑制规则）。 */
 .page-scrollbar {
     position: fixed;
     top: 0;
@@ -1658,13 +1675,13 @@ pre::-webkit-scrollbar-thumb:active,
     background-color: var(--scrollbar-thumb-active);
 }
 
-/* 弹窗锁滚动（body fixed）时整页条没有意义，直接压掉；
+/* 弹窗锁滚动时整页条没有意义，直接压掉；
    否则拇指会停在锁住那一刻的位置，看着像卡住 */
-body.modal-open .page-scrollbar {
+html.modal-open .page-scrollbar {
     opacity: 0 !important;
 }
 
-body.modal-open .page-scrollbar-thumb {
+html.modal-open .page-scrollbar-thumb {
     pointer-events: none;
 }
 
@@ -2104,7 +2121,7 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 /* ===== SHARED SEARCH ===== */
-/* Blog / nook list pages share one search component (see public/search.js). */
+/* Blog / nook list pages share one search component (see src/client/search.ts). */
 .search-bar {
     display: flex; align-items: center; gap: 0.6rem;
     background: var(--mica-surface); border: 1px solid var(--border);
@@ -2902,13 +2919,15 @@ body.nav-open::after { animation-play-state: paused; }
 /* 悬浮框同理：::backdrop 是全屏 6px 模糊，底下任何还在动的层都会让它每帧
    重模糊整屏。弹窗只开几百毫秒到几分钟，漂移停住完全看不出来，
    但少掉的是一整屏、每帧一次的模糊。 */
-body.modal-open::after { animation-play-state: paused; }
+html.modal-open body::after {
+    animation-play-state: paused;
+}
 
 /* 光标特效层是一整块 canvas，画在 backdrop 下面：弹窗一打开，它只会变成
    一层被模糊 + 压暗的残影，指针一动还要重画 → 触发全屏重新模糊。
    藏掉之后既没有「鼠标静止」的错觉（残影本来也看不见），也不再参与合成。
    尾迹数据会在 280ms 内自然过期，关闭弹窗后从当前指针位置重新开始。 */
-body.modal-open .fx-layer { visibility: hidden; }
+html.modal-open .fx-layer { visibility: hidden; }
 
 /* 打印：去掉颗粒、点阵与洗色，避免纸上出现灰噪点与色块 */
 @media print {
@@ -2932,11 +2951,12 @@ body.modal-open .fx-layer { visibility: hidden; }
 }
 
 /* ===== 右下角浮动操作 =====
-   fab.js 在主页、博客（列表 / 文章）、资源小窝（列表 / 详情）注入同一组按钮：
+   fab（ui.js）在主页、博客（列表 / 文章）、资源小窝（列表 / 详情）注入同一组按钮：
    回上级 + 回到顶部 + 直达底部。样式只写这一份，页面里不再各存一套。
    材质沿用交互元素的 --mica-raised + --border：静止时是一列安静的玻璃片，
    hover / 键盘聚焦才亮 accent，不和正文抢注意力。
-   首屏整组透明（fab.js 滚过 400px 才加 .visible），避免右下角凭空多出三个方块。 */
+   首屏整组透明（滚过可滚距离的 15%，夹在 120～400px，才加 .visible），
+   避免右下角凭空多出三个方块。 */
 .fab-group {
     position: fixed;
     right: 2rem;
@@ -2973,7 +2993,7 @@ body.modal-open .fx-layer { visibility: hidden; }
         background var(--transition-speed), transform var(--transition-speed);
 }
 
-/* 图标是内联 SVG（fab.js 里），尺寸跟 40px 的方片成比例；
+/* 图标是内联 SVG（ui.js 里），尺寸跟 40px 的方片成比例；
    文章页导航里的「首行缩进 / 目录」两颗仍是字符，所以上面保留了 font-size */
 .fab-btn svg {
     width: 18px;

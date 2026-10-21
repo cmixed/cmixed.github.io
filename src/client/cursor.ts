@@ -213,10 +213,10 @@
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
-  /* 悬浮框打开时整层已被 CSS 藏掉（见 style.css「body.modal-open .fx-layer」）：
+  /* 悬浮框打开时整层已被 CSS 藏掉（见 style.css「html.modal-open .fx-layer」）：
      这里再早退一次，连 canvas 重绘和尾迹数组都不必维护。 */
   function suspended(): boolean {
-    return doc.body.classList.contains('modal-open');
+    return root.classList.contains('modal-open');
   }
 
   addEventListener(

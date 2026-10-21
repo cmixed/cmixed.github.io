@@ -3,7 +3,7 @@
  *
  * 承载页面：主页、博客（列表 + 文章）、资源小窝（列表 + 详情）。因为三者行为完全一样，
  * 只有第一个按钮的落点随页面层级变化，所以收在同一个经典脚本里，由页面统一
- * `<script defer src="…/fab.js">` 引入 —— 各页各写一份内联脚本，迟早会漂成三种样式、
+ * `<script defer src="…/ui.js">` 引入 —— 各页各写一份内联脚本，迟早会漂成三种样式、
  * 三种显隐阈值。markup 也由脚本注入，页面里不再有重复的 <div class="fab-group">。
  *
  * 第一个按钮的落点是算出来的，不靠每页写 data 属性：
@@ -18,7 +18,7 @@
  * （导航 RSS 那个 &#9741; 就是前车之鉴）。三颗图标同一套 1.7px 描边，
  * 和主题色只靠 currentColor 联系，深浅色切换不用另写一套。
  *
- * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 编译成 dist/fab.js。
+ * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 和 cursor / scrollbar 一起编译成 dist/ui.js。
  */
 (() => {
   const ICONS = {

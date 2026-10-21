@@ -400,7 +400,7 @@ function createMetaLoader<T>(
     load(): Promise<T> {
       if (request) return request;
       if (data && !stale) return Promise.resolve(data);
-      request = fetch(META_BASE + file)
+      request = fetch(META_BASE + file, { priority: 'low' })
         .then((res) => {
           if (!res.ok) throw new Error(`${file} ${res.status}`);
           return res.json() as Promise<T>;
@@ -438,21 +438,14 @@ const metaClose = document.getElementById('siteModalClose') as HTMLButtonElement
 let changelogShown = CHANGELOG_STEP;
 /** 打开前的 hash 位置：关闭时还回去，不至于把用户滚到别的锚点这件事弄丢 */
 let metaReturnHash = '';
-/** 打开前的滚动位置：body 在锁滚动期间是 fixed，关闭时要滚回来 */
-let metaReturnScroll = 0;
 
-/** 锁住背景滚动（细节见 style.css 里 body.modal-open 的注释） */
+/** 锁住背景滚动（细节见 style.css 里 html.modal-open 的注释） */
 function lockScroll(): void {
-  metaReturnScroll = window.scrollY;
-  document.body.style.top = `-${metaReturnScroll}px`;
-  document.body.classList.add('modal-open');
+  document.documentElement.classList.add('modal-open');
 }
 
 function unlockScroll(): void {
-  if (!document.body.classList.contains('modal-open')) return;
-  document.body.classList.remove('modal-open');
-  document.body.style.top = '';
-  window.scrollTo({ top: metaReturnScroll, behavior: 'instant' });
+  document.documentElement.classList.remove('modal-open');
 }
 
 /** 省流量模式下不预取：用户显式点开时再下载。 */
@@ -473,7 +466,8 @@ function prefetchMeta(kind: MetaKind): void {
    以前是 load → requestIdleCallback(timeout 2500) → 关于本站 → 再一个 idle → 更新日志：
    load 本身要等首页所有图片，rIC 又要等主线程空闲，而用户经常在 1s 内就点开，
    于是「点的时候两份文件都还没开始下载」—— 这才是首点几秒的来源（渲染只要几十毫秒）。
-   两份合计 gzip ≈ 25KB，比首屏任何一张图都小，且是异步请求，不阻塞渲染。
+   两份合计 gzip ≈ 28KB，比首屏任何一张图都小，且是异步请求，不阻塞渲染；
+   fetch 用 low priority，避免和首屏的头像 / 签名图抢带宽。
    saveData 下仍然不预取（见 prefetchAllowed），点开时才下载。 */
 if (prefetchAllowed()) {
   prefetchMeta('about');

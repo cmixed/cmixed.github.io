@@ -12,7 +12,7 @@
  * 触屏不创建（系统自带的浮层条够用，自己这根反而拖不动、还挡点击）；
  * 无 JS 时整页没有滚动条，但滚动本身不受影响。
  *
- * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 编译成 dist/scrollbar.js。
+ * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 和 cursor / fab 一起编译成 dist/ui.js。
  */
 (() => {
   // 只在触屏优先的设备上退出。不写成「必须 hover:hover」：触屏笔记本接鼠标时

@@ -6,7 +6,6 @@
     <meta name="description" content="cmixed 的技术博客 - C++、Rust、系统编程、AI 应用">
     <meta name="color-scheme" content="dark light">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/blog-32x32.png">
-    <link rel="icon" type="image/png" href="../assets/icons/blog-192x192.png">
     <link rel="apple-touch-icon" href="../assets/icons/blog-192x192.png">
     <link rel="alternate" type="application/rss+xml" title="cmixed 博客 RSS" href="feed.xml">
     <meta property="og:title" content="技术博客 · cmixed">
@@ -23,9 +22,7 @@
     <title>博客 · cmixed</title>
     <link rel="stylesheet" href="style.css">
     <script src="../theme.js"></script>
-    <script defer src="../cursor.js"></script>
-    <script defer src="../fab.js"></script>
-    <script defer src="../scrollbar.js"></script>
+    <script defer src="../ui.js"></script>
     <style>
         body { transition: background 0.3s, color 0.3s; }
 
@@ -156,8 +153,7 @@
         </div>
     </div>
 
-    <script src="../search.js"></script>
-    <script src="../sort.js"></script>
+    <script src="../list.js"></script>
     <script>
         (function() {
             document.getElementById('themeToggle').addEventListener('click', function() {
@@ -212,7 +208,7 @@
             });
             applyTagButtons();
 
-            // 排序（默认 / 创建时间 / 更新时间）由 sort.js 统一处理，两个列表页共用一份
+            // 排序（默认 / 创建时间 / 更新时间）由 list.js（search + sort）统一处理，两个列表页共用一份
             window.initListSort({
                 list: '.blog-page-list',
                 card: '.blog-page-card',
@@ -220,7 +216,7 @@
                 onChange: function() { search.refresh(); }
             });
 
-            // 前进 / 后退：标签由本页同步；排序由 sort.js 自己监听
+            // 前进 / 后退：标签由本页同步；排序由 list.js 自己监听
             window.addEventListener('popstate', function() {
                 activeTag = new URLSearchParams(location.search).get('tag') || '';
                 applyTagButtons();
