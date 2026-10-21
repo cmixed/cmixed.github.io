@@ -737,6 +737,13 @@ section {
 #projects { contain-intrinsic-size: auto 400px; }
 #contact { contain-intrinsic-size: auto 300px; }
 
+/* 「直达底部」量真实高度的那一瞬间（见 src/client/fab.ts）：
+   虚拟化区块全部展开，scrollHeight 才包含真实高度；量完立刻移除，
+   虚拟化照旧。只在这一帧生效，不影响平时的布局与渲染。 */
+html.fab-measuring section {
+    content-visibility: visible !important;
+}
+
 .section-header {
     /* 字号与行盒由同一对变量管：区块标题要和右侧「查看全部」胶囊等高，
        两者都从这里推导，改一个数就同时跟着变（窄屏只覆盖字号）。

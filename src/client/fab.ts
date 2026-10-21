@@ -41,6 +41,69 @@
     return matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
 
+  /**
+   * 量一次「真实的」页面底部再滚。
+   *
+   * 主页和文章页把 <section> 交给了 content-visibility: auto：没进过视口的区块
+   * 只按 contain-intrinsic-size 的占位高度计高（主页 500px、文章 800px），
+   * 所以 document.scrollHeight 在长文里会远小于真实高度（实测 46,065 vs 172,218）。
+   * 直接滚到 scrollHeight 等于滚到「估算出来的底部」，滚动途中区块逐节展开，
+   * 页面越来越长，于是停在半路 —— 用户看到的就是「卡在第 3 章，再点一次才到底」。
+   *
+   * 先加类把所有 section 临时展开，读 scrollHeight 顺带强制一次布局（长文实测 3.8ms），
+   * 再滚。类要留到下一帧：同一个任务里立刻撤掉的话，还没渲染过的区块会退回占位高度，
+   * scrollTo 的目标会跟着被夹小（实测目标 172,264 会被夹回 45,165）。
+   * 等一帧之后，contain-intrinsic-size 的 auto 已经记住了真实高度，撤掉类页面不会缩回去。
+   */
+  function toBottom(): void {
+    const root = document.documentElement;
+    root.classList.add('fab-measuring');
+    const top = root.scrollHeight;
+    window.scrollTo({ top, behavior: behavior() });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => root.classList.remove('fab-measuring'));
+    });
+  }
+
+  /**
+   * 平滑滚动落地后补一脚。
+   *
+   * 目标高度是点击那一刻量的；如果途中还有别的东西把页面撑长（图片、字体、
+   * 另一个还没展开的虚拟化区块），落点仍会差一点。等滚动停下来再量一次，
+   * 还差就再滚一次（只补一次，不循环）。用户中途自己滚 / 按键就放手，
+   * 不跟用户抢滚动条。scrollend 没有的浏览器用超时兜底。
+   */
+  function settleAtBottom(): void {
+    const root = document.documentElement;
+    let done = false;
+    let timer = 0;
+
+    const cleanup = (): void => {
+      done = true;
+      clearTimeout(timer);
+      window.removeEventListener('scrollend', settle);
+      window.removeEventListener('wheel', cancel);
+      window.removeEventListener('touchstart', cancel);
+      window.removeEventListener('keydown', cancel);
+    };
+    const cancel = (): void => cleanup();
+    const settle = (): void => {
+      if (done) return;
+      cleanup();
+      const max = root.scrollHeight - window.innerHeight;
+      if (window.scrollY < max - 2) {
+        window.scrollTo({ top: max, behavior: 'smooth' });
+      }
+    };
+
+    window.addEventListener('scrollend', settle, { once: true });
+    window.addEventListener('wheel', cancel, { once: true, passive: true });
+    window.addEventListener('touchstart', cancel, { once: true, passive: true });
+    window.addEventListener('keydown', cancel, { once: true });
+    // 19 万像素的平滑滚动实测约 1.5s；给一个比它长的兜底
+    timer = window.setTimeout(settle, 2200);
+  }
+
   function actionButton(label: string, name: IconName, onClick: () => void): HTMLButtonElement {
     const el = document.createElement('button');
     el.type = 'button';
@@ -89,7 +152,8 @@
   );
   group.appendChild(
     actionButton('直达底部', 'down', () => {
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: behavior() });
+      toBottom();
+      if (behavior() === 'smooth') settleAtBottom();
     })
   );
 
