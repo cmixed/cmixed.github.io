@@ -2,9 +2,7 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
     <script src="../theme.js"></script>
-    <script defer src="../cursor.js"></script>
-    <script defer src="../fab.js"></script>
-    <script defer src="../scrollbar.js"></script>
+    <script defer src="../ui.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="cmixed 的资源小窝 - 工具、文档与代码资源下载">
@@ -21,7 +19,6 @@
     <meta name="twitter:title" content="资源小窝 · cmixed">
     <meta name="twitter:description" content="实用工具、文档与代码资源">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/nook-32x32.png">
-    <link rel="icon" type="image/png" href="../assets/icons/nook-192x192.png">
     <link rel="apple-touch-icon" href="../assets/icons/nook-192x192.png">
     <link rel="stylesheet" href="style.css">
     <link rel="alternate" type="application/rss+xml" title="cmixed 资源小窝 RSS" href="feed.xml">
@@ -182,8 +179,7 @@
         </div>
     </div>
 
-    <script src="../search.js"></script>
-    <script src="../sort.js"></script>
+    <script src="../list.js"></script>
     <script>
         (function() {
             document.getElementById('themeToggle').addEventListener('click', function() {
@@ -262,7 +258,7 @@
             });
             applyFilterButtons();
 
-            // 排序（默认 / 创建时间 / 更新时间）由 sort.js 统一处理，两个列表页共用一份
+            // 排序（默认 / 创建时间 / 更新时间）由 list.js（search + sort）统一处理，两个列表页共用一份
             window.initListSort({
                 list: '.nook-grid',
                 card: '.nook-card',
@@ -270,7 +266,7 @@
                 onChange: function() { search.refresh(); }
             });
 
-            // 前进 / 后退：分类由本页同步；排序由 sort.js 自己监听
+            // 前进 / 后退：分类由本页同步；排序由 list.js 自己监听
             window.addEventListener('popstate', function() {
                 activeFilter = new URLSearchParams(location.search).get('category') || '';
                 applyFilterButtons();

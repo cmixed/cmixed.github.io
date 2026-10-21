@@ -118,6 +118,17 @@ describe('renderAboutHtml', () => {
     const html = renderAboutHtml('```bash\nvp build\n```\n', null);
     expect(html).toContain('<pre><code class="language-bash">');
   });
+
+  it('按 h1/h2 分节，供弹窗按节虚拟化', () => {
+    const html = renderAboutHtml('# 一\n\n开头\n\n## 二\n\n正文\n\n### 2.1\n\n细节\n', null);
+    const sections = html.match(/class="readme-sec"/g) ?? [];
+    expect(sections).toHaveLength(2);
+    expect(html).toContain('<div class="readme-sec"><h1>一</h1>');
+    expect(html).toContain('<div class="readme-sec"><h2>二</h2>');
+    // 分节不能吃掉标题和正文
+    expect(html).toContain('<h3>2.1</h3>');
+    expect(html).toContain('<p>细节</p>');
+  });
 });
 
 describe('buildAbout / buildCommits', () => {

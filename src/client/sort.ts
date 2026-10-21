@@ -18,7 +18,7 @@
  *     不会因为上一次点过别的排序而换位
  *   - 前进 / 后退由本模块自己监听 popstate；页面只需要管自己的筛选参数
  *
- * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 编译成 dist/sort.js。
+ * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 和 search 一起编译成 dist/list.js。
  */
 (() => {
   function initListSort(opts: ListSortOptions): ListSort {

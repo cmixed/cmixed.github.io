@@ -62,7 +62,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 ### 指针特效层
 
-`src/client/cursor.ts`（构建成 `dist/cursor.js`），全站共用一份：折线尾迹（相邻采样点连直线、越新越粗越亮，280ms 淡出）+ 点击波纹（全站）+ 光标光晕（220px，80ms 缓动跟随）+ 卡片追光（把指针位置写进卡片的 `--mx/--my`，配合 `@property --glare` 做淡进淡出）。性能约定：单 canvas + 单 `requestAnimationFrame`，每帧只清"上一帧画过的包围盒"，指针静止后循环自停（实测静止 2 秒 `clearRect` 调用为 0 次）；触屏只保留点击波纹；`prefers-reduced-motion` 下整个文件不启动。
+`src/client/cursor.ts`（和 `fab` / `scrollbar` 一起构建成 `dist/ui.js`，全站主页面共用一份；`public/404.html` 这个自带内联样式的独立页仍单独加载 `dist/cursor.js`）：折线尾迹（相邻采样点连直线、越新越粗越亮，280ms 淡出）+ 点击波纹（全站）+ 光标光晕（220px，80ms 缓动跟随）+ 卡片追光（把指针位置写进卡片的 `--mx/--my`，配合 `@property --glare` 做淡进淡出）。性能约定：单 canvas + 单 `requestAnimationFrame`，每帧只清"上一帧画过的包围盒"，指针静止后循环自停（实测静止 2 秒 `clearRect` 调用为 0 次）；触屏只保留点击波纹；`prefers-reduced-motion` 下整个文件不启动。
 
 ### 主题切换：圆形揭示
 
@@ -78,13 +78,17 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 两个悬浮框，内容**在构建期就定型**。`scripts/site-meta.ts` 是一个和 `client-scripts.ts` 同形式的 Vite 插件：`vp build` 时 emit 成 `dist/site-about.json` 与 `dist/site-commits.json`，`vp dev` 时用中间件现读现算 —— 所以改完 README 刷新就生效，`package.json` 里也不用为此多加一步构建。「关于本站」是 `README.md` 经 marked 渲染（**默认配置**，不套博客那套 mermaid / 代码块角标的 renderer；仓库内相对链接如 `LICENSE` 改写成 GitHub 上的对应地址，站外链接补 `target` / `rel`），「更新日志」取 `git log`（约定式提交拆成 `type` / `scope` 与标题，按日期分组，最多带 400 条）。
 
-**为什么拆成两个文件**：合成一份时是 68.8KB（gzip 22.7KB），首开要等整包走完才渲染，其中一半多是「关于本站」根本用不到的提交记录（约 280 条）。现在按入口拆开（README 的 HTML 约 40KB / gzip 16.6KB，提交记录约 35KB / gzip 8.6KB），各自只取需要的那份。
+**为什么拆成两个文件**：合成一份时是 68.8KB（gzip 22.7KB），首开要等整包走完才渲染，其中一半多是「关于本站」根本用不到的提交记录（约 280 条）。现在按入口拆开（README 的 HTML 约 47KB / gzip 19KB，提交记录约 36KB / gzip 8.7KB），各自只取需要的那份。
 
-**下载时机**：`main.ts` 一执行就**并行预取两份**，不等 `load`、也不等 `requestIdleCallback`。这两条以前都踩过坑：`load` 要等首页所有图片，rIC 又要等主线程空闲（`timeout` 2.5s），而用户经常在 1s 内就点开 —— 结果就是「点的时候两份文件还没开始下载」，等的那几秒全在网络上（实测渲染本身只要 25~45ms，CPU 降速 6× 也才 150ms）。两份合计 gzip 约 25KB，异步、不阻塞首屏，比任何一张图都小；`navigator.connection.saveData` 为真时整段跳过，点开时才下载。入口的悬停 / 按下 / 键盘聚焦仍会再预热一次（极慢网下的补救，loader 内部单飞，不会重复请求）。
+**下载时机**：`main.ts` 一执行就**并行预取两份**，不等 `load`、也不等 `requestIdleCallback`。这两条以前都踩过坑：`load` 要等首页所有图片，rIC 又要等主线程空闲（`timeout` 2.5s），而用户经常在 1s 内就点开 —— 结果就是「点的时候两份文件还没开始下载」，等的那几秒全在网络上（下载完之后解析 / 渲染其实只要几毫秒，见下一条）。两份合计 gzip 约 28KB，异步、不阻塞首屏，比任何一张图都小；fetch 用 `priority: 'low'`，不和首屏的头像 / 签名图抢带宽；`navigator.connection.saveData` 为真时整段跳过，点开时才下载。入口的悬停 / 按下 / 键盘聚焦仍会再预热一次（极慢网下的补救，loader 内部单飞，不会重复请求）。
 
 **跨会话**再叠一层 `localStorage`（stale-while-revalidate，键名 `site-meta:about:v1` / `site-meta:commits:v1`）：点开先用上一次的内容同步渲染（0ms），同时后台刷新；新内容到了，只有用户还停在顶部、且打开不到 1.5s 时才原地替换，否则只更新缓存，不影响正在读的位置。GitHub Pages 的 `Cache-Control` 只有 10 分钟，过了就要重新走网络 —— 这一层让「打开页面立刻点」不再受它影响。写不进去（隐私模式、配额满）就静默退化成纯网络。直达链接（`#about-site` / `#changelog`）另在 `index.html` 的 `<head>` 里按 hash 注入 `<link rel="preload" as="fetch" crossorigin>`，解析阶段就开始下载。拿不到 git（比如源码压缩包）就降级成「暂无记录」，不影响页面。CI 的 build job 本来就 `fetch-depth: 0`，历史是完整的。
 
-弹窗打开期间还有两处必须停：`body.modal-open::after` 把背景漂移暂停、`.fx-layer`（整屏指针 canvas）隐藏。`::backdrop` 是全屏 6px 模糊，底下任何还在动的层都会让它每帧重模糊整屏 —— 这和移动端抽屉的 `body.nav-open::after` 是同一条规则；光标层画在 backdrop 下面，留着只会变成一层被模糊的残影，指针一动还会再次触发重模糊，读起来就是「鼠标静止」。关掉弹窗时画布会清空，避免闪回打开前那一帧的光晕。
+**打开那一刻的开销**：数据已经到手之后，打开慢的根因不是网络，而是**排版**。整篇 README 排出来有 1.2 万像素高，一次 `innerHTML` 同步排完，6× CPU 下要 206ms；主线程一卡，指针事件和光标 canvas 都排不上队，用户看到的就是「卡一下，鼠标不动」。解法是构建期把 README 按 h1/h2 切成 13 个 `<div class="readme-sec">`（不能用 `<section>`：全站 `section { padding: 5rem 2rem }` 会把每一节撑高一截），配合 `content-visibility: auto` + `contain-intrinsic-size: auto 550px`，弹窗只排视口附近那几节 —— 实测排版从 206ms 降到约 6ms，点击到弹窗出现（含 `showModal` 的 top layer / backdrop 首帧）1× 约 25ms、6× 约 35ms。分节会切断外边距合并，所以每节首元素的上边距收掉、节间按 h2 的 `margin-top` 补回 2.5rem，全部展开后的总高度与不分节时一致。更新日志同理：按天挂 `.changelog-day`，80 条约 3,700px，只排可见的那几天。
+
+**锁背景滚动**：打开时给 `<html>` 加 `modal-open`，只写 `overflow: hidden`。不要用 `body { position: fixed; top: -<Y> }`：那会让整页重新排版（长文等于整篇 reflow 一遍），关闭时还得 `scrollTo` 回去、把 sticky 导航临时改成 `fixed`，只为了一件滚动锁定的事。实测 `html { overflow: hidden }` 滚动位置原样保留（900 → 900）、滚轮被拦住，`<dialog>` 在 top layer 里不受影响，关闭后什么都不用恢复。
+
+弹窗打开期间还有两处必须停：`html.modal-open body::after` 把背景漂移暂停、`.fx-layer`（整屏指针 canvas）隐藏。`::backdrop` 是全屏 6px 模糊，底下任何还在动的层都会让它每帧重模糊整屏 —— 这和移动端抽屉的 `body.nav-open::after` 是同一条规则；光标层画在 backdrop 下面，留着只会变成一层被模糊的残影，指针一动还会再次触发重模糊，读起来就是「鼠标静止」。关掉弹窗时画布会清空，避免闪回打开前那一帧的光晕。
 
 框体是原生 `<dialog>` + `showModal()`：ESC 关闭、焦点陷阱、`::backdrop`、关闭后焦点回到页脚按钮，全是浏览器给的，没有手写焦点管理。材质同样没另写一份 —— `.site-modal` 直接进了文件末尾那条共享面板选择器，底色、受光边、颗粒、贴地阴影自动继承；新增的只有尺寸、圆角、`::backdrop`（`rgba(var(--bg-rgb), .55)` + 6px 模糊：暗色压一层底色、浅色铺一层薄纱，都不用纯黑）和进场的淡入位移（`prefers-reduced-motion` 下不做）。直达链接是 `#about-site` / `#changelog`（`replaceState`；关闭时把打开前的 hash 还回去 —— 页脚在主页，这个位置本来就属于锚点导航）。更新日志每行是「hash 方角标签 + 类型标签 + 标题」，标签复用只读小标签那套材质（`.changelog-hash` / `.changelog-type` 直接挂在共享选择器上，不新增材质）；超过 80 条给一个「展开更多」，数据已经在本地，不再请求。窄屏（≤600px）标题换到标签下面一行，否则两个标签吃掉三分之二宽度、标题挤成三行右边还空着。
 
@@ -106,17 +110,17 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 卡片内部顺序也统一了：**标题 → 摘要 → 标签 → 元信息**（小窝是标签 → 大小 / 日期 + 动作按钮）。卡片是纵向 flex、标签那一块用 `margin-top: auto` 压到底，同一行的卡片底边因此对齐。博客卡片之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间、摘要沉到卡片最底下，两页并排看是两种卡片。
 
-排序逻辑抽到 `src/client/sort.ts`（构建成 `dist/sort.js`）：博客页原来那份内联实现顺手带走了「点了排序不改 URL」的毛病，现在两个页面都写 `?sort=`、都支持前进 / 后退，且共用同一个稳定排序。
+排序逻辑在 `src/client/sort.ts`（和 `search.ts` 一起构建成 `dist/list.js`，两个列表页共用）：博客页原来那份内联实现顺手带走了「点了排序不改 URL」的毛病，现在两个页面都写 `?sort=`、都支持前进 / 后退，且共用同一个稳定排序。
 
 ### 滚动条与右下角浮动操作
 
 **滚动条**：一套 token（`--scrollbar-*`：暗色 mint 微光、浅色深青），两种实现。
 
-整页那条是**浮层**，由 `src/client/scrollbar.ts` 画（`dist/scrollbar.js`）。原生整页滚动条做不到这个效果：经典条按定义要占 10px 布局宽度、还会画出自己的轨道，sticky 导航和 hero 就铺不到窗口右缘 —— 右侧永远缺一条缝，那正是「滚动槽」；`overflow: overlay` 已从 Chrome 114 移除，而 `::-webkit-scrollbar { width: 0 }` 等于没有滚动条。所以原生条藏掉（`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`），换一根 `position: fixed` 的 10px 轨道 + 拇指：几何是 `scrollTop / (scrollHeight - clientHeight)` 映射到轨道剩余长度，拇指最小 32px，监听 `scroll` / `resize` / `ResizeObserver(body)`（首页预览、正文图片都是 load 之后才撑高）；滚动时浮现、停 1.2s 淡出、指针靠近右缘 18px 再浮现；拇指可拖。触屏不创建（系统自带的浮层条够用），无 JS 时整页没有滚动条但滚动不受影响。藏掉原生条还有个附带好处：悬浮框把 `body` 变 `fixed` 时布局宽度不变，背景不会再横移 10px —— 之前靠 `scrollbar-gutter: stable` 预留，而那个预留本身就是一条槽。
+整页那条是**浮层**，由 `src/client/scrollbar.ts` 画（和 cursor / fab 一起构建成 `dist/ui.js`）。原生整页滚动条做不到这个效果：经典条按定义要占 10px 布局宽度、还会画出自己的轨道，sticky 导航和 hero 就铺不到窗口右缘 —— 右侧永远缺一条缝，那正是「滚动槽」；`overflow: overlay` 已从 Chrome 114 移除，而 `::-webkit-scrollbar { width: 0 }` 等于没有滚动条。所以原生条藏掉（`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`），换一根 `position: fixed` 的 10px 轨道 + 拇指：几何是 `scrollTop / (scrollHeight - clientHeight)` 映射到轨道剩余长度，拇指最小 32px，监听 `scroll` / `resize` / `ResizeObserver(body)`（首页预览、正文图片都是 load 之后才撑高）；滚动时浮现、停 1.2s 淡出、指针靠近右缘 18px 再浮现；拇指可拖。触屏不创建（系统自带的浮层条够用），无 JS 时整页没有滚动条但滚动不受影响。藏掉原生条还有个附带好处：滚动条不再占布局宽度，悬浮框锁滚动时（`html { overflow: hidden }`）背景也不会横移 10px —— 之前靠 `scrollbar-gutter: stable` 预留，而那个预留本身就是一条槽。
 
 块内滚动（弹窗正文、代码块横向、表格）保持**系统 thin 条**：`scrollbar-width: thin` + `scrollbar-color`（Firefox、Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、经典滚动条），两条路径取同一个颜色。它们都在面板内部，轨道透明就够 —— 拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮，看上去和整页那枚一样是浮着的。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
 
-**右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（构建成 `dist/fab.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框（导航 RSS 那个 `&#9741;` 就是前车之鉴）。
+**右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（和 cursor / scrollbar 一起构建成 `dist/ui.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框（导航 RSS 那个 `&#9741;` 就是前车之鉴）。
 
 「直达底部」不能直接滚到 `document.scrollHeight`：主页与文章页的 `<section>` 用了 `content-visibility: auto`，没进过视口的区块只按 `contain-intrinsic-size` 的占位高度计高（文章 800px、主页 500px），长文实测 `scrollHeight` 只有 46,065，真实高度 172,218。直接滚过去等于滚到「估算出来的底部」，滚动途中区块逐节展开、页面变长，于是停在半路 —— 表现为「卡在第 3 章，再点一次才到底」。所以点击时先给 `<html>` 加一帧 `fab-measuring`：所有 section 临时 `content-visibility: visible`，读一次 `scrollHeight` 逼出真实布局（长文 3.8ms）并滚过去，下一帧再撤类 —— 这一帧足够让 `contain-intrinsic-size: auto` 记住真实高度，撤掉后页面不会缩回去，`scrollTo` 的目标也不会被夹小。落地后再量一次，若仍差 >2px、且用户没有自己滚（`wheel` / 触摸 / 按键），补一次；`scrollend` 不可用时用 2.2s 超时兜底。
 
@@ -154,7 +158,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 │   └── assets/          #   站内引用的图：og-image.png / icons/ / 签名 / 头像
 ├── scripts/             # 构建期脚本：都由 vp 调起，不进前端打包图
 │   ├── optimize-images.ts   # PNG → AVIF
-│   ├── client-scripts.ts    # src/client/*.ts → dist/{theme,cursor,search,sort,fab,scrollbar}.js（固定文件名）
+│   ├── client-scripts.ts    # src/client/*.ts → dist/{theme,cursor,ui,list}.js（固定文件名，按共用场景分组）
 │   ├── site-meta.ts         # README + git log → dist/site-about.json / site-commits.json（页脚两个悬浮框）
 │   └── og-image.ts          # 生成分享卡 public/assets/og-image.png
 ├── docs/                # 迁移计划与报告
@@ -170,12 +174,10 @@ dist/
 ├── index.html            # 主站
 ├── site-about.json       # 「关于本站」内容（README 渲染结果，构建期生成）
 ├── site-commits.json     # 「更新日志」内容（git 提交记录，构建期生成）
-├── theme.js              # 六个固定文件名的经典脚本（不进打包图）
-├── cursor.js
-├── search.js
-├── sort.js               # 列表排序（博客 / 资源小窝共用）
-├── fab.js
-├── scrollbar.js          # 整页浮层滚动条
+├── theme.js              # 四个固定文件名的经典脚本（不进打包图）
+├── cursor.js             # 仅 public/404.html 这个独立页用
+├── ui.js                 # cursor + fab + scrollbar，全站主页面共用
+├── list.js               # search + sort，博客 / 资源小窝列表页共用
 ├── assets/               # 打包后的 CSS / JS，外加 public/assets 原样拷来的图
 ├── blog/                 # 列表页、文章页、data.json、feed.xml、sitemap.xml、vendor/、mermaid/
 ├── nook/                 # 列表页、详情页、data.json
@@ -185,6 +187,8 @@ dist/
 ```
 
 `public/` 不是素材仓库，它的目录结构就是站点 URL 结构。所以只把**路径被约定死的**文件留在根目录（`404.html` 是 GitHub Pages 的约定，`robots.txt` / `sitemap.xml` 是爬虫的约定），其余按用途收进 `assets/`：换目录就等于换 URL，而约定路径一挪就失效。
+
+`blog/` 与 `nook/` 里只有页面自己的产物；四个脚本都在站点根，模板用 `../ui.js` 或 `/ui.js` 引用。以前每个子目录还会复制一份同名脚本，但没有任何页面引用它们 —— 现在只保留 `style.css` 这一份真正被 `href="style.css"` 用到的副本。
 
 ## 本地运行
 
@@ -280,7 +284,8 @@ tags: [标签1, 标签2]
 ## 工程约定
 
 - **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
-- **六个全站脚本仍是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译成 `dist/<name>.js` —— `vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./theme.js` 这类引用因此保持稳定。
+- **六个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar，全站主页面）、`list.js`（search + sort，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
+- **图标只留有人用的尺寸。** favicon 只给 32×32（标签页就是它），192 只写 `apple-touch-icon`：桌面 Chrome 看到一条没有 `sizes` 的 `rel="icon"` 会把它当候选去拉，实测白拉 38.4KB。首页签名图补上 `width`，图片到达前后不跳行。
 - **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
 
 ## 兼容性
