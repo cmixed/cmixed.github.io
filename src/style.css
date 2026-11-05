@@ -826,7 +826,7 @@ html.fab-measuring section {
     padding: 1.75rem;
     border: 1px solid var(--border);
     border-radius: 14px;
-    transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
+    transition: background var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
 .about-main {
@@ -1289,7 +1289,7 @@ html.fab-measuring section {
     border-radius: 12px;
     padding: 3rem 2rem;
     box-shadow: var(--mica-elev-1);
-    transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
 .email-display {
@@ -3014,18 +3014,18 @@ html::after {
     box-shadow: var(--mica-elev-1);
 }
 
-/* 卡片 hover = 真玻璃：只有指针下的那一张加 backdrop-filter。
+/* 卡片 hover = 真玻璃：只有指针下的小卡加 backdrop-filter。
    全量常驻是不可行的 —— 漂移层一直在面板背后动，会让每张卡每帧重模糊
    （导航能常驻模糊，是因为漂移层的顶边让开了导航高度，采样区静止）。
-   指针下的这一张：面积约等于 1.3 条导航，且只在指针停留时开销。
+   小卡面积约等于 1.3 条导航，且只在指针停留时开销。
+   关于 / 联系这类大面积面板不在名单里：面积是项目卡的 4~5 倍，模糊重栅格化
+   的收益远小于成本；它们 hover 只加一道 border-color 的轻反馈。
    不透明度同步降到 --mica-surface-glass，否则 0.80 的膜把模糊挡住九成、等于白做。 */
 @media (hover: hover) and (pointer: fine) {
     @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-        .about-card:hover,
         .project-card:hover,
         .blog-preview-card:hover,
         .nook-preview-card:hover,
-        .contact-container:hover,
         .blog-page-card:hover,
         .nook-card:hover,
         .blog-nav-post:hover,
@@ -3034,6 +3034,13 @@ html::after {
             -webkit-backdrop-filter: var(--mica-panel-glass);
             backdrop-filter: var(--mica-panel-glass);
         }
+    }
+
+    .about-card:hover,
+    .contact-container:hover {
+        border-color: var(--primary);
+        /* 用位移代替 box-shadow：大卡的阴影过渡每帧都要重画，位移走合成器 */
+        transform: translateY(-2px);
     }
 }
 
