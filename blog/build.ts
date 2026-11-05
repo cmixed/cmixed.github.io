@@ -16,9 +16,13 @@ import { promisify } from 'util';
 import { tmpdir } from 'os';
 import { randomBytes, createHash } from 'crypto';
 import {
-  parseFrontmatter as parseFrontmatterBase,
+  countImages,
+  countWords,
   escapeXml,
+  estimateReadTime,
   getGitLastModified,
+  parseFrontmatter as parseFrontmatterBase,
+  renderTemplate,
   toYmd,
 } from '../src/lib/build-utils';
 
@@ -251,13 +255,6 @@ function splitIntoSections(html: string): string {
   return parts.map((p) => `<section class="blog-section">${p}</section>`).join('');
 }
 
-export function renderTemplate(template: string, data: Record<string, string>): string {
-  return Object.entries(data).reduce(
-    (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), () => value),
-    template
-  );
-}
-
 interface PostMeta extends Record<string, unknown> {
   title?: string;
   date?: string;
@@ -280,25 +277,6 @@ function copyDirSync(src: string, dest: string): void {
     if (entry.isDirectory()) copyDirSync(srcPath, destPath);
     else if (!entry.name.endsWith('.md')) copyFileSync(srcPath, destPath);
   }
-}
-
-export function estimateReadTime(body: string): number {
-  const text = body.replace(/[#*`[\]()>!-]/g, '').replace(/\s+/g, ' ');
-  const words = text.length; // Chinese chars ~ 1 word each
-  return Math.max(1, Math.ceil(words / 400));
-}
-
-export function countWords(body: string): number {
-  const text = body
-    .replace(/[#*`[\]()>!-]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return text.length;
-}
-
-export function countImages(html: string): number {
-  const matches = html.match(/<img\b/g);
-  return matches ? matches.length : 0;
 }
 
 function slugify(text: string): string {
