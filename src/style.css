@@ -890,41 +890,16 @@ html.fab-measuring section {
 }
 
 /* ===== ABOUT / SKILLS（同一版面） ===== */
-/* 关于与技能合成一块：头像与简介之后，用一条两端渐隐的细线 + 居中小标题过渡，
-   而不是再起一个 section-header —— 那是区块级标题，用在这里会把同一块内容切断。 */
+/* 关于与技能合成一块：技能标题直接复用 .section-header —— 字号、字重、右侧装饰线与
+   「关于 / 项目 / 博客」完全同源，只把上间距收紧，表明它属于同一块版面。 */
 .skills-block {
-    margin-top: 2.4rem;
+    margin-top: 2.6rem;
     scroll-margin-top: 90px;
 }
 
-.skill-bridge {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.6rem;
-}
-
-.skill-bridge::before,
-.skill-bridge::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-}
-
-.skill-bridge::before {
-    background: linear-gradient(90deg, transparent, var(--border));
-}
-
-.skill-bridge::after {
-    background: linear-gradient(90deg, var(--border), transparent);
-}
-
-.skill-bridge-title {
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    color: var(--text-muted);
-    white-space: nowrap;
+.skills-block .section-header {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
 }
 
 /* 技能按组排列：左标题 + 右标签流。用 flex + 最小宽度自适应，
