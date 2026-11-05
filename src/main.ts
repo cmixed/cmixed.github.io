@@ -100,6 +100,14 @@ let charIndex = 0;
 let isDeleting = false;
 const typeElement = document.getElementById('type-text') as HTMLElement;
 
+/* 这条 setTimeout 链本身永不停止，所以两个开关必须放在循环外面：
+   ① prefers-reduced-motion: reduce —— CSS 只压得动 animation / transition，
+     管不到 JS 定时器；不短路的话，开了「减少动态效果」的用户照样看到逐字跳动，
+     与 README 承诺的降级不符。此时直接写死第一句，不启动循环。
+   ② 页面隐藏（切标签 / 最小化）时停表，回到前台再续上，避免后台空转。 */
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+let typeTimer = 0;
+
 function type(): void {
   const currentText = texts[textIndex];
 
@@ -122,10 +130,23 @@ function type(): void {
     typeSpeed = 500;
   }
 
-  setTimeout(type, typeSpeed);
+  typeTimer = window.setTimeout(type, typeSpeed);
 }
 
-type();
+if (prefersReduced.matches) {
+  typeElement.textContent = texts[0];
+} else {
+  type();
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      window.clearTimeout(typeTimer);
+      typeTimer = 0;
+      return;
+    }
+    // 回到前台不立刻补一个字（那会跳一下），照常等一个间隔再续
+    if (!typeTimer) typeTimer = window.setTimeout(type, 300);
+  });
+}
 
 const hamburger = document.getElementById('hamburger') as HTMLButtonElement;
 const navLinks = document.querySelector('.nav-links') as HTMLElement;
@@ -355,22 +376,56 @@ document.querySelectorAll('#skills, #projects, #blog-preview, #nook-preview').fo
   observer.observe(section);
 });
 
-// Scroll progress bar
+/* Scroll progress bar
+   只写 transform、不碰布局；页面总高缓存起来，只在窗口 / 内容高度变化时重算。
+   不能每次 scroll 都读 scrollHeight：主页 5 个区块是 content-visibility: auto，
+   未进视口的区块只按估算高度占位，读 scrollHeight 会迫使浏览器先把布局算准；
+   滚动事件每秒几十上百次，这个读取就成了滚动时的固定成本。与 client/scrollbar.ts
+   同一条约定：滚动回调里只读 scrollTop、只写 transform。 */
 const scrollProgress = document.createElement('div');
 scrollProgress.className = 'scroll-progress';
 document.body.prepend(scrollProgress);
 
+let progressMax = 0;
+let progressQueued = false;
+
+function measureProgress(): void {
+  progressMax = html.scrollHeight - html.clientHeight;
+}
+
+function paintProgress(): void {
+  progressQueued = false;
+  const progress = progressMax > 0 ? html.scrollTop / progressMax : 0;
+  scrollProgress.style.transform = `scaleX(${progress})`;
+}
+
+/* 一帧内的多次 scroll 合并成一次写入：事件频率不等于帧率。 */
+function queueProgress(): void {
+  if (progressQueued) return;
+  progressQueued = true;
+  requestAnimationFrame(paintProgress);
+}
+
+measureProgress();
+paintProgress();
+
+window.addEventListener('scroll', queueProgress, { passive: true });
 window.addEventListener(
-  'scroll',
+  'resize',
   () => {
-    const scrollTop = document.documentElement.scrollTop;
-    const scrollHeight =
-      document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const progress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
-    scrollProgress.style.transform = `scaleX(${progress})`;
+    measureProgress();
+    queueProgress();
   },
   { passive: true }
 );
+
+// 图片解码、异步插入的预览卡、区块展开都会改变总高；只观察 body 尺寸，不读布局属性
+if ('ResizeObserver' in window) {
+  new ResizeObserver(() => {
+    measureProgress();
+    queueProgress();
+  }).observe(document.body);
+}
 
 /* ===== 页脚悬浮框（关于本站 / 更新日志） =====
    内容来自构建期生成的两份 JSON（见 scripts/site-meta.ts）：
