@@ -283,7 +283,7 @@
      镜面高光跟着指针走（用的是卡片自己的 --mx/--my，见 src/style.css 的「面」）。
      写变量会重绘那一张卡，所以按帧节流；--glare 由 @property 过渡，淡进淡出。 */
   const GLARE_SEL =
-    '.project-card,.blog-preview-card,.nook-preview-card,' +
+    '.about-card,.project-card,.blog-preview-card,.nook-preview-card,' +
     '.contact-container,.blog-page-card,.nook-card,.blog-nav-post,.e404';
   let lastCard: Element | null = null;
   let px = 0;

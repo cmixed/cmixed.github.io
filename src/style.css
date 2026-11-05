@@ -812,11 +812,16 @@ html.fab-measuring section {
 }
 
 /* ===== ABOUT ===== */
-.about-top {
+/* 名片卡：头像、简介与三行事实收进同一张 Mica 卡，视觉上是一份「身份」，
+   与下面的技能标签流（「能力」）分开，而不是一路平铺到底。 */
+.about-card {
     display: flex;
-    gap: 2.5rem;
-    align-items: center;
-    margin-bottom: 2rem;
+    gap: 2rem;
+    align-items: flex-start;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
 .about-avatar {
@@ -851,7 +856,37 @@ html.fab-measuring section {
 }
 
 .about-text p {
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
+}
+
+/* 三行事实：标签列定宽、值列左对齐，与上面的简介之间用一条细线断开。
+   层级靠字号与灰阶，不用 accent —— 这里是信息罗列，不是强调。 */
+.about-facts {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0.25rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.about-fact {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.about-fact dt {
+    flex: 0 0 5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.about-fact dd {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
 }
 
 /* ===== ABOUT / SKILLS（同一版面） ===== */
@@ -1799,10 +1834,16 @@ html.modal-open .page-scrollbar-thumb {
         font-size: 1.1rem;
     }
 
-    .about-top {
+    .about-card {
         flex-direction: column;
+        align-items: center;
         text-align: center;
-        gap: 1.5rem;
+        gap: 1.25rem;
+        padding: 1.35rem;
+    }
+
+    .about-fact {
+        text-align: left;
     }
 
     .about-avatar img {
@@ -2778,6 +2819,7 @@ html::after {
 }
 
 /* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
+.about-card,
 .project-card,
 .blog-preview-card,
 .nook-preview-card,
@@ -2790,6 +2832,7 @@ html::after {
     isolation: isolate;
 }
 
+.about-card::after,
 .project-card::after,
 .blog-preview-card::after,
 .nook-preview-card::after,
@@ -2821,6 +2864,7 @@ html::after {
    （做成 inset box-shadow 就会被 hover 的 box-shadow 整条覆盖掉）。
    渐变按 px 收边而不是百分比：卡片从 100px 到 900px 都有，
    用百分比的话高卡片的渐变会拉成一整片洗色，不再像一块板。 */
+.about-card,
 .project-card,
 .blog-preview-card,
 .nook-preview-card,
@@ -2867,6 +2911,7 @@ html::after {
    不透明度同步降到 --mica-surface-glass，否则 0.80 的膜把模糊挡住九成、等于白做。 */
 @media (hover: hover) and (pointer: fine) {
     @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .about-card:hover,
         .project-card:hover,
         .blog-preview-card:hover,
         .nook-preview-card:hover,
@@ -2954,7 +2999,8 @@ html.modal-open .fx-layer { visibility: hidden; }
     body::after,
     nav::after,
     .fx-layer,
-        .project-card::after,
+        .about-card::after,
+    .project-card::after,
     .blog-preview-card::after,
     .nook-preview-card::after,
     .contact-container::after,
