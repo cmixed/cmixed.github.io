@@ -37,6 +37,10 @@
   let dragging = false;
   let dragStartY = 0;
   let dragStartScroll = 0;
+  /* 滚动高度 / 拇指高度 / 可走距离缓存。scroll 事件里只写 transform，
+     不再每帧读 scrollHeight —— 那是一次布局读取，长页面上会拖慢滚动。 */
+  let metrics = { max: 0, height: 0, travel: 0 };
+  let lastHeight = 0;
 
   function viewport(): number {
     return document.documentElement.clientHeight;
@@ -54,17 +58,25 @@
     return { max, height, travel: vh - height };
   }
 
+  function paint(): void {
+    if (metrics.max <= 0) return;
+    thumb.style.transform = `translate3d(0, ${(window.scrollY / metrics.max) * metrics.travel}px, 0)`;
+  }
+
   function render(): void {
-    const { max, height, travel } = geometry();
+    metrics = geometry();
     // 页面没溢出就不该有滚动条（短页面 / 404）
-    if (max <= 0) {
+    if (metrics.max <= 0) {
       rail.hidden = true;
       rail.classList.remove('is-visible');
       return;
     }
-    rail.hidden = false;
-    thumb.style.height = `${height}px`;
-    thumb.style.transform = `translate3d(0, ${(window.scrollY / max) * travel}px, 0)`;
+    if (rail.hidden) rail.hidden = false;
+    if (metrics.height !== lastHeight) {
+      lastHeight = metrics.height;
+      thumb.style.height = `${metrics.height}px`;
+    }
+    paint();
   }
 
   function scheduleHide(): void {
@@ -74,7 +86,7 @@
   }
 
   function reveal(): void {
-    if (maxScroll() <= 0) return;
+    if (metrics.max <= 0) return;
     rail.classList.add('is-visible');
     scheduleHide();
   }
@@ -82,7 +94,7 @@
   window.addEventListener(
     'scroll',
     () => {
-      render();
+      paint();
       reveal();
     },
     { passive: true }
@@ -90,7 +102,7 @@
 
   window.addEventListener('resize', () => {
     render();
-    if (maxScroll() > 0) reveal();
+    if (metrics.max > 0) reveal();
   });
 
   // 首页的博客 / 资源预览、正文图片都是 load 之后才撑高的，高度变了要重算拇指

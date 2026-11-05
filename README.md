@@ -58,11 +58,11 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 ### 通透感的边界
 
-玻璃（`backdrop-filter` + `saturate`）**常驻**给导航栏与移动端抽屉 —— 它们底下真有内容在动，"背景的颜色被吸上来"才看得见，且漂移层让开了导航高度，重建模糊只发生在滚动时；卡片只在**指针下的那一张**开真玻璃（`@media (hover: hover) and (pointer: fine)` + `:hover`，见 `src/style.css` 末尾），因为漂移层一直在卡片背后动、常驻会让每张卡每帧重模糊（屏上 6~9 张卡 ≈ 8~12 条导航的采样面积，且是持续的）。悬停时面板同步降到 `--mica-surface-glass`（0.62 / 0.58），否则 0.8 的膜会把模糊挡住九成、等于白做；指针一离开就归零，静止时全站依旧零每帧开销。
+玻璃（`backdrop-filter` + `saturate`）**常驻**给导航栏与移动端抽屉 —— 它们底下真有内容在动，"背景的颜色被吸上来"才看得见，且漂移层让开了导航高度，重建模糊只发生在滚动时；小卡（项目 / 博客 / 小窝）只在**指针下的那一张**开真玻璃（`@media (hover: hover) and (pointer: fine)` + `:hover`，见 `src/style.css` 末尾），因为漂移层一直在卡片背后动、常驻会让每张卡每帧重模糊（屏上 6~9 张卡 ≈ 8~12 条导航的采样面积，且是持续的）。悬停时面板同步降到 `--mica-surface-glass`（0.62 / 0.58），否则 0.8 的膜会把模糊挡住九成、等于白做；指针一离开就归零，静止时全站依旧零每帧开销。**关于 / 联系这类大面积面板不参与 hover 真玻璃**：面积是项目卡的 4~5 倍，模糊重栅格化的收益远小于成本，它们 hover 只加 `border-color` + 2px 位移的轻反馈（位移走合成器，避免大卡阴影过渡每帧重画）。
 
 ### 指针特效层
 
-`src/client/cursor.ts`（和 `fab` / `scrollbar` 一起构建成 `dist/ui.js`，全站主页面共用一份；`public/404.html` 这个自带内联样式的独立页仍单独加载 `dist/cursor.js`）：折线尾迹（相邻采样点连直线、越新越粗越亮，280ms 淡出）+ 点击波纹（全站）+ 光标光晕（220px，80ms 缓动跟随）+ 卡片追光（把指针位置写进卡片的 `--mx/--my`，配合 `@property --glare` 做淡进淡出）。性能约定：单 canvas + 单 `requestAnimationFrame`，每帧只清"上一帧画过的包围盒"，指针静止后循环自停（实测静止 2 秒 `clearRect` 调用为 0 次）；触屏只保留点击波纹；`prefers-reduced-motion` 下整个文件不启动。
+`src/client/cursor.ts`（和 `fab` / `scrollbar` 一起构建成 `dist/ui.js`，全站主页面共用一份；`public/404.html` 这个自带内联样式的独立页仍单独加载 `dist/cursor.js`）：折线尾迹（相邻采样点连直线、越新越粗越亮，280ms 淡出）+ 点击波纹（全站）+ 光标光晕（220px，80ms 缓动跟随）+ 卡片追光（把指针位置写进卡片的 `--mx/--my`，配合 `@property --glare` 做淡进淡出）。性能约定：单 canvas + 单 `requestAnimationFrame`，每帧只清"上一帧画过的包围盒"，指针静止后循环自停（实测静止 2 秒 `clearRect` 调用为 0 次）；触屏只保留点击波纹；`prefers-reduced-motion` 下整个文件不启动。**追光只开给小卡**（面积 ≤ 16 万 px²）：写 `--mx/--my` 会让整张卡的 `background-image` 每帧重画，关于卡 1000×448 时实测 1.5s 悬停产生约 13s 栅格任务、帧间隔掉到 ~40ms；限制后回到 60fps，大卡只保留 hover 描边 + 位移。canvas 的 DPR 上限压到 1.5 —— 光晕是软边，满 retina 换来的清晰度看不出来，显存和填充率却翻倍。
 
 ### 主题切换：圆形揭示
 
@@ -124,7 +124,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 **滚动条**：一套 token（`--scrollbar-*`：暗色 mint 微光、浅色深青），两种实现。
 
-整页那条是**浮层**，由 `src/client/scrollbar.ts` 画（和 cursor / fab 一起构建成 `dist/ui.js`）。原生整页滚动条做不到这个效果：经典条按定义要占 10px 布局宽度、还会画出自己的轨道，sticky 导航和 hero 就铺不到窗口右缘 —— 右侧永远缺一条缝，那正是「滚动槽」；`overflow: overlay` 已从 Chrome 114 移除，而 `::-webkit-scrollbar { width: 0 }` 等于没有滚动条。所以原生条藏掉（`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`），换一根 `position: fixed` 的 10px 轨道 + 拇指：几何是 `scrollTop / (scrollHeight - clientHeight)` 映射到轨道剩余长度，拇指最小 32px，监听 `scroll` / `resize` / `ResizeObserver(body)`（首页预览、正文图片都是 load 之后才撑高）；滚动时浮现、停 1.2s 淡出、指针靠近右缘 18px 再浮现；拇指可拖。触屏不创建（系统自带的浮层条够用），无 JS 时整页没有滚动条但滚动不受影响。藏掉原生条还有个附带好处：滚动条不再占布局宽度，悬浮框锁滚动时（`html { overflow: hidden }`）背景也不会横移 10px —— 之前靠 `scrollbar-gutter: stable` 预留，而那个预留本身就是一条槽。
+整页那条是**浮层**，由 `src/client/scrollbar.ts` 画（和 cursor / fab 一起构建成 `dist/ui.js`）。原生整页滚动条做不到这个效果：经典条按定义要占 10px 布局宽度、还会画出自己的轨道，sticky 导航和 hero 就铺不到窗口右缘 —— 右侧永远缺一条缝，那正是「滚动槽」；`overflow: overlay` 已从 Chrome 114 移除，而 `::-webkit-scrollbar { width: 0 }` 等于没有滚动条。所以原生条藏掉（`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`），换一根 `position: fixed` 的 10px 轨道 + 拇指：几何是 `scrollTop / (scrollHeight - clientHeight)` 映射到轨道剩余长度，拇指最小 32px，监听 `scroll` / `resize` / `ResizeObserver(body)`（首页预览、正文图片都是 load 之后才撑高）；滚动时浮现、停 1.2s 淡出、指针靠近右缘 18px 再浮现；拇指可拖。触屏不创建（系统自带的浮层条够用），无 JS 时整页没有滚动条但滚动不受影响。滚动事件里只拿缓存的 `max` / `travel` 写 `transform`，不每帧读 `scrollHeight`；高度变化交给 `resize` / `ResizeObserver` 重算，避免一次布局读取拖慢长页面。藏掉原生条还有个附带好处：滚动条不再占布局宽度，悬浮框锁滚动时（`html { overflow: hidden }`）背景也不会横移 10px —— 之前靠 `scrollbar-gutter: stable` 预留，而那个预留本身就是一条槽。
 
 块内滚动（弹窗正文、代码块横向、表格）保持**系统 thin 条**：`scrollbar-width: thin` + `scrollbar-color`（Firefox、Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、经典滚动条），两条路径取同一个颜色。它们都在面板内部，轨道透明就够 —— 拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮，看上去和整页那枚一样是浮着的。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
 

@@ -25,6 +25,9 @@
   const RIPPLE_R = 54; /* 波纹最大半径 */
   const HALO_R = 230; /* 光晕半径 */
   const HALO_EASE = 0.14; /* 光晕跟随的缓动系数（越大跟得越紧） */
+  /* 光晕是软边，不需要满 retina：DPR 2 在 4K / Retina 上把画布撑到 4 倍像素，
+     换来的清晰度肉眼几乎看不出来，显存和填充率却实打实翻倍。1.5 足够。 */
+  const MAX_DPR = 1.5;
 
   const cv = doc.createElement('canvas');
   cv.className = 'fx-layer';
@@ -62,7 +65,7 @@
   let dpr = 1;
   let prevBox: Box | null = null;
   function resize(): void {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     cv.width = Math.round(innerWidth * dpr);
     cv.height = Math.round(innerHeight * dpr);
     cv.style.width = innerWidth + 'px';
@@ -281,14 +284,27 @@
 
   /* --- 卡片追光 ---
      镜面高光跟着指针走（用的是卡片自己的 --mx/--my，见 src/style.css 的「面」）。
-     写变量会重绘那一张卡，所以按帧节流；--glare 由 @property 过渡，淡进淡出。 */
+     写变量会重绘那一张卡，所以按帧节流；--glare 由 @property 过渡，淡进淡出。
+
+     但「整张卡每帧重绘」在大面板上不成立：关于卡 1000×448 时一次悬停实测
+     1.5s 内产生约 13s 栅格任务，帧间隔掉到 ~40ms；小卡（项目 / 博客 / 小窝）
+     只有约 10 万 px²，仍在 60fps 内。所以按面积设上限，只给小卡开追光 ——
+     大卡保留 hover 的描边 / 玻璃反馈，不再每帧重画渐变。 */
+  const GLARE_MAX_AREA = 160_000;
   const GLARE_SEL =
     '.about-card,.project-card,.blog-preview-card,.nook-preview-card,' +
     '.contact-container,.blog-page-card,.nook-card,.blog-nav-post,.e404';
   let lastCard: Element | null = null;
+  let lastCandidate: Element | null = null;
   let px = 0;
   let py = 0;
   let glareRaf: number | null = null;
+
+  function glareTarget(card: Element | null): Element | null {
+    if (!card) return null;
+    const r = card.getBoundingClientRect();
+    return r.width * r.height <= GLARE_MAX_AREA ? card : null;
+  }
 
   function applyGlare(): void {
     glareRaf = null;
@@ -305,13 +321,16 @@
     (e: PointerEvent) => {
       if (e.pointerType && e.pointerType !== 'mouse') return;
       const target = e.target instanceof Element ? e.target : null;
-      const card: Element | null = target ? target.closest(GLARE_SEL) : null;
-      if (card !== lastCard) {
+      const candidate = target?.closest(GLARE_SEL) ?? null;
+      /* 只在进入 / 离开一张卡时量一次面积：指针在卡内移动不能每帧读布局 */
+      if (candidate !== lastCandidate) {
+        lastCandidate = candidate;
+        const card = glareTarget(candidate);
         if (lastCard) (lastCard as HTMLElement).style.setProperty('--glare', '0');
         lastCard = card;
         if (card) (card as HTMLElement).style.setProperty('--glare', '1');
       }
-      if (!card) return;
+      if (!lastCard) return;
       px = e.clientX;
       py = e.clientY;
       if (!glareRaf) glareRaf = requestAnimationFrame(applyGlare);
