@@ -978,7 +978,8 @@ html.fab-measuring section {
     position: relative;
     transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
     box-shadow: var(--mica-elev-1);
-    display: block;
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
     color: inherit;
     cursor: pointer;
@@ -1054,6 +1055,9 @@ html.fab-measuring section {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    /* 卡片是等高网格：描述长短不一，标签若跟着文字走就会各卡在各的高度上。
+       margin-top: auto 把它们压到卡片底部，一排卡片的标签块下缘就能对齐。 */
+    margin-top: auto;
 }
 
 /* .tech-tag 的材质与尺寸统一在文件末尾的「小标签」规则里（只读 = 4px 方角） */
