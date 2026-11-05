@@ -886,8 +886,31 @@ html.fab-measuring section {
 }
 
 /* ===== SKILLS ===== */
-.skills-container {
+/* 技能按组排列：左标题 + 右标签流。用 flex + 最小宽度自适应，
+   窄屏时标签流自动落到标题下方，不额外写媒体查询。 */
+.skill-groups {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.skill-group {
     display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+}
+
+.skill-group-title {
+    flex: 0 0 5.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.skill-group-items {
+    display: flex;
+    flex: 1 1 16rem;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
