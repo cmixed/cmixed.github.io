@@ -750,7 +750,8 @@ body.nav-open::before {
     color: var(--primary-text);
 }
 
-/* 两颗主按钮的箭头朝内相对（→ 与 ←），位置与方向都对称；hover 时各自向中缝再推 3px。
+/* 两颗主按钮的箭头分居外侧、各自指向自己的文字（`→ 个人博客` / `资源小窝 ←`），
+   位置与方向都镜像对称；hover 时各自向文字再推 3px。
    位移走 transform，不触发重绘。箭头在 HTML 里带 aria-hidden，读屏不会念出来。 */
 .btn-arrow {
     display: inline-block;
