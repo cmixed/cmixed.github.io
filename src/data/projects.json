@@ -1,5 +1,6 @@
 [
   {
+    "id": "srs",
     "title": "srs",
     "subtitle": "异构模型集成级联系统",
     "desc": "Python 实现的 AI 心理健康咨询系统，集成多种异构大语言模型，支持 RAG 增强检索、多通道通讯与用户管理。",
@@ -8,6 +9,7 @@
     "tags": ["Python", "LLM", "RAG", "AI"]
   },
   {
+    "id": "route",
     "title": "route",
     "subtitle": "图算法与并行计算框架",
     "desc": "基于 C++20 的图数据结构与最短路径算法实现，支持 Dijkstra、A*、Bellman-Ford 等多线程并行计算。",
@@ -16,6 +18,7 @@
     "tags": ["C++20", "Graph", "Thread Pool", "Algorithm"]
   },
   {
+    "id": "ra2-clicker",
     "title": "ra2-clicker",
     "subtitle": "红色警戒2 鼠标连点器",
     "desc": "Rust + Slint 实现的 RA2 专用连点器，SendInput 一次性下发点击，内存占用 <4MB。支持热键触发、RA2 建造栏区域连点、游戏进程自动检测与配置热重载。",
@@ -24,6 +27,7 @@
     "tags": ["Rust", "Slint", "Windows", "Tool"]
   },
   {
+    "id": "cmixed.github.io",
     "title": "cmixed.github.io",
     "subtitle": "个人主页 · 博客 · 资源小窝",
     "desc": "Vite + TypeScript 构建的零框架个人站点：自研 Markdown 博客引擎与资源小窝，支持实时搜索、RSS、Sitemap、AVIF 图片优化与结构化数据 SEO，全站统一 Mica Alt 材质。",
@@ -32,6 +36,7 @@
     "tags": ["TypeScript", "Vite", "Blog", "Static Site"]
   },
   {
+    "id": "zcol",
     "title": "zcol",
     "subtitle": "单头文件 C++23 终端颜色库",
     "desc": "C++23 实现的 Header-Only 终端彩色输出与日志库，支持 RAII 作用域颜色守卫、源位置日志、UDL 语法糖。",
@@ -40,6 +45,7 @@
     "tags": ["C++23", "Header-Only", "Terminal", "Library"]
   },
   {
+    "id": "pac_man",
     "title": "pac_man",
     "subtitle": "经典吃豆人游戏",
     "desc": "使用 C++23 + EasyX 实现的经典 Pac-Man 游戏，包含完整的游戏逻辑、AI 幽灵寻路与碰撞检测。",

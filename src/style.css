@@ -1053,6 +1053,13 @@ html.fab-measuring section {
     box-shadow: var(--mica-elev-2);
 }
 
+/* 项目卡本身也是链接：键盘 Tab 到它、或从技能胶囊跳过来把焦点交给它时，
+   给一圈和 is-target 同色的焦点环，不让焦点落在屏幕上看不见。 */
+.project-card:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
 /* 从技能胶囊跳过来时的一次性回执：只描边 + 抬升，不做位移，
    免得和 hover 的 translateY 叠在一起抖一下。 */
 .project-card.is-target {
@@ -2628,9 +2635,10 @@ html::after {
 
 /* --- 小标签：一套设计语言，两个角色 ---------------------------------
    只读（4px 方角）：卡片标签 / 项目状态 / 分类 / 文章标签 / 代码语言角标
-   可点（胶囊）：列表页的筛选控件（.list-chip）、主页的技能胶囊（.skill-chip，
-                 点开新标签进入对应仓库）—— 两者都真的可点，所以都用胶囊。
-   两者共用 --chip-* 的尺寸、字体与 --mica-chip 的填色/描边/文字色；
+   可点（胶囊）：列表页筛选（.list-chip）、主页技能胶囊（.skill-chip，
+                 点一下滚到对应项目卡）—— 两者都真的可点，所以都用胶囊。
+   尺寸与字体由 --chip-* 统一；材质分两套：只读走 --mica-chip，
+   可点走 --chip-fill / --chip-border（见 :root 里对控件边界的说明）。
    只靠「形状 + 状态」区分语义 —— 方角是信息，胶囊是可点，所以不会互相误认。 */
 .tech-tag,
 .project-status,

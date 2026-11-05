@@ -12,6 +12,7 @@ interface SkillGroup {
 }
 
 interface Project {
+  id: string;
   title: string;
   subtitle: string;
   desc: string;
@@ -148,8 +149,9 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     e.preventDefault();
     const target = document.querySelector(this.getAttribute('href')!);
     if (target) {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       target.scrollIntoView({
-        behavior: 'smooth',
+        behavior: reduceMotion ? 'auto' : 'smooth',
         block: 'start',
       });
     }
@@ -161,7 +163,7 @@ function renderProjects(): void {
   grid.innerHTML = (projects as Project[])
     .map(
       (p) => `
-        <a href="${escapeHtml(p.url)}" class="project-card" target="_blank" rel="noopener noreferrer">
+        <a href="${escapeHtml(p.url)}" class="project-card" data-project="${escapeHtml(p.id)}" target="_blank" rel="noopener noreferrer">
             <div class="project-header">
                 <div>
                     <div class="project-title">${escapeHtml(p.title)}</div>
@@ -194,15 +196,31 @@ function renderSkillChip(item: SkillItem): string {
   );
 }
 
+/* 项目卡用稳定的 id（projects.json 的 id）做锚点，而不是拿显示标题当键：
+   改标题不会悄悄断掉技能跳转，data 里也能在测试里校验两边是否对得上。 */
+let targetCard: HTMLElement | null = null;
+let targetTimer = 0;
+
 function focusProject(project: string): void {
-  const card = [...document.querySelectorAll<HTMLElement>('.project-card')].find(
-    (el) => el.querySelector('.project-title')?.textContent?.trim() === project
+  const card = document.querySelector<HTMLElement>(
+    `.project-card[data-project="${CSS.escape(project)}"]`
   );
   if (!card) return;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   card.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+
+  if (targetCard && targetCard !== card) targetCard.classList.remove('is-target');
+  if (targetTimer) window.clearTimeout(targetTimer);
   card.classList.add('is-target');
-  window.setTimeout(() => card.classList.remove('is-target'), 1800);
+  /* 视觉上滚过去了还不够：把焦点交给项目卡，键盘 / 读屏用户才知道落点变了，
+     也才能直接按 Enter 打开仓库。preventScroll 避免焦点把页面又拽一次。 */
+  card.focus({ preventScroll: true });
+  targetCard = card;
+  targetTimer = window.setTimeout(() => {
+    card.classList.remove('is-target');
+    if (targetCard === card) targetCard = null;
+    targetTimer = 0;
+  }, 1800);
 }
 
 function renderSkills(): void {
@@ -219,8 +237,13 @@ function renderSkills(): void {
     )
     .join('');
 
-  container.querySelectorAll<HTMLButtonElement>('.skill-chip[data-project]').forEach((chip) => {
-    chip.addEventListener('click', () => focusProject(chip.dataset.project ?? ''));
+  /* 事件委托：18 颗胶囊只挂一个监听，重渲染也不会留下旧监听 */
+  container.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const chip = target.closest<HTMLButtonElement>('.skill-chip[data-project]');
+    if (!chip) return;
+    focusProject(chip.dataset.project ?? '');
   });
 }
 renderSkills();
