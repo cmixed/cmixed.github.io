@@ -60,11 +60,11 @@ function escapeHtml(str: string): string {
 
 const themeToggle = document.getElementById('themeToggle') as HTMLButtonElement;
 const html = document.documentElement;
-const statusText = document.getElementById('statusText') as HTMLElement;
 const footerStatus = document.getElementById('footerStatus') as HTMLElement;
 
 function updateThemeText(theme: string): void {
-  statusText.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
+  /* 状态条留给「Available for opportunities」：它是人的状态，不是主题状态。
+     主题已经在开关和页脚的 © 行里表达，hero 里再写一遍 Light / Dark 只是重复。 */
   footerStatus.textContent = theme === 'light' ? '© 2026 cmixed · Light' : '© 2026 cmixed · Dark';
 }
 
