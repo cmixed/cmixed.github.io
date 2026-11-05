@@ -152,15 +152,6 @@ function buildMermaidImgHtml(hash: string, w: number, h: number): string {
 </div>`;
 }
 
-interface PostMeta {
-  title?: string;
-  date?: string;
-  updated?: string;
-  tags?: string[];
-  description?: string;
-  pinned?: boolean;
-}
-
 interface PostInfo {
   mdPath: string;
   slug: string;
