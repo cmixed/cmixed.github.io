@@ -861,22 +861,19 @@ html.fab-measuring section {
 
 /* 三行事实：标签列定宽、值列左对齐，与上面的简介之间用一条细线断开。
    层级靠字号与灰阶，不用 accent —— 这里是信息罗列，不是强调。 */
+/* 三行事实改成三列并排：标签在上、值在下。原来的「标签—值」单行列表只有三行，
+   横向占不到一半宽度，卡片右侧会空出一大片；并排后垂直更短、横向铺满。 */
 .about-facts {
     display: grid;
-    gap: 0.45rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
     margin: 0.25rem 0 0;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
 }
 
-.about-fact {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-}
-
 .about-fact dt {
-    flex: 0 0 5rem;
+    margin-bottom: 0.35rem;
     font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-muted);
@@ -886,32 +883,24 @@ html.fab-measuring section {
     margin: 0;
     font-size: 0.9rem;
     font-weight: 600;
+    line-height: 1.65;
     color: var(--primary-text);
 }
 
 /* ===== ABOUT / SKILLS（同一版面） ===== */
-/* 关于与技能合成一块：技能标题直接复用 .section-header —— 字号、字重、右侧装饰线与
-   「关于 / 项目 / 博客」完全同源，只把上间距收紧，表明它属于同一块版面。 */
+/* 技能标题是「卡片内的次级标题」，不是区块标题：比四组组名大一档、比区块标题小两档，
+   并且不挂 section-header 的右侧装饰线 —— 那条线是区块的标记，带上就又变回两个区块。 */
 .skills-block {
     margin-top: 2.6rem;
     scroll-margin-top: 90px;
 }
 
-.skills-block .section-header {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-}
-
-/* 交互提示：和「查看全部」同一个位置（标题行右端，order 落后于装饰线），
-   但它是说明而不是控件，所以不上胶囊、不加填充，只留一行小字。 */
-.skill-hint {
-    order: 2;
-    flex: 0 0 auto;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: var(--text-muted);
-    white-space: nowrap;
+.skills-title {
+    margin-bottom: 1.05rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
 }
 
 /* 技能按组排列：左标题 + 右标签流。用 flex + 最小宽度自适应，
@@ -929,23 +918,22 @@ html.fab-measuring section {
 }
 
 .skill-group-title {
-    flex: 0 0 5.5rem;
-    font-size: 0.8rem;
+    flex: 0 0 5.75rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
 }
 
 .skill-group-items {
     display: flex;
     flex: 1 1 16rem;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.55rem;
 }
 
-/* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点一下复制该项
-   对应的项目地址。没有对应项目的技能退回静态胶囊：无 pointer、无 hover 位移，
-   形状相同但行为可辨，不靠颜色也分得清。
+/* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点开新标签进入对应仓库。
+   没有对应项目的技能退回静态胶囊：无 pointer、无 hover 位移，形状相同但行为可辨。
    尺寸比列表页的筛选胶囊略高一档：这里是浏览，不是筛选，不需要那么密。 */
 .skill-chip {
     display: inline-flex;
@@ -963,10 +951,6 @@ html.fab-measuring section {
     transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
 }
 
-.skill-chip.is-link {
-    cursor: pointer;
-}
-
 .skill-chip.is-link:hover {
     background: var(--chip-fill-hover);
     border-color: var(--primary);
@@ -974,11 +958,9 @@ html.fab-measuring section {
     transform: translateY(-1px);
 }
 
-/* 复制成功的短暂回执：颜色一次性提亮，不做弹窗，避免打断浏览 */
-.skill-chip.is-copied {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: var(--text-inverse, #08110f);
+.skill-chip.is-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 /* ===== PROJECTS ===== */
@@ -1854,7 +1836,9 @@ html.modal-open .page-scrollbar-thumb {
         padding: 1.35rem;
     }
 
-    .about-fact {
+    .about-facts {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
         text-align: left;
     }
 
@@ -2539,7 +2523,7 @@ html::after {
 /* --- 小标签：一套设计语言，两个角色 ---------------------------------
    只读（4px 方角）：卡片标签 / 项目状态 / 分类 / 文章标签 / 代码语言角标
    可点（胶囊）：列表页的筛选控件（.list-chip）、主页的技能胶囊（.skill-chip，
-                 点一下复制对应项目地址）—— 两者都真的可点，所以都用胶囊。
+                 点开新标签进入对应仓库）—— 两者都真的可点，所以都用胶囊。
    两者共用 --chip-* 的尺寸、字体与 --mica-chip 的填色/描边/文字色；
    只靠「形状 + 状态」区分语义 —— 方角是信息，胶囊是可点，所以不会互相误认。 */
 .tech-tag,

@@ -180,45 +180,16 @@ function renderProjects(): void {
 }
 renderProjects();
 
-/* 技能胶囊：有对应项目的技能渲染成按钮，点一下把项目地址复制到剪贴板。
-   没有单一项目可指的能力（如逆向、底层架构）退回静态胶囊 —— 形状一样，行为可辨。 */
+/* 技能胶囊：有对应项目的技能渲染成链接，点开新标签进入该仓库。
+   没有单一项目可指的能力（逆向、底层架构等）退回静态胶囊 —— 形状一样，但不可点。 */
 function renderSkillChip(item: SkillItem): string {
   const label = escapeHtml(item.name);
   if (!item.link) return `<span class="skill-chip">${label}</span>`;
   const link = escapeHtml(item.link);
   return (
-    `<button type="button" class="skill-chip is-link" data-link="${link}" ` +
-    `title="点击复制项目链接：${link}">${label}</button>`
+    `<a class="skill-chip is-link" href="${link}" target="_blank" rel="noopener noreferrer" ` +
+    `title="${link}">${label}</a>`
   );
-}
-
-async function copySkillLink(chip: HTMLButtonElement): Promise<void> {
-  const link = chip.dataset.link;
-  if (!link) return;
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(link);
-    } else {
-      const tmp = document.createElement('textarea');
-      tmp.value = link;
-      tmp.setAttribute('readonly', '');
-      tmp.style.position = 'fixed';
-      tmp.style.opacity = '0';
-      document.body.append(tmp);
-      tmp.select();
-      document.execCommand('copy');
-      tmp.remove();
-    }
-  } catch {
-    return; // 剪贴板不可用时不装作复制成功
-  }
-  const label = chip.textContent ?? '';
-  chip.classList.add('is-copied');
-  chip.textContent = '已复制';
-  window.setTimeout(() => {
-    chip.textContent = label;
-    chip.classList.remove('is-copied');
-  }, 1200);
 }
 
 function renderSkills(): void {
@@ -234,10 +205,6 @@ function renderSkills(): void {
         </div>`
     )
     .join('');
-
-  container.querySelectorAll<HTMLButtonElement>('.skill-chip.is-link').forEach((chip) => {
-    chip.addEventListener('click', () => void copySkillLink(chip));
-  });
 }
 renderSkills();
 
