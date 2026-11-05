@@ -886,7 +886,7 @@ html.fab-measuring section {
     margin: 0;
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--text);
+    color: var(--primary-text);
 }
 
 /* ===== ABOUT / SKILLS（同一版面） ===== */
