@@ -14,7 +14,7 @@
 ## 技术栈
 
 - **工具链 / 命令**：Vite+（`vp` CLI，统一 Vite 8 / Rolldown / Oxlint / Oxfmt / Vitest）；全站命令以 `vp` 为准
-- **包管理器**：pnpm 12（`vp install` 在底层调用；`packageManager: pnpm@12.3.4`）
+- **包管理器**：pnpm 12（`vp install` 在底层调用；`packageManager: pnpm@12.14.0`）
 - **运行时**：Node ≥ 22.18（CI 使用 24）
 - **语言**：TypeScript 6；前端零框架，无运行时依赖
 - **样式**：原生 CSS，深色 / 浅色双主题，无预处理器
