@@ -1,9 +1,14 @@
 import projects from './data/projects.json';
 import skills from './data/skills.json';
 
+interface SkillItem {
+  name: string;
+  link?: string;
+}
+
 interface SkillGroup {
   group: string;
-  items: string[];
+  items: SkillItem[];
 }
 
 interface Project {
@@ -175,6 +180,47 @@ function renderProjects(): void {
 }
 renderProjects();
 
+/* 技能胶囊：有对应项目的技能渲染成按钮，点一下把项目地址复制到剪贴板。
+   没有单一项目可指的能力（如逆向、底层架构）退回静态胶囊 —— 形状一样，行为可辨。 */
+function renderSkillChip(item: SkillItem): string {
+  const label = escapeHtml(item.name);
+  if (!item.link) return `<span class="skill-chip">${label}</span>`;
+  const link = escapeHtml(item.link);
+  return (
+    `<button type="button" class="skill-chip is-link" data-link="${link}" ` +
+    `title="点击复制项目链接：${link}">${label}</button>`
+  );
+}
+
+async function copySkillLink(chip: HTMLButtonElement): Promise<void> {
+  const link = chip.dataset.link;
+  if (!link) return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(link);
+    } else {
+      const tmp = document.createElement('textarea');
+      tmp.value = link;
+      tmp.setAttribute('readonly', '');
+      tmp.style.position = 'fixed';
+      tmp.style.opacity = '0';
+      document.body.append(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      tmp.remove();
+    }
+  } catch {
+    return; // 剪贴板不可用时不装作复制成功
+  }
+  const label = chip.textContent ?? '';
+  chip.classList.add('is-copied');
+  chip.textContent = '已复制';
+  window.setTimeout(() => {
+    chip.textContent = label;
+    chip.classList.remove('is-copied');
+  }, 1200);
+}
+
 function renderSkills(): void {
   const container = document.getElementById('skillsContainer') as HTMLElement;
   container.innerHTML = (skills as SkillGroup[])
@@ -183,11 +229,15 @@ function renderSkills(): void {
         <div class="skill-group">
             <div class="skill-group-title">${escapeHtml(group)}</div>
             <div class="skill-group-items">
-                ${items.map((s) => `<div class="skill-tag">${escapeHtml(s)}</div>`).join('')}
+                ${items.map(renderSkillChip).join('')}
             </div>
         </div>`
     )
     .join('');
+
+  container.querySelectorAll<HTMLButtonElement>('.skill-chip.is-link').forEach((chip) => {
+    chip.addEventListener('click', () => void copySkillLink(chip));
+  });
 }
 renderSkills();
 
@@ -292,7 +342,7 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 document.querySelectorAll('#skills, #projects, #blog-preview, #nook-preview').forEach((section) => {
-  section.querySelectorAll('.project-card, .skill-tag').forEach((el) => {
+  section.querySelectorAll('.project-card, .skill-chip').forEach((el) => {
     el.classList.add('fade-in-item');
   });
   observer.observe(section);
