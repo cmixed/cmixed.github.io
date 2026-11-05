@@ -1,18 +1,30 @@
 [
-  "Modern C++",
-  "Rust",
-  "Python 3",
-  "x86 Assembly",
-  "Linux",
-  "Large-Scale C++",
-  "LLM & RAG",
-  "Library Design",
-  "Performance Optimization",
-  "Multithreading",
-  "Reverse Engineering",
-  "Low-level Architecture",
-  "Game Development",
-  "Algorithm Design",
-  "AI Application",
-  "CLI Tool Development"
+  {
+    "group": "语言",
+    "items": ["Modern C++ (C++17/23)", "Rust", "Python 3", "TypeScript", "x86-64 Assembly"]
+  },
+  {
+    "group": "系统与底层",
+    "items": [
+      "Linux",
+      "Low-level Architecture",
+      "Large-Scale C++ Design",
+      "Performance Optimization",
+      "Multithreading & Concurrency",
+      "Reverse Engineering"
+    ]
+  },
+  {
+    "group": "AI 与数据",
+    "items": ["LLM & RAG", "Agent / LangGraph", "Vector Database"]
+  },
+  {
+    "group": "工程与工具",
+    "items": [
+      "Library / API Design",
+      "CLI Tool Development",
+      "Algorithm Design",
+      "Frontend Build (Vite+)"
+    ]
+  }
 ]

@@ -1,6 +1,11 @@
 import projects from './data/projects.json';
 import skills from './data/skills.json';
 
+interface SkillGroup {
+  group: string;
+  items: string[];
+}
+
 interface Project {
   title: string;
   subtitle: string;
@@ -172,8 +177,16 @@ renderProjects();
 
 function renderSkills(): void {
   const container = document.getElementById('skillsContainer') as HTMLElement;
-  container.innerHTML = (skills as string[])
-    .map((s) => `<div class="skill-tag">${escapeHtml(s)}</div>`)
+  container.innerHTML = (skills as SkillGroup[])
+    .map(
+      ({ group, items }) => `
+        <div class="skill-group">
+            <div class="skill-group-title">${escapeHtml(group)}</div>
+            <div class="skill-group-items">
+                ${items.map((s) => `<div class="skill-tag">${escapeHtml(s)}</div>`).join('')}
+            </div>
+        </div>`
+    )
     .join('');
 }
 renderSkills();
