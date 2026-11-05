@@ -812,16 +812,21 @@ html.fab-measuring section {
 }
 
 /* ===== ABOUT ===== */
-/* 名片卡：头像、简介与三行事实收进同一张 Mica 卡，视觉上是一份「身份」，
-   与下面的技能标签流（「能力」）分开，而不是一路平铺到底。 */
+/* 一张卡装下全部：上半是身份（头像 + 简介 + 三列事实），下半是能力（技能四组），
+   中间一条内分隔。整块只有一个区块标题「关于」，不再有第二个标题把版面切成两段。 */
 .about-card {
     display: flex;
-    gap: 2rem;
-    align-items: flex-start;
+    flex-direction: column;
     padding: 1.75rem;
     border: 1px solid var(--border);
     border-radius: 14px;
     transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
+}
+
+.about-main {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
 }
 
 .about-avatar {
@@ -887,20 +892,14 @@ html.fab-measuring section {
     color: var(--primary-text);
 }
 
-/* ===== ABOUT / SKILLS（同一版面） ===== */
-/* 技能标题是「卡片内的次级标题」，不是区块标题：比四组组名大一档、比区块标题小两档，
-   并且不挂 section-header 的右侧装饰线 —— 那条线是区块的标记，带上就又变回两个区块。 */
-.skills-block {
-    margin-top: 2.6rem;
+/* ===== 技能区（同一张卡的下半段） ===== */
+/* 与上半段用一条内分隔断开，不再另起标题：四组的组名本身就是分类，
+   再加一个「技能」大字只会把同一张卡又切成两个区块。 */
+.about-skills {
+    margin-top: 1.6rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
     scroll-margin-top: 90px;
-}
-
-.skills-title {
-    margin-bottom: 1.05rem;
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--text);
 }
 
 /* 技能按组排列：左标题 + 右标签流。用 flex + 最小宽度自适应，
@@ -915,6 +914,9 @@ html.fab-measuring section {
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.4rem 1rem;
+    /* grid / flex 项默认 min-width:auto，横向滚动区会把整块撑到内容宽，
+       连带把页面顶出横向滚动条 —— 必须显式允许收缩。 */
+    min-width: 0;
 }
 
 .skill-group-title {
@@ -930,6 +932,7 @@ html.fab-measuring section {
     flex: 1 1 16rem;
     flex-wrap: wrap;
     gap: 0.55rem;
+    min-width: 0;
 }
 
 /* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点开新标签进入对应仓库。
@@ -1833,17 +1836,56 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .about-card {
+        padding: 1.35rem;
+    }
+
+    .about-main {
         flex-direction: column;
         align-items: center;
         text-align: center;
         gap: 1.25rem;
-        padding: 1.35rem;
     }
 
     .about-facts {
         grid-template-columns: 1fr;
         gap: 0.85rem;
         text-align: left;
+    }
+
+    /* 技能：窄屏不再折行堆高，改成单行横向滑动。
+       组名单独一行，标签流横向出界可滑动。
+       注意：父级切成纵向 flex 后，flex-basis 控制的是「高」不是「宽」——
+       这里必须 flex: none，否则标签行会被撑成 16rem 高的长条。 */
+    .skill-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .skill-group-title {
+        flex: none;
+    }
+
+    .skill-group-items {
+        flex: none;
+        /* 显式定宽到父级：纵向 flex 里 align-items:stretch 对该行不生效，
+           不给 width:100% 的话这行会按内容撑开，直接顶出卡片。 */
+        width: 100%;
+        align-items: center;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+
+    .skill-group-items::-webkit-scrollbar {
+        display: none;
+    }
+
+    .skill-chip {
+        flex: 0 0 auto;
     }
 
     .about-avatar img {
