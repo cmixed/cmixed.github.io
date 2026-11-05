@@ -129,6 +129,9 @@
             border-bottom: 1px solid var(--border);
         }
         .topnav .brand {
+            /* 独立兜底页拿不到主样式表的变量，字体栈只能写全；
+               这份要与 src/style.css 的 --nav-logo-font 保持一致 */
+            font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
             font-weight: 700;
             font-size: 1.25rem;
             letter-spacing: 1px;

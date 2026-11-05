@@ -55,6 +55,10 @@
 
     /* --- 导航栏尺度（全站统一，窄屏由 :root 覆盖） --- */
     --nav-logo-size: 1.25rem;
+    /* 站点字标的字体栈：主页与子页共用同一个来源。
+       子页那份规则原来只写 'JetBrains Mono', monospace，
+       一旦 JetBrains Mono 没加载，两边就退到不同的后备字体，字形立刻不一样。 */
+    --nav-logo-font: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
     /* 导航高度：导航栏本体与「漂移光层」的顶部偏移共用同一来源 */
     --nav-h: 58px;
 
@@ -287,7 +291,7 @@ body::before {
    统一在文件末尾「SHARED NAV STYLES」定义，避免各页各写一套。 */
 
 .logo {
-    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-family: var(--nav-logo-font);
     font-size: var(--nav-logo-size);
     font-weight: 700;
     color: var(--primary-text);
@@ -2204,10 +2208,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .blog-nav-left, .nook-nav-left, .nook-detail-nav-left {
     display: flex; align-items: center; gap: 1.5rem;
 }
-/* 子页 logo：与主页 .logo 同字号同颜色。必须用 (0,2,0) 选择器，
-   否则会被「导航项」里的 .xxx-nav-title 或通用 a 规则压成小字。 */
+/* 子页 logo：与主页 .logo 同字号、同字重、同字体栈。必须用 (0,2,0) 选择器，
+   否则会被「导航项」里的 .xxx-nav-title 或通用 a 规则压成小字。
+   字体栈从 --nav-logo-font 取，不再自带一份后备链 —— 两边各写一份就会在缺字体时分叉。 */
 .blog-nav .logo, .nook-nav .logo, .nook-detail-nav .logo {
-    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    font-family: var(--nav-logo-font); font-weight: 700;
     font-size: var(--nav-logo-size); letter-spacing: 1px;
     color: var(--primary-text); text-decoration: none; white-space: nowrap;
 }
