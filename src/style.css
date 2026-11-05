@@ -944,8 +944,8 @@ html.fab-measuring section {
     min-width: 0;
 }
 
-/* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点开新标签进入对应仓库。
-   没有对应项目的技能退回静态胶囊：无 pointer、无 hover 位移，形状相同但行为可辨。
+/* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点一下把页面滚到
+   对应的项目卡并高亮。没有对应项目的技能退回静态胶囊：无 pointer、无 hover 位移。
    字号与 dt 同级、比 dd 小一档：胶囊是「枚举」，不该比它服务的正文更抢眼。 */
 .skill-chip {
     display: inline-flex;
@@ -961,6 +961,10 @@ html.fab-measuring section {
     border-radius: 999px;
     text-decoration: none;
     transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
+}
+
+.skill-chip.is-link {
+    cursor: pointer;
 }
 
 .skill-chip.is-link:hover {
@@ -1015,6 +1019,15 @@ html.fab-measuring section {
     border-color: var(--primary);
     transform: translateY(-4px) scale(1.01);
     box-shadow: var(--mica-elev-2);
+}
+
+/* 从技能胶囊跳过来时的一次性回执：只描边 + 抬升，不做位移，
+   免得和 hover 的 translateY 叠在一起抖一下。 */
+.project-card.is-target {
+    border-color: var(--primary);
+    box-shadow:
+        0 0 0 2px var(--primary-glow),
+        var(--mica-elev-2);
 }
 
 .project-card:hover::before {

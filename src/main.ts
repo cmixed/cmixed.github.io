@@ -3,7 +3,7 @@ import skills from './data/skills.json';
 
 interface SkillItem {
   name: string;
-  link?: string;
+  project?: string;
 }
 
 interface SkillGroup {
@@ -180,16 +180,29 @@ function renderProjects(): void {
 }
 renderProjects();
 
-/* 技能胶囊：有对应项目的技能渲染成链接，点开新标签进入该仓库。
-   没有单一项目可指的能力（逆向、底层架构等）退回静态胶囊 —— 形状一样，但不可点。 */
+/* 技能胶囊：有对应项目的技能渲染成按钮，点一下把页面滚到那张项目卡并短暂高亮。
+   不往外跳 —— 个人站的目标是让人把作品看完，而不是把人送去 GitHub；
+   项目卡本身就是仓库链接，想走的人点卡片即可，路径没有变长。
+   没有单一项目可指的能力（逆向、底层架构等）退回静态胶囊。 */
 function renderSkillChip(item: SkillItem): string {
   const label = escapeHtml(item.name);
-  if (!item.link) return `<span class="skill-chip">${label}</span>`;
-  const link = escapeHtml(item.link);
+  if (!item.project) return `<span class="skill-chip">${label}</span>`;
+  const project = escapeHtml(item.project);
   return (
-    `<a class="skill-chip is-link" href="${link}" target="_blank" rel="noopener noreferrer" ` +
-    `title="${link}">${label}</a>`
+    `<button type="button" class="skill-chip is-link" data-project="${project}" ` +
+    `title="跳到项目：${project}">${label}</button>`
   );
+}
+
+function focusProject(project: string): void {
+  const card = [...document.querySelectorAll<HTMLElement>('.project-card')].find(
+    (el) => el.querySelector('.project-title')?.textContent?.trim() === project
+  );
+  if (!card) return;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  card.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  card.classList.add('is-target');
+  window.setTimeout(() => card.classList.remove('is-target'), 1800);
 }
 
 function renderSkills(): void {
@@ -205,6 +218,10 @@ function renderSkills(): void {
         </div>`
     )
     .join('');
+
+  container.querySelectorAll<HTMLButtonElement>('.skill-chip[data-project]').forEach((chip) => {
+    chip.addEventListener('click', () => focusProject(chip.dataset.project ?? ''));
+  });
 }
 renderSkills();
 

@@ -2,10 +2,10 @@
   {
     "group": "语言",
     "items": [
-      { "name": "Modern C++ (C++17/23)", "link": "https://github.com/cmixed/zcol" },
-      { "name": "Rust", "link": "https://github.com/cmixed/ra2-clicker" },
-      { "name": "Python 3", "link": "https://github.com/cmixed/srs" },
-      { "name": "TypeScript", "link": "https://github.com/cmixed/cmixed.github.io" },
+      { "name": "Modern C++ (C++17/23)", "project": "zcol" },
+      { "name": "Rust", "project": "ra2-clicker" },
+      { "name": "Python 3", "project": "srs" },
+      { "name": "TypeScript", "project": "cmixed.github.io" },
       { "name": "x86-64 Assembly" }
     ]
   },
@@ -14,27 +14,27 @@
     "items": [
       { "name": "Linux" },
       { "name": "Low-level Architecture" },
-      { "name": "Large-Scale C++ Design" },
+      { "name": "Large-Scale C++ Design", "project": "zcol" },
       { "name": "Performance Optimization" },
-      { "name": "Multithreading", "link": "https://github.com/cmixed/route" },
+      { "name": "Multithreading", "project": "route" },
       { "name": "Reverse Engineering" }
     ]
   },
   {
     "group": "AI 与数据",
     "items": [
-      { "name": "LLM & RAG", "link": "https://github.com/cmixed/self_agent" },
-      { "name": "Agent / LangGraph", "link": "https://github.com/cmixed/self_agent" },
-      { "name": "Vector Database", "link": "https://github.com/cmixed/self_agent" }
+      { "name": "LLM & RAG", "project": "srs" },
+      { "name": "Agent / LangGraph" },
+      { "name": "Vector Database", "project": "srs" }
     ]
   },
   {
     "group": "工程与工具",
     "items": [
-      { "name": "Library / API Design", "link": "https://github.com/cmixed/zcol" },
+      { "name": "Library / API Design", "project": "zcol" },
       { "name": "CLI Tool Development" },
-      { "name": "Algorithm Design", "link": "https://github.com/cmixed/route" },
-      { "name": "Frontend Build (Vite+)", "link": "https://github.com/cmixed/cmixed.github.io" }
+      { "name": "Algorithm Design", "project": "route" },
+      { "name": "Frontend Build (Vite+)", "project": "cmixed.github.io" }
     ]
   }
 ]
