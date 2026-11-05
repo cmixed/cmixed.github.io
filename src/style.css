@@ -736,8 +736,10 @@ section {
     contain-intrinsic-size: auto 500px;
 }
 
-#about { contain-intrinsic-size: auto 300px; }
-#skills { contain-intrinsic-size: auto 200px; }
+/* 合并后这张卡的高度远大于旧版的身份区（桌面约 680px、窄屏约 970px）。
+   占位值仍按旧尺寸写会让首屏滚动高度少算近 400px，滚到「关于」时页面突然长高、
+   滚动条拇指跟着跳一下；这里按实测值分区给，auto 之后会记住真实高度。 */
+#about { contain-intrinsic-size: auto 680px; }
 #projects { contain-intrinsic-size: auto 400px; }
 #contact { contain-intrinsic-size: auto 300px; }
 
@@ -1846,6 +1848,9 @@ html.modal-open .page-scrollbar-thumb {
         max-width: 90%;
     }
 
+    /* 卡内三列事实开始变挤、头像区更高，占位高度跟着抬一档 */
+    #about { contain-intrinsic-size: auto 860px; }
+
     .projects-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1886,6 +1891,8 @@ html.modal-open .page-scrollbar-thumb {
     .nav-links a {
         font-size: 1.1rem;
     }
+
+    #about { contain-intrinsic-size: auto 970px; }
 
     .about-card {
         padding: 1.35rem;
