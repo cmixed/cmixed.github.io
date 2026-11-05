@@ -1,0 +1,3 @@
+{
+  "vitest.nodeExecArgs": ["--import", "./.vscode/vitest-localhost-ipv6.mjs"]
+}

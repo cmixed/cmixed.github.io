@@ -207,6 +207,14 @@ vp dev
 
 钩子由 `.husky/pre-commit` 定义，分发器会先把 `node_modules/.bin` 加进 `PATH`，所以它用的是项目内锁定的 `vp`，即使没装全局 Vite+ 也能跑。需要临时跳过用 `git commit --no-verify`；如果安装时用了 `--ignore-scripts`，手动补一次 `vp hooks enable --hooks-dir .husky` 即可。
 
+### 在 VS Code 里跑测试（WSL）
+
+命令行 `vp test` 不受影响；这里说的是 VS Code 的「测试」面板。它在扩展宿主里 `createServer().listen(0)` 起一个 WebSocket 服务 —— 不带 host 时 Node 只绑 IPv6 的 `::` —— 再让 worker 连 `ws://localhost:PORT`。WSL 生成的 `/etc/hosts` 通常只有 `127.0.0.1 localhost`（`::1` 绑在 `ip6-localhost`），于是 `localhost` 只解析到 127.0.0.1，连不上只监听 `::` 的服务：worker 报 `ECONNREFUSED`、退出码 1，扩展显示「could not load any config」。
+
+`.vscode/vitest-localhost-ipv6.mjs` 是一个 preload：解析 `localhost` 时补一条 `::1`，Node 20+ 的 Happy Eyeballs 会在 IPv4 失败后自动回退。`.vscode/settings.json` 用 `vitest.nodeExecArgs`（`--import`，项目要求 Node ≥ 22.18，够新）把它挂到扩展拉起的 Node 上，只影响扩展的 worker，不改系统、也不影响 `vp test`。改完需要重载窗口（`Developer: Reload Window`），`nodeExecArgs` 只在扩展激活时读取。
+
+永久方案是不用 preload：在 `/etc/wsl.conf` 写 `[network]` / `generateHosts = false`，自己维护 `/etc/hosts`（加 `::1 localhost`），然后 `wsl --shutdown` 重启。代价是每次改 hosts 要 root，而且整份 hosts 都得自己管；preload 不需要权限，也不会被 WSL 下次启动覆盖。
+
 ## 构建
 
 ```bash
