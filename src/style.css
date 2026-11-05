@@ -902,6 +902,18 @@ html.fab-measuring section {
     margin-bottom: 1.5rem;
 }
 
+/* 交互提示：和「查看全部」同一个位置（标题行右端，order 落后于装饰线），
+   但它是说明而不是控件，所以不上胶囊、不加填充，只留一行小字。 */
+.skill-hint {
+    order: 2;
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
 /* 技能按组排列：左标题 + 右标签流。用 flex + 最小宽度自适应，
    窄屏时标签流自动落到标题下方，不额外写媒体查询。 */
 .skill-groups {
@@ -931,17 +943,42 @@ html.fab-measuring section {
     gap: 0.5rem;
 }
 
-/* 材质、尺寸（--chip-*）都由文件末尾的「小标签」规则统一给，这里只管字重与回馈 */
-.skill-tag {
+/* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点一下复制该项
+   对应的项目地址。没有对应项目的技能退回静态胶囊：无 pointer、无 hover 位移，
+   形状相同但行为可辨，不靠颜色也分得清。
+   尺寸比列表页的筛选胶囊略高一档：这里是浏览，不是筛选，不需要那么密。 */
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.26rem 0.72rem;
+    font-family: inherit;
+    font-size: 0.78rem;
     font-weight: 500;
-    transition: background 0.3s, border-color 0.3s;
+    line-height: 1.5;
+    color: var(--text-dim);
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
 }
 
-/* 技能标签是纯信息（不可点）：hover 只回应、不暗示操作 —— 填充加深一档、描边提亮，
-   不做位移，也不改文字色（文字本来就是 accent）。 */
-.skill-tag:hover {
-    background: var(--primary-dim);
-    border-color: var(--primary-text);
+.skill-chip.is-link {
+    cursor: pointer;
+}
+
+.skill-chip.is-link:hover {
+    background: var(--chip-fill-hover);
+    border-color: var(--primary);
+    color: var(--primary-text);
+    transform: translateY(-1px);
+}
+
+/* 复制成功的短暂回执：颜色一次性提亮，不做弹窗，避免打断浏览 */
+.skill-chip.is-copied {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--text-inverse, #08110f);
 }
 
 /* ===== PROJECTS ===== */
@@ -2500,13 +2537,13 @@ html::after {
 }
 
 /* --- 小标签：一套设计语言，两个角色 ---------------------------------
-   只读（4px 方角）：卡片标签 / 项目状态 / 技能 / 分类 / 文章标签 / 代码语言角标
-   可点（胶囊）：列表页的筛选控件（.list-chip，紧接在下面）
+   只读（4px 方角）：卡片标签 / 项目状态 / 分类 / 文章标签 / 代码语言角标
+   可点（胶囊）：列表页的筛选控件（.list-chip）、主页的技能胶囊（.skill-chip，
+                 点一下复制对应项目地址）—— 两者都真的可点，所以都用胶囊。
    两者共用 --chip-* 的尺寸、字体与 --mica-chip 的填色/描边/文字色；
    只靠「形状 + 状态」区分语义 —— 方角是信息，胶囊是可点，所以不会互相误认。 */
 .tech-tag,
 .project-status,
-.skill-tag,
 .nook-preview-card-category,
 .blog-preview-card-tags span,
 .nook-preview-card-tags span,

@@ -1,30 +1,40 @@
 [
   {
     "group": "语言",
-    "items": ["Modern C++ (C++17/23)", "Rust", "Python 3", "TypeScript", "x86-64 Assembly"]
+    "items": [
+      { "name": "Modern C++ (C++17/23)", "link": "https://github.com/cmixed/zcol" },
+      { "name": "Rust", "link": "https://github.com/cmixed/ra2-clicker" },
+      { "name": "Python 3", "link": "https://github.com/cmixed/srs" },
+      { "name": "TypeScript", "link": "https://github.com/cmixed/cmixed.github.io" },
+      { "name": "x86-64 Assembly" }
+    ]
   },
   {
     "group": "系统与底层",
     "items": [
-      "Linux",
-      "Low-level Architecture",
-      "Large-Scale C++ Design",
-      "Performance Optimization",
-      "Multithreading & Concurrency",
-      "Reverse Engineering"
+      { "name": "Linux" },
+      { "name": "Low-level Architecture" },
+      { "name": "Large-Scale C++ Design" },
+      { "name": "Performance Optimization" },
+      { "name": "Multithreading & Concurrency", "link": "https://github.com/cmixed/route" },
+      { "name": "Reverse Engineering" }
     ]
   },
   {
     "group": "AI 与数据",
-    "items": ["LLM & RAG", "Agent / LangGraph", "Vector Database"]
+    "items": [
+      { "name": "LLM & RAG", "link": "https://github.com/cmixed/self_agent" },
+      { "name": "Agent / LangGraph", "link": "https://github.com/cmixed/self_agent" },
+      { "name": "Vector Database", "link": "https://github.com/cmixed/self_agent" }
+    ]
   },
   {
     "group": "工程与工具",
     "items": [
-      "Library / API Design",
-      "CLI Tool Development",
-      "Algorithm Design",
-      "Frontend Build (Vite+)"
+      { "name": "Library / API Design", "link": "https://github.com/cmixed/zcol" },
+      { "name": "CLI Tool Development" },
+      { "name": "Algorithm Design", "link": "https://github.com/cmixed/route" },
+      { "name": "Frontend Build (Vite+)", "link": "https://github.com/cmixed/cmixed.github.io" }
     ]
   }
 ]
