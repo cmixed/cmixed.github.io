@@ -834,9 +834,10 @@ html.fab-measuring section {
 }
 
 .about-avatar img {
-    width: 160px;
-    height: 160px;
-    border-radius: 16px;
+    /* 卡内元素统一用 14px 圆角，头像跟卡片同半径，视觉上才是「装进去的」而不是贴上去的 */
+    width: 168px;
+    height: 168px;
+    border-radius: 14px;
     object-fit: cover;
     border: 1px solid var(--border);
     box-shadow: 0 4px 20px var(--shadow);
@@ -856,18 +857,18 @@ html.fab-measuring section {
 }
 
 .about-text {
-    line-height: 1.8;
+    font-size: 0.92rem;
+    line-height: 1.75;
     color: var(--text-dim);
 }
 
 .about-text p {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.7rem;
 }
 
-/* 三行事实：标签列定宽、值列左对齐，与上面的简介之间用一条细线断开。
-   层级靠字号与灰阶，不用 accent —— 这里是信息罗列，不是强调。 */
-/* 三行事实改成三列并排：标签在上、值在下。原来的「标签—值」单行列表只有三行，
-   横向占不到一半宽度，卡片右侧会空出一大片；并排后垂直更短、横向铺满。 */
+/* 三行事实：三列并排，标签在上、值在下。
+   卡内所有文字统一到一套灰阶：标签 text-muted、值 text，靠字重与字号拉开层级，
+   不用 accent 青，否则和下方胶囊的青色撞在一起、整块显得发亮。 */
 .about-facts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -878,18 +879,25 @@ html.fab-measuring section {
 }
 
 .about-fact dt {
-    margin-bottom: 0.35rem;
-    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.78rem;
     font-weight: 500;
-    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
 }
 
 .about-fact dd {
     margin: 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1.65;
-    color: var(--primary-text);
+    font-size: 0.88rem;
+    font-weight: 500;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+/* 按词断行：中文浏览器会在任意字之间折行，把「高性能计算」劈成「高 / 性能计算」。
+   把术语包进 .nw 后只在「·」处断，行尾不会出现半个词。 */
+.nw {
+    white-space: nowrap;
 }
 
 /* ===== 技能区（同一张卡的下半段） ===== */
@@ -919,10 +927,11 @@ html.fab-measuring section {
     min-width: 0;
 }
 
+/* 组名与上方三列事实的 dt 用同一套「小号中性标签」：同一张卡里不该出现两种语气不同的分类字 */
 .skill-group-title {
-    flex: 0 0 5.75rem;
-    font-size: 0.875rem;
-    font-weight: 600;
+    flex: 0 0 5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
     letter-spacing: 0.04em;
     color: var(--text-dim);
 }
@@ -937,13 +946,13 @@ html.fab-measuring section {
 
 /* 技能胶囊：形状取「可点」这一侧（胶囊），因为它现在真的可点 —— 点开新标签进入对应仓库。
    没有对应项目的技能退回静态胶囊：无 pointer、无 hover 位移，形状相同但行为可辨。
-   尺寸比列表页的筛选胶囊略高一档：这里是浏览，不是筛选，不需要那么密。 */
+   字号与 dt 同级、比 dd 小一档：胶囊是「枚举」，不该比它服务的正文更抢眼。 */
 .skill-chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.26rem 0.72rem;
+    padding: 0.28rem 0.68rem;
     font-family: inherit;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 500;
     line-height: 1.5;
     color: var(--text-dim);

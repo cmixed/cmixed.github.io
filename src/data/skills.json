@@ -16,7 +16,7 @@
       { "name": "Low-level Architecture" },
       { "name": "Large-Scale C++ Design" },
       { "name": "Performance Optimization" },
-      { "name": "Multithreading & Concurrency", "link": "https://github.com/cmixed/route" },
+      { "name": "Multithreading", "link": "https://github.com/cmixed/route" },
       { "name": "Reverse Engineering" }
     ]
   },
