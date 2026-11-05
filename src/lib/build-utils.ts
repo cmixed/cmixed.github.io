@@ -37,6 +37,32 @@ export function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
+/** 每次出现都替换；用函数替换，值里的 `$&` / `$1` 不会被当成回填。 */
+export function renderTemplate(template: string, data: Record<string, string>): string {
+  return Object.entries(data).reduce((result, [key, value]) => {
+    const placeholder = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return result.replace(new RegExp(`{{${placeholder}}}`, 'g'), () => value);
+  }, template);
+}
+
+/** 近似阅读时长：按字符数 / 400，中文一个字约等于一个词。最少 1 分钟。 */
+export function estimateReadTime(body: string): number {
+  const text = body.replace(/[#*`[\]()>!-]/g, '').replace(/\s+/g, ' ');
+  return Math.max(1, Math.ceil(text.length / 400));
+}
+
+export function countWords(body: string): number {
+  return body
+    .replace(/[#*`[\]()>!-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim().length;
+}
+
+export function countImages(html: string): number {
+  const matches = html.match(/<img\b/g);
+  return matches ? matches.length : 0;
+}
+
 /** 以本地时区格式化为 YYYY-MM-DD */
 export function toYmd(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;

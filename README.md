@@ -134,8 +134,8 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 │   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / sort / fab / scrollbar
 │   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（.md-body，token 的唯一来源）
 │   ├── data/            # projects.json / skills.json（主页卡片的内容源）
-│   ├── __tests__/       # 单测：构建期内容的解析与改写规则
-│   └── lib/             # 构建工具：front-matter 解析、日期与 git 时间
+│   ├── __tests__/       # 单测：构建工具与站点元数据的解析 / 改写规则
+│   └── lib/             # 构建工具：front-matter 解析、模板渲染、日期与 git 时间
 ├── blog/
 │   ├── post/            # Markdown 文章（可在同目录放 asset/ 图片）
 │   ├── template/        # 文章页、博客 404 模板
@@ -143,8 +143,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 │   ├── build.ts         # 生成列表、文章页、RSS、sitemap 与供主页用的 data.json
 │   ├── build-hljs.ts    # 按实际用到的语言裁剪 highlight.js
 │   ├── vendor/          # 裁出来的 highlight.js 与明暗两套主题（自托管，不进打包图）
-│   ├── mermaid-cache/   # 渲染过的 Mermaid 图（按源码 hash 缓存，命中就不重渲染）
-│   └── __tests__/       # 博客构建的单测
+│   └── mermaid-cache/   # 渲染过的 Mermaid 图（按源码 hash 缓存，命中就不重渲染）
 ├── nook/
 │   ├── file/            # 资源：<category>/<slug>/index.md（+ 附带文件）
 │   ├── template/        # 详情页模板
