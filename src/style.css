@@ -854,50 +854,49 @@ html.fab-measuring section {
     margin-bottom: 1rem;
 }
 
-.stats-box {
-    background: var(--mica-surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: var(--mica-elev-1);
-    transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
+/* ===== ABOUT / SKILLS（同一版面） ===== */
+/* 关于与技能合成一块：头像与简介之后，用一条两端渐隐的细线 + 居中小标题过渡，
+   而不是再起一个 section-header —— 那是区块级标题，用在这里会把同一块内容切断。 */
+.skills-block {
+    margin-top: 2.4rem;
+    scroll-margin-top: 90px;
 }
 
-/* 标签列固定宽度、内容列左对齐：三行的值起点对齐，读起来是「标签—内容」两列，
-   而不是左右顶到边、长短不齐。层级只靠字号与颜色，不用 accent ——
-   这一块是信息罗列，满屏强调色反而没有重点。 */
-.stat-item {
+.skill-bridge {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 1rem;
-    padding: 0.7rem 0;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.6rem;
 }
 
-.stat-item:last-child {
-    border-bottom: none;
+.skill-bridge::before,
+.skill-bridge::after {
+    content: "";
+    flex: 1;
+    height: 1px;
 }
 
-.stat-label {
-    flex: 0 0 5.5rem;
-    color: var(--text-muted);
+.skill-bridge::before {
+    background: linear-gradient(90deg, transparent, var(--border));
+}
+
+.skill-bridge::after {
+    background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.skill-bridge-title {
     font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.stat-value {
-    flex: 1 1 auto;
-    color: var(--text);
     font-weight: 600;
-    font-size: 0.9rem;
+    letter-spacing: 0.18em;
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
-/* ===== SKILLS ===== */
 /* 技能按组排列：左标题 + 右标签流。用 flex + 最小宽度自适应，
    窄屏时标签流自动落到标题下方，不额外写媒体查询。 */
 .skill-groups {
     display: grid;
-    gap: 0.85rem;
+    gap: 0.95rem;
 }
 
 .skill-group {
@@ -1854,10 +1853,6 @@ html.modal-open .page-scrollbar-thumb {
         grid-template-columns: 1fr;
     }
 
-    .stats-box {
-        padding: 1.25rem;
-    }
-
     footer {
         padding: 1.5rem env(safe-area-inset-right, 1.5rem) 1.5rem env(safe-area-inset-left, 1.5rem);
     }
@@ -1889,10 +1884,6 @@ html.modal-open .page-scrollbar-thumb {
 
     .about-grid { gap: 1.5rem; }
     .about-text { font-size: 0.9rem; }
-
-    .stat-item { padding: 0.6rem 0; gap: 0.75rem; }
-    .stat-label { flex-basis: 4.5rem; font-size: 0.72rem; }
-    .stat-value { font-size: 0.85rem; }
 
     .project-card { padding: 1.25rem; }
     .project-title { font-size: 1rem; }
@@ -2787,7 +2778,6 @@ html::after {
 }
 
 /* 卡片 / 面板：颗粒置于内容之下（不遮挡文字、不拦截点击） */
-.stats-box,
 .project-card,
 .blog-preview-card,
 .nook-preview-card,
@@ -2800,7 +2790,6 @@ html::after {
     isolation: isolate;
 }
 
-.stats-box::after,
 .project-card::after,
 .blog-preview-card::after,
 .nook-preview-card::after,
@@ -2832,7 +2821,6 @@ html::after {
    （做成 inset box-shadow 就会被 hover 的 box-shadow 整条覆盖掉）。
    渐变按 px 收边而不是百分比：卡片从 100px 到 900px 都有，
    用百分比的话高卡片的渐变会拉成一整片洗色，不再像一块板。 */
-.stats-box,
 .project-card,
 .blog-preview-card,
 .nook-preview-card,
@@ -2879,7 +2867,6 @@ html::after {
    不透明度同步降到 --mica-surface-glass，否则 0.80 的膜把模糊挡住九成、等于白做。 */
 @media (hover: hover) and (pointer: fine) {
     @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-        .stats-box:hover,
         .project-card:hover,
         .blog-preview-card:hover,
         .nook-preview-card:hover,
@@ -2967,8 +2954,7 @@ html.modal-open .fx-layer { visibility: hidden; }
     body::after,
     nav::after,
     .fx-layer,
-    .stats-box::after,
-    .project-card::after,
+        .project-card::after,
     .blog-preview-card::after,
     .nook-preview-card::after,
     .contact-container::after,
