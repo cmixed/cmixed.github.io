@@ -23,6 +23,8 @@
        填充值两个主题共用 —— 切主题时强调色的形制不变，只换曝光。 */
     --primary: #0f766e;
     --primary-dim: rgba(15, 118, 110, 0.18);
+    /* 主按钮 hover 的填充：只加深一档，不做实心跳变 */
+    --primary-dim-hover: rgba(15, 118, 110, 0.30);
     --primary-glow: rgba(95, 209, 181, 0.26);
     /* accent 作「前景」（文字/图标）时用这个：墨绿底上要用亮青才读得清 */
     --primary-text: #5fd8c0;
@@ -166,6 +168,7 @@
     /* accent 填充与暗色共用同一值，只换「前景档」：浅底上要用深青才读得清 */
     --primary: #0f766e;
     --primary-dim: rgba(15, 118, 110, 0.12);
+    --primary-dim-hover: rgba(15, 118, 110, 0.22);
     --primary-glow: rgba(15, 118, 110, 0.18);
     --primary-text: #0b5f57;
     /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青，不是纯白） --- */
@@ -662,9 +665,12 @@ body.nav-open::before {
     display: flex;
     gap: 1rem;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
 }
 
+/* 圆角 999px：全站约定「6px 方片 = 信息，999px 胶囊 = 可点」，按钮跟着走。
+   inline-flex 是为了让箭头和文字落在同一条中线上。 */
 .btn {
     padding: 0.75rem 1.75rem;
     border: 1px solid var(--border);
@@ -673,16 +679,20 @@ body.nav-open::before {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.3s;
+    transition: border-color 0.3s, color 0.3s, background-color 0.3s, transform 0.3s;
     text-decoration: none;
-    display: inline-block;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 999px;
 }
 
+/* hover 只提描边与文字：不再画一圈 20px 的光，也不做中等面积的色块跳变。
+   填充怎么变交给两档各自定义（见下）。 */
 .btn:hover {
     border-color: var(--primary);
     color: var(--primary-text);
-    box-shadow: 0 0 20px var(--primary-glow);
     transform: translateY(-2px);
 }
 
@@ -690,28 +700,27 @@ body.nav-open::before {
     transform: scale(0.97);
 }
 
-.btn-primary {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-}
-
-.btn-primary:hover {
-    background: var(--mica-raised);
-    color: var(--primary-text);
-    box-shadow: 0 0 20px var(--primary-glow);
+/* 键盘聚焦：与 skill-chip / project-card / fab-btn 同一套轮廓。
+   之前 .btn 是唯一没有 focus-visible 的可点控件。 */
+.btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
 }
 
 /* --- 首页 CTA 的两档权重 ---
    四颗按钮分两档：关于本站 / 更新日志是「轻」档（面板底 + 弱描边，安静但明确可点），
    个人博客 / 资源小窝是「重」档（accent 淡填 + accent 描边 + accent 字）。
+   两档不只是颜色差，还差「尺寸」：重档更高、字更大，扫视时主路径先被看到。
    两档都靠 token 换色，深浅主题自动同构，不需要各写一套。
    重档刻意不做实心 accent：两块实心并排会互相抢注意力，也会和导航里那颗唯一的
-   主题色开关撞在一起。「克制的显著」= 静止在淡填，hover 才让 accent 真正亮起来。 */
+   主题色开关撞在一起。「克制的显著」= 静止在淡填，hover 只把填充加深一档。 */
 .btn-quiet {
     background: var(--chip-fill);
     border-color: var(--chip-border);
     color: var(--text-dim);
+    padding: 0.55rem 1.15rem;
+    font-size: 0.82rem;
+    font-weight: 400;
 }
 
 .btn-quiet:hover {
@@ -719,7 +728,6 @@ body.nav-open::before {
     border-color: var(--primary);
     color: var(--primary-text);
     /* 轻档不抬升、不发光：那两件事留给重档，否则两档在 hover 时又回到同一层 */
-    box-shadow: none;
     transform: none;
 }
 
@@ -732,13 +740,29 @@ body.nav-open::before {
     border-color: var(--primary);
     color: var(--primary-text);
     font-weight: 600;
+    padding: 0.8rem 1.9rem;
+    font-size: 0.95rem;
 }
 
 .btn-strong:hover {
-    background: var(--primary);
+    background: var(--primary-dim-hover);
     border-color: var(--primary);
-    color: #fff;
-    box-shadow: 0 0 20px var(--primary-glow);
+    color: var(--primary-text);
+}
+
+/* 两颗主按钮的箭头朝内相对（→ 与 ←），位置与方向都对称；hover 时各自向中缝再推 3px。
+   位移走 transform，不触发重绘。箭头在 HTML 里带 aria-hidden，读屏不会念出来。 */
+.btn-arrow {
+    display: inline-block;
+    transition: transform 0.3s;
+}
+
+.btn-strong:hover .btn-arrow {
+    transform: translateX(3px);
+}
+
+.btn-strong:hover .btn-arrow.is-left {
+    transform: translateX(-3px);
 }
 
 /* ===== SECTIONS ===== */
@@ -1845,8 +1869,10 @@ html.modal-open .page-scrollbar-thumb {
         height: 24px;
     }
 
+    /* 触屏只保证 44px 的点击高度，不再靠加大 padding 撑尺寸 ——
+       那会把两颗「轻」档胶囊一起撑成和主按钮一样大，两档在手机上又糊回一层。 */
     .btn {
-        padding: 0.85rem 2rem;
+        min-height: 44px;
     }
 
     .project-card:hover {
@@ -2001,15 +2027,29 @@ html.modal-open .page-scrollbar-thumb {
         height: 400px;
     }
 
+    /* 四颗不再竖着堆成四行（那会把 hero 撑长、首屏看不到内容）：
+       主两颗各占一半并排，次两颗自然折到第二行居中。 */
     .cta-buttons {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.6rem;
     }
 
     .btn {
-        width: 100%;
-        max-width: 280px;
+        width: auto;
+        max-width: none;
         text-align: center;
+    }
+
+    .btn-strong {
+        flex: 1 1 calc(50% - 0.3rem);
+        /* DOM 顺序是「轻 - 重 - 重 - 轻」，只靠换行会变成「轻重 / 重轻」，
+           两颗主按钮被拆到两行。让主档先进第一行，轻档折到第二行居中。 */
+        order: 1;
+    }
+
+    .btn-quiet {
+        order: 2;
     }
 
     .projects-grid {
@@ -2035,6 +2075,13 @@ html.modal-open .page-scrollbar-thumb {
     }
     .hero h1 { font-size: clamp(2rem, 10vw, 3rem); }
     .hero::before { width: 300px; height: 300px; }
+
+    /* 两颗主胶囊并排后每颗只剩约 45vw：内边距与字号各收一档，避免「个人博客 →」折行 */
+    .btn-strong {
+        padding: 0.7rem 0.9rem;
+        font-size: 0.88rem;
+        gap: 0.3rem;
+    }
 
     .about-avatar img { width: 110px; height: 110px; }
 
