@@ -863,10 +863,14 @@ html.fab-measuring section {
     transition: background var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
+/* 标签列固定宽度、内容列左对齐：三行的值起点对齐，读起来是「标签—内容」两列，
+   而不是左右顶到边、长短不齐。层级只靠字号与颜色，不用 accent ——
+   这一块是信息罗列，满屏强调色反而没有重点。 */
 .stat-item {
     display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.7rem 0;
     border-bottom: 1px solid var(--border);
 }
 
@@ -875,12 +879,15 @@ html.fab-measuring section {
 }
 
 .stat-label {
-    color: var(--text-dim);
-    font-size: 0.9rem;
+    flex: 0 0 5.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .stat-value {
-    color: var(--primary-text);
+    flex: 1 1 auto;
+    color: var(--text);
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -1883,9 +1890,9 @@ html.modal-open .page-scrollbar-thumb {
     .about-grid { gap: 1.5rem; }
     .about-text { font-size: 0.9rem; }
 
-    .stat-item { padding: 0.6rem 0; }
-    .stat-label { font-size: 0.8rem; }
-    .stat-value { font-size: 0.8rem; }
+    .stat-item { padding: 0.6rem 0; gap: 0.75rem; }
+    .stat-label { flex-basis: 4.5rem; font-size: 0.72rem; }
+    .stat-value { font-size: 0.85rem; }
 
     .project-card { padding: 1.25rem; }
     .project-title { font-size: 1rem; }
