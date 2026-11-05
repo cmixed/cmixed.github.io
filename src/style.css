@@ -82,15 +82,19 @@
     --mica-nav-glass: blur(var(--mica-glass-blur)) saturate(var(--mica-glass-sat)); /* 置为 none 可彻底关掉玻璃 */
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
     --mica-raised: rgba(95, 209, 181, 0.16);
-    /* 卡片内的小标签（tag / 分类 / 状态）：填色比卡片明显一档，
-       再配 --primary 描边，保证在卡片上「看得出来是个标签」 */
-    --mica-chip: rgba(95, 209, 181, 0.20);
-    /* --- 小标签的尺寸：全站只此一套（只读方角 / 可点胶囊共用） --- */
-    --chip-radius: 4px;
+    /* 卡片内只读标签（tag / 分类 / 状态）：填色比卡片明显一档，
+       但暗色不再用 0.20 的高饱和 mint —— 那会和亮青文字一起发荧光。
+       降到 0.10、描边改成半透明，标签退成一块安静的深青薄片；
+       文字单独取一档更柔和的浅薄荷，和正文强调色区分开。 */
+    --mica-chip: rgba(95, 209, 181, 0.10);
+    --mica-chip-border: rgba(150, 220, 205, 0.28);
+    --mica-chip-text: #8fe6d5;
+    /* --- 小标签尺寸：只读标签 6px 圆角方片，可点胶囊 999px；共用内边距与字号 --- */
+    --chip-radius: 6px;
     --chip-pad-y: 0.2rem;
     --chip-pad-x: 0.5rem;
     --chip-font: 0.75rem;
-    /* --- 可点胶囊自己的材质（只读标签不用这三个）---
+    /* --- 可点控件（筛选胶囊 / 浅色按钮）的材质 ---
        只读标签有 --mica-chip 的填色顶着，胶囊原本是透明底 + --border 描边；
        实测那条边框相对页面底色只有 1.69:1（浅色 1.38:1），远低于控件边界该有的
        3:1 —— 所以未激活态必须自己带填充，不能靠 --border。
@@ -99,6 +103,10 @@
     --chip-fill: rgba(95, 209, 181, 0.10);
     --chip-border: rgba(150, 220, 205, 0.44); /* 3.2:1 @ #0c1714 */
     --chip-fill-hover: rgba(95, 209, 181, 0.18);
+    /* 技能胶囊单独一档「芯色」：比筛选胶囊更有颜色，但仍保留强描边；
+       形状是 999px 胶囊，和 6px 的只读标签不会混。 */
+    --skill-fill: rgba(95, 209, 181, 0.12);
+    --skill-fill-hover: rgba(95, 209, 181, 0.20);
     /* --- 面板的「面」：材质感来自受光，不来自透明度 ---
        底板背后是一张平滑洗色，透出来的几乎是同一个颜色，所以单靠调 alpha 看不出通透
        （这也是卡片不做常驻 backdrop-filter 的原因：漂移层一直在动，会让每张卡每帧重模糊。
@@ -192,13 +200,19 @@
     --mica-glass-sat: 135%;
     /* 按钮等交互元素：再抬升一层并带 accent 色相，避免与父级卡片/导航栏撞色 */
     --mica-raised: rgba(15, 118, 110, 0.10);
-    /* 卡片内小标签：填色比卡片明显一档 + accent 描边，拉开区分度 */
+    /* 卡片内只读标签：浅色保持现在的柔和填色 + accent 描边，文字用深青 */
     --mica-chip: rgba(15, 118, 110, 0.13);
-    /* 可点胶囊（浅色）：填充走「比底色更亮」= 抬升，和浅色面板同一套语言；
+    --mica-chip-border: var(--primary);
+    --mica-chip-text: var(--primary-text);
+    /* 可点控件（筛选胶囊 / 浅色按钮）：填充走「比底色更亮」= 抬升，和浅色面板同一套语言；
        描边用深青压到 3:1（--border 在这个底色上只有 1.38:1，等于没有）。 */
     --chip-fill: rgba(242, 248, 249, 0.55);
     --chip-border: rgba(15, 118, 110, 0.80); /* 2.97:1 @ #d0e2db */
     --chip-fill-hover: rgba(242, 248, 249, 0.78);
+    /* 技能胶囊：白卡上不能再用近白芯，否则中间是空的；
+       给一层可见的薄荷填色，深青描边仍是它和只读标签的区分线。 */
+    --skill-fill: rgba(15, 118, 110, 0.10);
+    --skill-fill-hover: rgba(15, 118, 110, 0.16);
     /* --- 面板的「面」（与暗色同一套逻辑，只换过曝光档）---
        浅色面板已经接近白（L*96），纯白最多只能再给 +7 L*，所以「受光」不能靠加白：
        暗色那张卡之所以看起来被照亮，是因为它的 1px 边框比面板亮 14~16 L*；
@@ -778,7 +792,7 @@ html.fab-measuring section {
 }
 
 /* 「查看全部」：从标题下方搬进标题行右端，和标题共用一条水平线。
-   形状用胶囊而不是方角 —— 按全站约定，胶囊 = 可点，方角 = 只读信息。
+   形状用胶囊而不是方片 —— 按全站约定，胶囊 = 可点，6px 方片 = 只读信息。
    高度直接取标题的行盒高度，上下两端与标题严丝合缝；
    字号跟着标题缩放，窄屏不会出现「大胶囊配小标题」。 */
 .section-more {
@@ -988,7 +1002,7 @@ html.fab-measuring section {
     font-weight: 500;
     line-height: 1.5;
     color: var(--text-dim);
-    background: var(--chip-fill);
+    background: var(--skill-fill);
     border: 1px solid var(--chip-border);
     border-radius: 999px;
     text-decoration: none;
@@ -1000,7 +1014,7 @@ html.fab-measuring section {
 }
 
 .skill-chip.is-link:hover {
-    background: var(--chip-fill-hover);
+    background: var(--skill-fill-hover);
     border-color: var(--primary);
     color: var(--primary-text);
     transform: translateY(-1px);
@@ -1124,7 +1138,7 @@ html.fab-measuring section {
     margin-top: auto;
 }
 
-/* .tech-tag 的材质与尺寸统一在文件末尾的「小标签」规则里（只读 = 4px 方角） */
+/* .tech-tag 的材质与尺寸统一在文件末尾的「小标签」规则里（只读 = 6px 圆角方片） */
 
 /* ===== BLOG PREVIEW ===== */
 .blog-preview-grid {
@@ -2634,12 +2648,13 @@ html::after {
 }
 
 /* --- 小标签：一套设计语言，两个角色 ---------------------------------
-   只读（4px 方角）：卡片标签 / 项目状态 / 分类 / 文章标签 / 代码语言角标
+   只读（6px 圆角方片）：卡片标签 / 项目状态 / 分类 / 文章标签 / 代码语言角标
    可点（胶囊）：列表页筛选（.list-chip）、主页技能胶囊（.skill-chip，
                  点一下滚到对应项目卡）—— 两者都真的可点，所以都用胶囊。
-   尺寸与字体由 --chip-* 统一；材质分两套：只读走 --mica-chip，
-   可点走 --chip-fill / --chip-border（见 :root 里对控件边界的说明）。
-   只靠「形状 + 状态」区分语义 —— 方角是信息，胶囊是可点，所以不会互相误认。 */
+   尺寸与字体由 --chip-* 统一；材质分两套：只读走 --mica-chip /
+   --mica-chip-border / --mica-chip-text，可点走 --chip-fill / --chip-border
+   （技能胶囊另有 --skill-fill，避免白卡上的近白芯）。
+   只靠「形状 + 状态」区分语义 —— 6px 方片是信息，999px 胶囊是可点，不会互相误认。 */
 .tech-tag,
 .project-status,
 .nook-preview-card-category,
@@ -2655,8 +2670,8 @@ html::after {
 .changelog-type,
 .code-block-lang {
     background: var(--mica-chip);
-    color: var(--primary-text);
-    border: 1px solid var(--primary);
+    color: var(--mica-chip-text);
+    border: 1px solid var(--mica-chip-border);
     border-radius: var(--chip-radius);
     padding: var(--chip-pad-y) var(--chip-pad-x);
     font-size: var(--chip-font);
