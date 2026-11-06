@@ -27,6 +27,7 @@ import {
   toYmd,
 } from '../src/lib/build-utils';
 import { pinBadge, replaceIcons } from '../src/lib/icons';
+import { chipCols } from '../src/lib/chip-width';
 
 const execFileAsync = promisify(execFile);
 
@@ -574,17 +575,23 @@ ${sitemapUrls}
   const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
   // 「全部」与筛选标签用同一套胶囊（.list-chip），和资源小窝的分类栏同构：
   // 首项是「全部」、默认激活，点它等于清掉筛选。
-  // 每行拆成 label + count 两段：左侧标签左对齐、右侧数量右对齐，整行不再是小圆环。
+  // 每个标签带 `--chip-cols`，宽度落到 2em 的整数倍（见 src/lib/chip-width.ts）。
+  // 计数为 1 的算长尾：默认收起，由「其他 N 个」展开 —— 23 个标签平铺时，
+  // 真正高频的几项（C++ 4、大规模 2）要往下滑才看得到。
+  const tailCount = tagStats.filter((t) => t.count === 1).length;
   const tagsHtml = [
-    `<a href="./" class="list-chip active" data-tag=""><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${posts.length}</span></a>`,
+    `<a href="./" class="list-chip active" data-tag="" style="--chip-cols:${chipCols('全部', 1)}"><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${posts.length}</span></a>`,
     ...tagStats.map(
       ({ name, count }) =>
-        `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip" data-tag="${escapeXml(
+        `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip${count === 1 ? ' is-tail' : ''}" data-tag="${escapeXml(
           name
-        )}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
+        )}" style="--chip-cols:${chipCols(name, 1)}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
           name
         )}</span></span><span class="list-chip-count">${count}</span></a>`
     ),
+    tailCount > 0
+      ? `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll">其他 ${tailCount} 个</button>`
+      : '',
   ].join('');
   const postsHtml = posts
     .map((p) => {
@@ -596,7 +603,7 @@ ${sitemapUrls}
             <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-footer">
-                <div class="blog-page-card-tags">${p.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('')}</div>
+                <div class="blog-page-card-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`).join('')}</div>
                 <div class="blog-page-card-meta">阅读约 ${p.readTime}\u00a0分钟\u00a0· 创建于\u00a0${escapeXml(p.date)}\u00a0· 更新于\u00a0${escapeXml(p.updated)}\u00a0· ${p.wordCount}\u00a0字\u00a0· ${p.imageCount}\u00a0张图片</div>
             </div>
         </a>`;

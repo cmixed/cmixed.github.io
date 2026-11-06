@@ -2617,19 +2617,21 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     color: var(--primary-text);
 }
 
+/* 桌面栏里也做流式：标签不再一行一个占满 200px，而是按内容宽度换行填充。
+   一行能放 2–3 个短标签，长标签独占一行，栏高因此缩短。 */
 .list-filters-panel .list-filters {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.4rem;
     margin: 0;
 }
 
 .list-filters-panel .list-chip {
-    width: 100%;
-    min-width: 0;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: var(--chip-pad-y) 0.8rem;
+    /* 不要写 width: auto —— 那会盖掉 --chip-cols 的量化宽度，宽度退回内容自然值 */
+    justify-content: center;
+    gap: 0.3rem;
+    padding: var(--chip-pad-y) 0.55rem;
     text-align: left;
 }
 
@@ -2655,13 +2657,17 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 
 .list-chip-count {
     flex: 0 0 auto;
+    min-width: 1em;
+    text-align: right;
     color: var(--text-muted);
     font-size: 0.7rem;
     font-variant-numeric: tabular-nums;
 }
 
+/* 选中态的计数跟着 accent 走：原来硬编码 rgba(255,255,255,.82)，
+   只在实心底的假设下成立，换成淡填后白色在浅色主题下会消失。 */
 .list-chip.active .list-chip-count {
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--primary-text);
 }
 
 /* 长标签列表：隐藏原生滚动条，用上下渐隐提示还有内容（和文章目录同一套） */
@@ -2696,12 +2702,12 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: none;
 }
 
-/* 触屏：整行胶囊保持 44px 点击高度；宽度由面板决定，不再靠 min-width 撑成圆环。 */
+/* 触屏：保持 44px 点击高度。横向流式 + 宽度量化之后，内边距要收一档 ——
+   0.7rem 会让「大规模软件开发」这种 7 字标签顶到 width 上限、被省略号截断。 */
 @media (hover: none) and (pointer: coarse) {
     .list-filters-panel .list-chip {
         min-height: 44px;
-        min-width: 0;
-        padding: 0 0.9rem;
+        padding: 0 0.5rem;
         font-size: 0.8rem;
     }
 }
@@ -2735,53 +2741,58 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 @media (max-width: 1279px) {
+    /* 移动 / 平板不再用抽屉：标签区变成列表上方的一片，按视口宽度换行填充。
+       抽屉要一层遮罩、一个关闭按钮、一套 Esc 与滚动锁定 —— 为 23 个标签付这些不值，
+       而且抽屉盖住列表时看不到「筛完还剩几篇」。 */
+    .list-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
     .list-filters-panel {
         display: flex;
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: min(85vw, 320px);
-        height: 100dvh;
-        padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1rem
-            calc(1rem + env(safe-area-inset-bottom, 0px));
-        background: var(--mica-chrome);
-        background-image: linear-gradient(180deg, var(--mica-panel-sheen), transparent 120px);
-        -webkit-backdrop-filter: var(--mica-nav-glass);
-        backdrop-filter: var(--mica-nav-glass);
-        border-right: 1px solid var(--border);
-        transform: translateX(-100%);
-        visibility: hidden;
-        transition: transform 0.3s ease, visibility 0.3s;
-        z-index: 200;
-    }
-
-    .list-filters-close {
-        display: inline-flex;
-        width: 44px;
-        height: 44px;
-    }
-
-    html.filters-open .list-filters-panel {
-        transform: translateX(0);
+        position: static;
+        order: -1;
+        width: auto;
+        height: auto;
+        padding: 0;
+        background: none;
+        background-image: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border: 0;
+        transform: none;
         visibility: visible;
+        z-index: auto;
     }
 
+    .list-filters-panel .list-filters {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    /* 横排时整块跟着页面走：不要栏内滚动，也不要上下渐隐 */
+    .list-filters-scroll {
+        flex: 0 0 auto;
+        overflow: visible;
+        max-height: none;
+    }
+
+    .list-filters-close,
     .list-filters-overlay {
-        position: fixed;
-        inset: 0;
         display: none;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 199;
     }
 
-    html.filters-open .list-filters-overlay {
-        display: block;
+    /* 标签区常显，导航里那颗筛选开关在移动端没有意义 */
+    #filterToggle {
+        display: none;
     }
 
-    /* 抽屉打开时锁住整页滚动。原生滚动条已隐藏，不会出现宽度跳变。 */
-    html.filters-drawer-open {
-        overflow: hidden;
+    /* 横排区没有「栏」这个概念了：保留「标签」小标题会跑到页面大标题前面，层级倒置 */
+    .list-filters-head {
+        display: none;
     }
 }
 
@@ -3068,23 +3079,25 @@ html::after {
    只靠「形状 + 状态」区分语义 —— 6px 方片是信息，999px 胶囊是可点，不会互相误认。 */
 /* 置顶标记：6px 方片里放一颗单色 pin —— 和只读标签同一套「信息」语义。
    不用 emoji：彩色字形跨平台不一致，也不跟 currentColor / 主题走。 */
+/* 置顶徽标：尺寸跟所在文字走（1em），不再固定 1.15rem —— 在 0.85rem 的卡片标题旁
+   会显得比字还小，在详情页大字标题旁又偏小。1em 让它在任何上下文里都与文字等高。 */
 .pin-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 1.15rem;
-    height: 1.15rem;
-    margin-right: 0.4rem;
+    width: 1em;
+    height: 1em;
+    margin-right: 0.35em;
     border: 1px solid var(--primary);
-    border-radius: 6px;
+    border-radius: 0.25em;
     background: var(--primary-dim);
     color: var(--primary-text);
-    vertical-align: -0.18em;
+    vertical-align: -0.12em;
 }
 .pin-badge svg {
-    width: 0.8rem;
-    height: 0.8rem;
+    width: 0.78em;
+    height: 0.78em;
 }
 
 .tech-tag,
@@ -3097,7 +3110,27 @@ html::after {
 .nook-card-category,
 .nook-detail-tags span,
 .nook-detail-category,
-.blog-article-tags .tag,
+.blog-article-tags .tag {
+    background: var(--mica-chip);
+    color: var(--mica-chip-text);
+    border: 1px solid var(--mica-chip-border);
+    border-radius: var(--chip-radius);
+    padding: var(--chip-pad-y) var(--chip-pad-x);
+    font-size: var(--chip-font);
+    line-height: 1.45;
+    /* `--chip-cols` 由构建期算好（src/lib/chip-width.ts）：内容宽 + 内边距 + 一位数字，
+       按「2 个中文字 = 2em」向上取整，作为最小宽度。
+       用 min-width 而不是 width：超长标签（clang-format 这种 12 字符）压 width 会被省略号截断，
+       而短标签（C++ / Git / AI）已经能靠它对齐到同一档。 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: calc(var(--chip-cols, 1) * 2em);
+}
+
+/* 定长标签不参与量化：hash 是 7 位十六进制、语言角标是 2–4 个字母，
+   套 2em 阶梯会把内容挤出去。 */
 .changelog-hash,
 .changelog-type,
 .code-block-lang {
@@ -3110,11 +3143,11 @@ html::after {
     line-height: 1.45;
 }
 
-/* 可点小标签（博客 / 小窝的筛选）：版式与只读标签同一套，只把形状换成胶囊，
-   并给出 hover / 选中态。未激活态不能是「透明底 + --border」：那条边框太淡，
-   胶囊在页面底色上几乎看不出边界，所以填充与描边都由 --chip-fill / --chip-border
-   单独给（见文件开头的 token 注释）。选中用实心 accent + 白字（5.47:1），
-   一眼看出「已筛选」；三步的填充是单调变实的：未激活 < hover < 选中。 */
+/* 筛选栏里的标签是「目录项」，不是「操作按钮」：
+   默认态只留一层极淡填充、不画边框 —— 24 条 1px 边框叠在一起才是那一栏噪音的来源；
+   形状仍保留 999px，hover / 选中时边框才显形，可点性靠反馈而不是靠常驻描边。
+   选中态刻意不用实心 --primary：浅色主题下那块深青会比文章标题还重，
+   筛选控件不该压过它要筛的内容。 */
 .list-chip {
     display: inline-flex;
     align-items: center;
@@ -3125,24 +3158,73 @@ html::after {
     font-weight: 500;
     line-height: 1.45;
     color: var(--text-dim);
-    background: var(--chip-fill);
-    border: 1px solid var(--chip-border);
+    background: transparent;
+    /* 透明边框占位：hover 时补上颜色，尺寸不会跳 */
+    border: 1px solid transparent;
     border-radius: 999px;
     cursor: pointer;
     text-decoration: none;
-    transition: background 0.3s, border-color 0.3s, color 0.3s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    /* 与只读标签同一套量化（见下方「内容标签」选择器组）：保底对齐，内容宽可撑开 */
+    box-sizing: border-box;
+    min-width: calc(var(--chip-cols, 1) * 2em);
+}
+
+/* 触屏没有 hover，一列纯文字看不出可点：把淡填充补回来。
+   `.list-chip.active` 特异性更高（0,2,0），不会被这条盖掉。 */
+@media (hover: none) {
+    .list-chip {
+        background: var(--chip-fill);
+    }
 }
 
 .list-chip:hover {
     background: var(--chip-fill-hover);
-    border-color: var(--primary);
+    border-color: var(--chip-border);
     color: var(--primary-text);
 }
 
 .list-chip.active {
-    background: var(--primary);
+    background: var(--primary-dim);
     border-color: var(--primary);
-    color: #fff;
+    color: var(--primary-text);
+    font-weight: 600;
+}
+
+/* 长尾折叠：计数为 1 的标签由构建期打上 .is-tail、默认收起；
+   展开状态是 filter-panel.ts 在 .list-filters 上加的 .expanded。
+   不按固定条数折叠，是因为标签分布会随文章变化，按「计数为 1」分界不用回头调数字。 */
+.list-chip.is-tail {
+    display: none;
+}
+
+.list-filters.expanded .list-chip.is-tail {
+    display: inline-flex;
+}
+
+/* 展开后按钮变成「收起」，所以不能隐藏 —— 否则没有回到折叠态的入口。
+   文案由 filter-panel.ts 切换。 */
+
+/* 「其他 N 个」是控件，不是一个筛选值：用虚线描边和实体标签分开 */
+.list-chip-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--chip-pad-y) 0.55rem;
+    font-family: inherit;
+    font-size: var(--chip-font);
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px dashed var(--chip-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.list-chip-more:hover {
+    color: var(--primary-text);
+    border-color: var(--primary);
 }
 
 /* ===== MARKDOWN 正文（唯一来源） =====

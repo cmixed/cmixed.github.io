@@ -9,6 +9,7 @@ import {
   type NameCount,
 } from '../src/lib/build-utils';
 import { categoryIcon, icon, pinBadge, replaceIcons } from '../src/lib/icons';
+import { chipCols } from '../src/lib/chip-width';
 import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -154,16 +155,18 @@ function discoverResources(): ResourceData[] {
 }
 
 function renderFilters(categories: NameCount[], total: number): string {
-  const allBtn = `<button type="button" class="list-chip active" data-category=""><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${total}</span></button>`;
+  const allBtn = `<button type="button" class="list-chip active" data-category="" style="--chip-cols:${chipCols('全部', 1)}"><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${total}</span></button>`;
   const catBtns = categories
-    .map(
-      ({ name, count }) =>
-        `<button type="button" class="list-chip" data-category="${escapeXml(
-          name
-        )}"><span class="list-chip-label">${categoryIcon(name)}<span class="list-chip-text">${escapeXml(
-          CATEGORY_NAMES[name] || name
-        )}</span></span><span class="list-chip-count">${count}</span></button>`
-    )
+    .map(({ name, count }) => {
+      const label = CATEGORY_NAMES[name] || name;
+      // 分类胶囊比纯文字多两样：前面的图标（约 1em）和右侧计数（约 1em）
+      const cols = chipCols(label, 2);
+      return `<button type="button" class="list-chip" data-category="${escapeXml(
+        name
+      )}" style="--chip-cols:${cols}"><span class="list-chip-label">${categoryIcon(name)}<span class="list-chip-text">${escapeXml(
+        label
+      )}</span></span><span class="list-chip-count">${count}</span></button>`;
+    })
     .join('');
   return allBtn + catBtns;
 }
@@ -177,7 +180,9 @@ function renderResources(resources: ResourceData[]): string {
     .map((r) => {
       const catIcon = categoryIcon(r.category);
       const catName = CATEGORY_NAMES[r.category] || r.category;
-      const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
+      const tags = r.tags
+        .map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`)
+        .join('');
       let fileBtn: string;
       if (r.url) {
         fileBtn = `<button class="nook-download nook-btn-website" onclick="event.preventDefault();event.stopPropagation();window.open('${escapeXml(r.url)}','_blank','noopener')">访问网站 →</button>`;
@@ -222,7 +227,9 @@ function renderResources(resources: ResourceData[]): string {
 function renderDetailPage(r: ResourceData): string {
   const catIcon = categoryIcon(r.category);
   const catName = CATEGORY_NAMES[r.category] || r.category;
-  const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
+  const tags = r.tags
+    .map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`)
+    .join('');
   const metaParts = [];
   if (r.size) metaParts.push(escapeXml(r.size));
   if (r.date) metaParts.push(escapeXml(r.date));
