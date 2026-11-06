@@ -136,6 +136,17 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 排序逻辑在 `src/client/sort.ts`（和 `search.ts`、`filter-panel.ts` 一起构建成 `dist/list.js`，两个列表页共用）：博客页原来那份内联实现顺手带走了「点了排序不改 URL」的毛病，现在两个页面都写 `?sort=`、都支持前进 / 后退，且共用同一个稳定排序。
 
+### 导航：主页与列表页各指各的
+
+两套导航左组长得一样（`cmixed` + 个人博客 + 资源小窝），**落点不同**：
+
+- **主页**：`cmixed` 是 `<div>`，不可点（已经在主站了）；「个人博客」「资源小窝」指向本页的 `#blog-preview` / `#nook-preview`，即滚到对应卡片区，不跳去列表页。
+- **列表页**：`cmixed` 后面带 `←`，点击回站点主页；两个入口分别跳 `/blog/` 与 `/nook/`，当前页那项带 `active`。
+
+主页因此去掉了原来的「关于 / 项目 / 联系」三项：导航只留「去哪里」的两个入口，区块本身滚动可达，`#about` / `#projects` / `#contact` 作为深链锚点仍然有效。
+
+锚点跳转会在 `scrollIntoView` 之后手工 `history.pushState`：`main.ts` 为了平滑滚动调了 `preventDefault`，浏览器不会自己改 hash，不补这一步「跳到博客卡片」这个位置就既不能分享、前进后退也记不住。
+
 ### 列表页头部：大标题让位给副标题
 
 列表页的 `<h1>`（「个人博客」/「资源小窝」）改为 `.sr-only`：视觉上隐去，读屏与搜索引擎仍能读到。这一区只剩「副标题 + 排序」一行（`.list-meta` 是 flex + `space-between`，两者行盒同高，桌面实测 top 差 0）。原因很直接：导航里已经写了一次「个人博客」，页面正文再写一次是重复；去掉后首屏少一行大字号，列表更靠上。
@@ -217,7 +228,7 @@ dist/
 ├── site-commits.json     # 「更新日志」内容（git 提交记录，构建期生成）
 ├── theme.js              # 四个固定文件名的经典脚本（不进打包图）
 ├── cursor.js             # 仅 public/404.html 这个独立页用
-├── ui.js                 # cursor + fab + scrollbar，全站主页面共用
+├── ui.js                 # cursor + fab + scrollbar + card-popover，全站主页面共用
 ├── list.js               # search + sort + filter-panel，博客 / 资源小窝列表页共用
 ├── assets/               # 打包后的 CSS / JS，外加 public/assets 原样拷来的图
 ├── blog/                 # 列表页、文章页、data.json、feed.xml、sitemap.xml、vendor/、mermaid/
@@ -334,7 +345,7 @@ tags: [标签1, 标签2]
 ## 工程约定
 
 - **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
-- **七个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `filter-panel` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar，全站主页面）、`list.js`（search + sort + filter-panel，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
+- **七个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `filter-panel` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar + card-popover，全站主页面）、`list.js`（search + sort + filter-panel，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
 - **图标一律内联 SVG。** `src/lib/icons.ts` 是唯一来源：24×24、`currentColor`、1.7px 描边、圆头圆角；`{{icon:name}}` / `{{icon:name:class}}` 令牌由 `scripts/icon-tokens.ts`（首页 Vite 入口）和 `replaceIcons()`（博客 / 小窝构建）展开。GitHub 官方 mark 是唯一品牌例外。不再用 emoji（置顶图钉 / 分类图标）或字体字符（RSS / 太阳 / 月亮 / 目录 / 缩进用的 `U+260D`、`U+263C`、`U+263E`、`U+2630`、`U+21E5`）：彩色字形跨平台不一致，也不跟主题色走。
 - **图标只留有人用的尺寸。** favicon 只给 32×32（标签页就是它），192 只写 `apple-touch-icon`：桌面 Chrome 看到一条没有 `sizes` 的 `rel="icon"` 会把它当候选去拉，实测白拉 38.4KB。首页签名图补上 `width`，图片到达前后不跳行。
 - **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
