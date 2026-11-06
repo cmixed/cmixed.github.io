@@ -11,15 +11,18 @@
  * 编译进 dist/list.js（和 search / sort / filter-panel 同组，只有列表页需要）。
  */
 (() => {
-  const CARD = '.blog-page-card, .nook-card';
-  const BODY = '.blog-page-card-desc, .nook-card-desc';
+  const CARD = '.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card';
+  const BODY =
+    '.blog-page-card-desc, .nook-card-desc, .blog-preview-card-desc, .nook-preview-card-desc';
 
   /* 标签只占一行：能放几个放几个，剩下的隐藏，行尾补「+N」。
      容器是 nowrap，换行检测（offsetTop）在这里没意义，所以逐项累加宽度。
      卡片高度因此与标签数量无关。 */
   function clampTags(): void {
     document
-      .querySelectorAll<HTMLElement>('.blog-page-card-tags, .nook-card-tags')
+      .querySelectorAll<HTMLElement>(
+        '.blog-page-card-tags, .nook-card-tags, .blog-preview-card-tags, .nook-preview-card-tags'
+      )
       .forEach((box) => {
         const more = box.querySelector<HTMLElement>('.tag-more');
         if (!more) return;
@@ -101,6 +104,15 @@
   window.addEventListener('load', measure);
   window.addEventListener('resize', schedule, { passive: true });
   schedule();
+
+  /* 首页的博客 / 资源预览是 fetch 之后才插进来的，脚本执行时那批卡还不存在。
+     盯住两个网格的 childList，卡片一落地就重新量一次。 */
+  if ('MutationObserver' in window) {
+    const observer = new MutationObserver(schedule);
+    document
+      .querySelectorAll('.blog-preview-grid, .nook-preview-grid')
+      .forEach((grid) => observer.observe(grid, { childList: true }));
+  }
 
   window.initCardPopover = measure;
 })();

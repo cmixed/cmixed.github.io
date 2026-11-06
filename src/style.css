@@ -778,6 +778,8 @@ body.nav-open::before {
 /* ===== SECTIONS ===== */
 section {
     padding: 5rem 2rem;
+    /* 导航是 58px 的 sticky：锚点跳过来时留出这段高度，标题才不被压在导航下面 */
+    scroll-margin-top: calc(var(--nav-h) + 1.5rem);
     max-width: 960px;
     margin: 0 auto;
     content-visibility: auto;
@@ -1182,6 +1184,7 @@ html.fab-measuring section {
 }
 
 .blog-preview-card {
+    min-width: 0;
     background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -1237,7 +1240,9 @@ html.fab-measuring section {
 .blog-preview-card-tags {
     display: flex;
     gap: 0.4rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    min-width: 0;
     margin-bottom: 0.4rem;
 }
 
@@ -1249,6 +1254,7 @@ html.fab-measuring section {
 }
 
 .nook-preview-card {
+    min-width: 0;
     background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -1327,7 +1333,9 @@ html.fab-measuring section {
 .nook-preview-card-tags {
     display: flex;
     gap: 0.4rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    min-width: 0;
     margin-bottom: 0.4rem;
 }
 
@@ -3283,6 +3291,8 @@ html::after {
    作者样式优先级更高会把它盖掉 —— 这里显式补回来。 */
 .blog-page-card-tags span[hidden],
 .nook-card-tags span[hidden],
+.blog-preview-card-tags span[hidden],
+.nook-preview-card-tags span[hidden],
 .tag-more[hidden] {
     display: none;
 }

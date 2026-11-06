@@ -34,8 +34,8 @@ type SourceScript =
 const BUNDLES = {
   theme: ['theme'],
   cursor: ['cursor'],
-  ui: ['cursor', 'fab', 'scrollbar'],
-  list: ['search', 'sort', 'filter-panel', 'card-popover'],
+  ui: ['cursor', 'fab', 'scrollbar', 'card-popover'],
+  list: ['search', 'sort', 'filter-panel'],
 } as const satisfies Record<string, readonly SourceScript[]>;
 
 type BundleName = keyof typeof BUNDLES;
