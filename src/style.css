@@ -775,10 +775,10 @@ section {
     contain-intrinsic-size: auto 500px;
 }
 
-/* 合并后这张卡的高度远大于旧版的身份区（桌面约 680px、窄屏约 970px）。
-   占位值仍按旧尺寸写会让首屏滚动高度少算近 400px，滚到「关于」时页面突然长高、
-   滚动条拇指跟着跳一下；这里按实测值分区给，auto 之后会记住真实高度。 */
-#about { contain-intrinsic-size: auto 680px; }
+/* #about 的高度随文字换行连续变化，靠几个断点补不准：1024px 实测 742px、
+   769px 实测 919px、600px 实测 1020px，任何一档占位都会在展开时让页面长高或缩短。
+   它又紧贴首屏下方，content-visibility 省不了多少，索性不虚拟化这一块。 */
+#about { content-visibility: visible; }
 #projects { contain-intrinsic-size: auto 400px; }
 #contact { contain-intrinsic-size: auto 300px; }
 
@@ -1896,9 +1896,6 @@ html.modal-open .page-scrollbar-thumb {
         max-width: 90%;
     }
 
-    /* 卡内三列事实开始变挤、头像区更高，占位高度跟着抬一档 */
-    #about { contain-intrinsic-size: auto 860px; }
-
     .projects-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1939,8 +1936,6 @@ html.modal-open .page-scrollbar-thumb {
     .nav-links a {
         font-size: 1.1rem;
     }
-
-    #about { contain-intrinsic-size: auto 970px; }
 
     .about-card {
         padding: 1.35rem;
