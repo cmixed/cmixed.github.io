@@ -102,7 +102,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 ### 关于与技能
 
-「关于」与「技能」现在合在同一张 Mica 卡里，全站只保留一个「关于」区块标题，导航里的「技能」入口随之删除（`#skills` 仍作为深链锚点保留，方便直接分享到技能段）。上半是身份（头像 + 简介 + 三列事实），下半是能力（四组技能）；中间那条内分隔线上嵌一个 0.75rem 的「技能」小标签 —— 它只是导线的注记，字号与组名同级、不进入标题层级，所以不会像旧版的大标题那样把一张卡重新劈成两个区块。卡片高度比旧身份区高得多（桌面约 680px、窄屏约 970px），`#about` 的 `contain-intrinsic-size` 也按实测值分档更新；否则 `content-visibility: auto` 会先按 300px 占位，滚到这一段时页面突然长高、滚动条拇指跟着跳。
+「关于」与「技能」现在合在同一张 Mica 卡里，全站只保留一个「关于」区块标题，导航里的「技能」入口随之删除（`#skills` 仍作为深链锚点保留，方便直接分享到技能段）。上半是身份（头像 + 简介 + 三列事实），下半是能力（四组技能）；中间那条内分隔线上嵌一个 0.75rem 的「技能」小标签 —— 它只是导线的注记，字号与组名同级、不进入标题层级，所以不会像旧版的大标题那样把一张卡重新劈成两个区块。卡片高度随文字换行连续变化（实测 1440px 约 689px、1024px 约 742px、769px 约 919px、600px 约 1020px），靠几个 `contain-intrinsic-size` 断点补不准；所以 `#about` 不再参与 `content-visibility: auto`，避免展开时页面长高或缩短、滚动条拇指跟着跳。
 
 技能胶囊不再是外链，而是 `button`：点一下按 `projects.json` 的稳定 `id` 找到对应项目卡，滚到视口中央、描边高亮 1.8s，并把焦点交给那张卡（键盘 / 读屏用户因此知道落点变了，也能直接 Enter 进仓库）。数据侧用 `skills.json` 的 `project` 引用 `projects.json` 的 `id`，两边是否对得上由单测校验；显示标题可以改，跳转不会悄悄断掉。没有对应项目的技能（Linux、逆向等）仍是不可点的静态胶囊。
 
@@ -130,7 +130,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 **右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（和 cursor / scrollbar 一起构建成 `dist/ui.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框（导航 RSS 那个 `&#9741;` 就是前车之鉴）。
 
-「直达底部」不能直接滚到 `document.scrollHeight`：主页与文章页的 `<section>` 用了 `content-visibility: auto`，没进过视口的区块只按 `contain-intrinsic-size` 的占位高度计高（文章 800px、主页 500px），长文实测 `scrollHeight` 只有 46,065，真实高度 172,218。直接滚过去等于滚到「估算出来的底部」，滚动途中区块逐节展开、页面变长，于是停在半路 —— 表现为「卡在第 3 章，再点一次才到底」。所以点击时先给 `<html>` 加一帧 `fab-measuring`：所有 section 临时 `content-visibility: visible`，读一次 `scrollHeight` 逼出真实布局（长文 3.8ms）并滚过去，下一帧再撤类 —— 这一帧足够让 `contain-intrinsic-size: auto` 记住真实高度，撤掉后页面不会缩回去，`scrollTo` 的目标也不会被夹小。落地后再量一次，若仍差 >2px、且用户没有自己滚（`wheel` / 触摸 / 按键），补一次；`scrollend` 不可用时用 2.2s 超时兜底。
+「直达底部」不能直接滚到 `document.scrollHeight`：主页（`#about` 除外）与文章页的 `<section>` 用了 `content-visibility: auto`，没进过视口的区块只按 `contain-intrinsic-size` 的占位高度计高（文章 800px、主页 500px），长文实测 `scrollHeight` 只有 46,065，真实高度 172,218。直接滚过去等于滚到「估算出来的底部」，滚动途中区块逐节展开、页面变长，于是停在半路 —— 表现为「卡在第 3 章，再点一次才到底」。所以点击时先给 `<html>` 加一帧 `fab-measuring`：所有 section 临时 `content-visibility: visible`，读一次 `scrollHeight` 逼出真实布局（长文 3.8ms）并滚过去，下一帧再撤类 —— 这一帧足够让 `contain-intrinsic-size: auto` 记住真实高度，撤掉后页面不会缩回去，`scrollTo` 的目标也不会被夹小。落地后再量一次，若仍差 >2px、且用户没有自己滚（`wheel` / 触摸 / 按键），补一次；`scrollend` 不可用时用 2.2s 超时兜底。
 
 **正文排版只有一份**：README 是 Markdown，博客文章也是，所以原来写在 `blog/template/post.html` 内联样式里的 `.blog-article-content h1 … table` 整块搬进了 `src/style.css`、改名 `.md-body`，文章页容器同时挂 `md-body` 类（`body.indent` 首行缩进、TOC、mermaid、代码块语言角标这类文章页独有的东西仍留在模板里）。搬家前后逐页比对过：2 篇文章 × 2 主题 × 桌面 / 移动 × 3 个滚动位置，**像素级 0 差异**；之后调正文字号只改一处。
 

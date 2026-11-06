@@ -44,7 +44,7 @@
   /**
    * 量一次「真实的」页面底部再滚。
    *
-   * 主页和文章页把 <section> 交给了 content-visibility: auto：没进过视口的区块
+   * 主页（`#about` 除外）和文章页把 <section> 交给了 content-visibility: auto：没进过视口的区块
    * 只按 contain-intrinsic-size 的占位高度计高（主页 500px、文章 800px），
    * 所以 document.scrollHeight 在长文里会远小于真实高度（实测 46,065 vs 172,218）。
    * 直接滚到 scrollHeight 等于滚到「估算出来的底部」，滚动途中区块逐节展开，
