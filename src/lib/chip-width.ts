@@ -17,10 +17,10 @@ const WIDE =
 export function chipCols(text: string, extraEm = 0): number {
   /* 按 em 累加：全角 1em，拉丁字母 / 数字 / 标点约 0.55em（Inter 12px 下的实测均值）。
      再加 1.5em 给左右内边距与 1px 边框，extraEm 给计数或图标。
-     最后按「2 个中文字 = 2em」一档向上取整，最少 1 档。 */
+     **步长 1 个汉字（1em）**：粒度比早先的 2em 细一档，短标签不必被撑到下一个双字档。 */
   let em = 0;
   for (const ch of text) em += WIDE.test(ch) ? 1 : 0.55;
-  return Math.max(1, Math.ceil((em + 1.5 + extraEm) / 2));
+  return Math.max(1, Math.ceil(em + 1.5 + extraEm));
 }
 
 /** 直接拼进 HTML 的 style 片段：` style="--chip-cols:2"`。 */

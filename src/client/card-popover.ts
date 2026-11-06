@@ -14,7 +14,55 @@
   const CARD = '.blog-page-card, .nook-card';
   const BODY = '.blog-page-card-desc, .nook-card-desc';
 
+  /* 标签只占一行：能放几个放几个，剩下的隐藏，行尾补「+N」。
+     容器是 nowrap，换行检测（offsetTop）在这里没意义，所以逐项累加宽度。
+     卡片高度因此与标签数量无关。 */
+  function clampTags(): void {
+    document
+      .querySelectorAll<HTMLElement>('.blog-page-card-tags, .nook-card-tags')
+      .forEach((box) => {
+        const more = box.querySelector<HTMLElement>('.tag-more');
+        if (!more) return;
+        const tags = Array.from(box.children).filter(
+          (el): el is HTMLElement => el instanceof HTMLElement && el !== more
+        );
+        if (tags.length === 0) return;
+
+        tags.forEach((tag) => {
+          tag.hidden = false;
+        });
+        more.hidden = true;
+
+        const limit = box.clientWidth;
+        const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
+        let used = 0;
+        let fit = 0;
+        for (const tag of tags) {
+          const next = used + (fit ? gap : 0) + tag.getBoundingClientRect().width;
+          if (next > limit) break;
+          used = next;
+          fit += 1;
+        }
+        if (fit >= tags.length) return;
+
+        /* 要给「+N」腾位置：放不下就再退一个标签，直到总数 + 计数不超宽 */
+        more.hidden = false;
+        more.textContent = `+${tags.length - fit}`;
+        let moreWidth = more.getBoundingClientRect().width;
+        while (fit > 0 && used + gap + moreWidth > limit) {
+          fit -= 1;
+          used -= tags[fit].getBoundingClientRect().width + (fit ? gap : 0);
+          more.textContent = `+${tags.length - fit}`;
+          moreWidth = more.getBoundingClientRect().width;
+        }
+        tags.forEach((tag, index) => {
+          tag.hidden = index >= fit;
+        });
+      });
+  }
+
   function measure(): void {
+    clampTags();
     document.querySelectorAll<HTMLElement>(CARD).forEach((card) => {
       const body = card.querySelector<HTMLElement>(BODY);
       if (!body) return;
