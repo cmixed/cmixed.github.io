@@ -357,7 +357,37 @@ async function build(): Promise<void> {
 
   writeFileSync(join(outDir, 'feed.xml'), rss);
 
-  console.log(`✓ ${resources.length} resources, ${categories.length} categories, RSS feed`);
+  // Generate sitemap. The root /sitemap.xml is an index that references this file.
+  const buildDate = new Date().toISOString().slice(0, 10);
+  const latestUpdated = resources.reduce(
+    (latest, r) => (r.updated > latest ? r.updated : latest),
+    buildDate
+  );
+  const sitemapUrls = resources
+    .map(
+      (r) => `  <url>
+    <loc>https://cmixed.github.io/nook/${encodeURIComponent(r.id)}.html</loc>
+    <lastmod>${r.updated || buildDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`
+    )
+    .join('\n');
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cmixed.github.io/nook/</loc>
+    <lastmod>${latestUpdated}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+${sitemapUrls}
+</urlset>`;
+  writeFileSync(join(outDir, 'sitemap.xml'), sitemap);
+
+  console.log(
+    `✓ ${resources.length} resources, ${categories.length} categories, RSS feed, sitemap`
+  );
 }
 
 // Only run build when executed directly, not when imported
