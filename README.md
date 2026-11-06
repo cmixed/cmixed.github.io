@@ -157,11 +157,12 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 │   ├── template/        # 详情页模板
 │   ├── index.html       # 资源列表页骨架（分类 / 标签筛选同上）
 │   ├── 404.html         # 小窝自己的 404 页
-│   └── build.ts
+│   └── build.ts         # 生成列表、详情页、RSS、sitemap 与 data.json
 ├── public/              # 原样拷到站点根 —— 这里的目录结构就是 URL 结构
 │   ├── 404.html         #   /404.html（GitHub Pages 只认这个路径，挪走就没有自定义 404）
 │   ├── robots.txt       #   /robots.txt（爬虫只读根目录）
-│   ├── sitemap.xml      #   /sitemap.xml（由 robots.txt 声明）
+│   ├── sitemap.xml      #   /sitemap.xml（sitemap index，由 robots.txt 声明）
+│   ├── sitemap-pages.xml #  /sitemap-pages.xml（首页等静态页）
 │   └── assets/          #   站内引用的图：og-image.png / icons/ / 签名 / 头像
 ├── scripts/             # 构建期脚本：都由 vp 调起，不进前端打包图
 │   ├── optimize-images.ts   # PNG → AVIF
@@ -187,13 +188,14 @@ dist/
 ├── list.js               # search + sort，博客 / 资源小窝列表页共用
 ├── assets/               # 打包后的 CSS / JS，外加 public/assets 原样拷来的图
 ├── blog/                 # 列表页、文章页、data.json、feed.xml、sitemap.xml、vendor/、mermaid/
-├── nook/                 # 列表页、详情页、data.json
+├── nook/                 # 列表页、详情页、data.json、feed.xml、sitemap.xml
 ├── 404.html              # 来自 public/404.html
 ├── robots.txt
-└── sitemap.xml
+├── sitemap-pages.xml     # 首页等静态页
+└── sitemap.xml           # sitemap index（pages / blog / nook）
 ```
 
-`public/` 不是素材仓库，它的目录结构就是站点 URL 结构。所以只把**路径被约定死的**文件留在根目录（`404.html` 是 GitHub Pages 的约定，`robots.txt` / `sitemap.xml` 是爬虫的约定），其余按用途收进 `assets/`：换目录就等于换 URL，而约定路径一挪就失效。
+`public/` 不是素材仓库，它的目录结构就是站点 URL 结构。所以只把**路径被约定死的**文件留在根目录（`404.html` 是 GitHub Pages 的约定，`robots.txt` / `sitemap.xml` 是爬虫的约定，`sitemap-pages.xml` 是 sitemap index 的子项），其余按用途收进 `assets/`：换目录就等于换 URL，而约定路径一挪就失效。
 
 `blog/` 与 `nook/` 里只有页面自己的产物；四个脚本都在站点根，模板用 `../ui.js` 或 `/ui.js` 引用。以前每个子目录还会复制一份同名脚本，但没有任何页面引用它们 —— 现在只保留 `style.css` 这一份真正被 `href="style.css"` 用到的副本。
 

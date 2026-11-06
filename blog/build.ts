@@ -553,14 +553,8 @@ async function build(): Promise<void> {
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://cmixed.github.io/</loc>
-    <lastmod>2026-08-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
     <loc>https://cmixed.github.io/blog/</loc>
-    <lastmod>${posts.length > 0 ? posts[0].updated : '2026-08-22'}</lastmod>
+    <lastmod>${posts.length > 0 ? posts[0].updated : toYmd(new Date())}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
