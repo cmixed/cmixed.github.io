@@ -3833,7 +3833,10 @@ html.modal-open .fx-layer { visibility: hidden; }
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--mica-raised);
+    /* 与导航同一层材质：--mica-chrome 是「标题栏层」，比卡片的抬升层（--mica-raised）更实。
+       刻意不挂 backdrop-filter —— 导航那层本来就有 0.90 不透明，模糊在视觉上看不出来，
+       却会让这三颗常驻按钮在漂移层背后每帧重模糊一次。 */
+    background: var(--mica-chrome);
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text-dim);
@@ -3855,7 +3858,9 @@ html.modal-open .fx-layer { visibility: hidden; }
 
 .fab-btn:hover,
 .fab-btn:focus-visible {
-    background: var(--chip-fill-hover);
+    /* 底色保持 chrome（不换底，否则三颗按钮会和导航脱开），
+       只在上面叠一层淡青 —— 用 background-image 叠层，不是改 background-color */
+    background-image: linear-gradient(var(--chip-fill-hover), var(--chip-fill-hover));
     border-color: var(--primary);
     color: var(--primary-text);
 }
