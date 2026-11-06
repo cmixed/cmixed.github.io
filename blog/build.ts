@@ -587,7 +587,7 @@ ${sitemapUrls}
   ].join('');
   const postsHtml = posts
     .map((p) => {
-      const pinMark = p.pinned ? '📌 ' : '';
+      const pinMark = p.pinned ? '<span class="pin-badge">置顶</span>' : '';
       // 客户端搜索的匹配源：标题 + 摘要 + 标签（仅元数据，不含正文）
       const searchKey = [p.title, p.description, ...p.tags].join(' ').toLowerCase();
       return `
