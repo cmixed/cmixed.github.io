@@ -199,6 +199,10 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         behavior: reduceMotion ? 'auto' : 'smooth',
         block: 'start',
       });
+      /* preventDefault 之后浏览器不会自己改 hash：手动写回去，
+         否则「跳到个人博客卡片」这个位置既不能分享，前进 / 后退也记不住。 */
+      const href = this.getAttribute('href');
+      if (href && href.length > 1) history.pushState(null, '', href);
     }
   });
 });
@@ -313,7 +317,7 @@ async function loadBlogPreview(): Promise<void> {
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
                     <div class="blog-preview-card-tags">
-                        ${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}
+                        ${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}<span class="tag-more" hidden></span>
                     </div>
                     <div class="blog-preview-card-meta">创建于 ${escapeHtml(p.date)} · 更新于 ${escapeHtml(p.updated)}</div>
                 </div>
@@ -360,7 +364,7 @@ async function loadNookPreview(): Promise<void> {
                 <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>
                 <div class="nook-preview-card-footer">
                     <div class="nook-preview-card-tags">
-                        ${r.tags.map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}
+                        ${r.tags.map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}<span class="tag-more" hidden></span>
                     </div>
                     <div class="nook-preview-card-meta">${escapeHtml(r.size)} · ${escapeHtml(r.date)}</div>
                 </div>
