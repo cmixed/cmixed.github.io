@@ -2849,18 +2849,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     gap: 0.1rem;
     height: var(--list-row);
     margin-left: auto;
-    padding: 0.15rem;
+    /* 「排序」二字已去掉：左侧补一点内边距，否则第一段按钮会贴住描边 */
+    padding: 0.15rem 0.15rem 0.15rem 0.3rem;
     background: var(--chip-fill);
     border: 1px solid var(--chip-border);
     border-radius: 999px;
-}
-
-.list-sort-label {
-    padding: 0 0.55rem 0 0.6rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.02em;
-    color: var(--text-muted);
-    white-space: nowrap;
 }
 
 .list-sort-btn {
