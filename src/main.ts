@@ -1,5 +1,6 @@
 import projects from './data/projects.json';
 import skills from './data/skills.json';
+import { chipCols } from './lib/chip-width';
 import { categoryIcon, pinBadge } from './lib/icons';
 
 interface SkillItem {
@@ -213,11 +214,11 @@ function renderProjects(): void {
                     <div class="project-title">${escapeHtml(p.title)}</div>
                     <div class="project-subtitle">${escapeHtml(p.subtitle)}</div>
                 </div>
-                <span class="project-status">${escapeHtml(p.status)}</span>
+                <span class="project-status" style="--chip-cols:${chipCols(p.status)}">${escapeHtml(p.status)}</span>
             </div>
             <div class="project-desc">${escapeHtml(p.desc)}</div>
             <div class="project-tech">
-                ${p.tags.map((t) => `<span class="tech-tag">${escapeHtml(t)}</span>`).join('')}
+                ${p.tags.map((t) => `<span class="tech-tag" style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}
             </div>
         </a>
     `
@@ -312,7 +313,7 @@ async function loadBlogPreview(): Promise<void> {
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
                     <div class="blog-preview-card-tags">
-                        ${p.tags.map((t) => `<span>${escapeHtml(t)}</span>`).join('')}
+                        ${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}
                     </div>
                     <div class="blog-preview-card-meta">创建于 ${escapeHtml(p.date)} · 更新于 ${escapeHtml(p.updated)}</div>
                 </div>
@@ -359,7 +360,7 @@ async function loadNookPreview(): Promise<void> {
                 <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>
                 <div class="nook-preview-card-footer">
                     <div class="nook-preview-card-tags">
-                        ${r.tags.map((t: string) => `<span>${escapeHtml(t)}</span>`).join('')}
+                        ${r.tags.map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}
                     </div>
                     <div class="nook-preview-card-meta">${escapeHtml(r.size)} · ${escapeHtml(r.date)}</div>
                 </div>

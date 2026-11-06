@@ -1,8 +1,9 @@
 /**
- * 列表页（博客 / 资源小窝）左侧筛选栏的开关。
+ * 列表页（博客 / 资源小窝）筛选区的开关，以及标签长尾的展开 / 收起。
  *
- * 桌面 ≥1280：停靠在卡片左侧，展开时页面加宽，标签列表在栏内滚动。
- * <1280：变成左侧抽屉，遮罩 / Esc / 选中标签都能收起。
+ * 桌面 ≥1280：左侧 sticky 栏，展开时页面加宽，标签在栏内滚动。
+ * <1280：不再是抽屉 —— 标签区常显在列表上方（见 style.css），导航里的开关隐藏，
+ *         这个文件在那两个断点上只剩折叠逻辑。
  *
  * 状态放在 <html> 的 class 上，页面 <head> 里有一小段同步脚本按
  * localStorage + 视口宽度先加好 class，所以桌面默认展开不会闪一下再跳宽。
@@ -136,6 +137,19 @@
       syncToggle();
       requestAnimationFrame(syncFade);
     });
+
+    /* 长尾折叠：计数为 1 的标签由构建期打上 .is-tail、默认收起。
+       展开状态放在 .list-filters 上（CSS 只认 .expanded），按钮文案互切。 */
+    const moreBtn = panel.querySelector<HTMLButtonElement>('.list-chip-more');
+    const tailBox = panel.querySelector<HTMLElement>('.list-filters');
+    if (moreBtn && tailBox) {
+      const collapsedLabel = moreBtn.textContent ?? '展开';
+      moreBtn.addEventListener('click', () => {
+        const expanded = tailBox.classList.toggle('expanded');
+        moreBtn.setAttribute('aria-expanded', String(expanded));
+        moreBtn.textContent = expanded ? '收起' : collapsedLabel;
+      });
+    }
 
     scrollEl.addEventListener('scroll', syncFade, { passive: true });
     window.addEventListener('resize', syncFade, { passive: true });
