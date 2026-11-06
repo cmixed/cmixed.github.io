@@ -53,6 +53,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-26.04
     needs: [check, build]
+    # 队列偶尔会排很久，超时比无限挂着好排查
+    timeout-minutes: 15
+    # deploy-pages 的依赖链里还有包在 require Node 内置的 punycode，
+    # 于是每次部署都打一遍 DEP0040 弃用告警。那是 action 自己的依赖，
+    # 项目这边改不到；这里只关掉弃用告警的输出，不影响部署行为。
+    # 等 action 更新掉这条依赖后可以删掉。
+    env:
+      NODE_OPTIONS: --no-deprecation
     steps:
       - uses: actions/deploy-pages@v5
         id: deployment
