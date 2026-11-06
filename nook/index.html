@@ -50,7 +50,8 @@
         .nook-card {
             /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
             border: 1px solid var(--border); border-radius: 12px;
-            padding: 1.25rem; position: relative; display: flex; flex-direction: column;
+            /* min-width: 0：标签行 nowrap，不写这条 grid 项会被标签总宽顶开 */
+            padding: 1.25rem; position: relative; display: flex; flex-direction: column; min-width: 0;
             text-decoration: none; color: inherit; overflow: visible; height: 100%;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             box-shadow: var(--mica-elev-1);
@@ -87,20 +88,24 @@
             min-height: calc(3 * 1.6 * 0.85rem);
         }
         .nook-card-footer { margin-top: auto; }
+        /* 只占一行：放不下的标签由 list.js 隐藏，行尾补一个「+N」。
+           卡片高度因此不再随标签数量变化。 */
         .nook-card-tags {
-            display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem;
-            max-height: 3.9rem; overflow: hidden;
+            display: flex; gap: 0.4rem; flex-wrap: nowrap; margin-bottom: 1rem;
+            overflow: hidden; min-width: 0;
         }
-        .nook-card-meta { display: flex; justify-content: space-between; align-items: center; }
-        .nook-card-info { font-size: 0.8rem; color: var(--text-muted); }
+        /* 元信息与按钮挤在一行：250px 的卡里字号各收一档，日期不许折行 */
+        .nook-card-meta { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+        .nook-card-info { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
 
         /* 浮窗样式统一在 style.css 的「卡片浮窗」一节（博客与资源小窝共用），
            这里不再各自维护一份；只有正文真的被 line-clamp 截断时才会出现。 */
 
         .nook-download {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            padding: 0.5rem 1rem; background: var(--primary); color: #fff;
-            border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.35rem 0.6rem; background: var(--primary); color: #fff;
+            border: none; border-radius: 6px; font-size: 0.72rem; font-weight: 500;
+            white-space: nowrap;
             cursor: pointer; transition: background 0.3s, transform 0.3s, color 0.3s;
         }
         .nook-download:hover { background: transparent; color: var(--primary-text); transform: translateY(-1px); }

@@ -208,7 +208,7 @@ function renderResources(resources: ResourceData[]): string {
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
             <div class="nook-card-footer">
-                <div class="nook-card-tags">${tags}</div>
+                <div class="nook-card-tags">${tags}<span class="tag-more" hidden></span></div>
                 <div class="nook-card-meta">
                     <span class="nook-card-info">${metaStr}</span>
                     ${fileBtn}

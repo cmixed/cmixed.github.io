@@ -95,7 +95,7 @@
     --chip-radius: 6px;
     --chip-pad-y: 0.2rem;
     --chip-pad-x: 0.5rem;
-    --chip-font: 0.75rem;
+    --chip-font: 0.8125rem;
     /* --- 可点控件（筛选胶囊 / 浅色按钮）的材质 ---
        只读标签有 --mica-chip 的填色顶着，胶囊原本是透明底 + --border 描边；
        实测那条边框相对页面底色只有 1.69:1（浅色 1.38:1），远低于控件边界该有的
@@ -2715,12 +2715,12 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 @media (min-width: 1280px) {
     html.filters-open .blog-page,
     html.filters-open .nook-page {
-        max-width: min(calc(var(--list-max) + 232px), calc(100vw - 2rem));
+        max-width: min(calc(var(--list-max) + 272px), calc(100vw - 2rem));
     }
 
     html.filters-open .list-layout {
         display: grid;
-        grid-template-columns: 200px minmax(0, 1fr);
+        grid-template-columns: 240px minmax(0, 1fr);
         grid-template-areas: 'filters main';
         gap: 2rem;
         align-items: start;
@@ -2733,10 +2733,31 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     html.filters-open .list-filters-panel {
         grid-area: filters;
         display: flex;
+        /* 标题「标签 / 分类」与「全部」同一行起排：标题在左当注记，标签区在右换行 */
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.55rem;
         position: sticky;
         top: calc(var(--nav-h) + 1.5rem);
         max-height: calc(100dvh - var(--nav-h) - 3rem);
         padding-top: 0.2rem;
+    }
+
+    html.filters-open .list-filters-head {
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        /* 与第一行胶囊的文字中线对齐 */
+        padding-top: 0.3rem;
+    }
+
+    /* 桌面是常驻栏，没有「关闭」这回事 */
+    html.filters-open .list-filters-close {
+        display: none;
+    }
+
+    html.filters-open .list-filters-scroll {
+        flex: 1 1 auto;
+        min-width: 0;
     }
 }
 
@@ -3128,7 +3149,7 @@ html::after {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    min-width: calc(var(--chip-cols, 1) * 2em);
+    min-width: calc(var(--chip-cols, 1) * 1em);
 }
 
 /* 定长标签不参与量化：hash 是 7 位十六进制、语言角标是 2–4 个字母，
@@ -3159,30 +3180,21 @@ html::after {
     /* 12px 下 400 太细，胶囊边界一变清楚，字也要跟上 */
     font-weight: 500;
     line-height: 1.45;
-    color: var(--text-dim);
-    background: transparent;
-    /* 透明边框占位：hover 时补上颜色，尺寸不会跳 */
-    border: 1px solid transparent;
+    color: var(--text);
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
     border-radius: 999px;
     cursor: pointer;
     text-decoration: none;
     transition: background 0.2s, border-color 0.2s, color 0.2s;
     /* 与只读标签同一套量化（见下方「内容标签」选择器组）：保底对齐，内容宽可撑开 */
     box-sizing: border-box;
-    min-width: calc(var(--chip-cols, 1) * 2em);
-}
-
-/* 触屏没有 hover，一列纯文字看不出可点：把淡填充补回来。
-   `.list-chip.active` 特异性更高（0,2,0），不会被这条盖掉。 */
-@media (hover: none) {
-    .list-chip {
-        background: var(--chip-fill);
-    }
+    min-width: calc(var(--chip-cols, 1) * 1em);
 }
 
 .list-chip:hover {
     background: var(--chip-fill-hover);
-    border-color: var(--chip-border);
+    border-color: var(--primary);
     color: var(--primary-text);
 }
 
@@ -3208,25 +3220,63 @@ html::after {
    文案由 filter-panel.ts 切换。 */
 
 /* 「其他 N 个」是控件，不是一个筛选值：用虚线描边和实体标签分开 */
+/* 展开 / 收起不再做成胶囊：它是一次「展开更多」的动作，不是一个筛选值。
+   整行一条细线、文字压在线上（两侧各留一段线），和胶囊区自然分开。
+   触屏要 44px 的点击高度 —— 线只有 1px，靠 min-height 撑出热区。 */
 .list-chip-more {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: var(--chip-pad-y) 0.55rem;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0;
     font-family: inherit;
     font-size: var(--chip-font);
     font-weight: 500;
     color: var(--text-muted);
     background: transparent;
-    border: 1px dashed var(--chip-border);
-    border-radius: 999px;
+    border: 0;
     cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color 0.2s;
+}
+
+.list-chip-more::before,
+.list-chip-more::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--border);
+    transition: background 0.2s;
 }
 
 .list-chip-more:hover {
     color: var(--primary-text);
-    border-color: var(--primary);
+}
+
+.list-chip-more:hover::before,
+.list-chip-more:hover::after {
+    background: var(--chip-border);
+}
+
+/* 标签行尾的「+N」：不是标签，是「还有几个没显示」的计数。
+   与胶囊同字号，但不带底色与描边，避免被当成可点的筛选值。 */
+/* [hidden] 的 UA 规则是 display:none，但上面这些 span 都写了 display:inline-flex，
+   作者样式优先级更高会把它盖掉 —— 这里显式补回来。 */
+.blog-page-card-tags span[hidden],
+.nook-card-tags span[hidden],
+.tag-more[hidden] {
+    display: none;
+}
+
+.tag-more {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--chip-pad-y) var(--chip-pad-x);
+    font-size: var(--chip-font);
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
 /* ===== 卡片浮窗（博客 / 资源小窝共用）=====

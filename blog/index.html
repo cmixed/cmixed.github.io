@@ -34,8 +34,10 @@
         .blog-page-card {
             /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
             border: 1px solid var(--border); border-radius: 12px;
-            /* overflow 必须是 visible：浮窗绝对定位在卡片下方，hidden 会把它裁掉 */
-            padding: 1.25rem; position: relative; overflow: visible;
+            /* overflow 必须是 visible：浮窗绝对定位在卡片下方，hidden 会把它裁掉。
+               min-width: 0 必须有：标签行是 nowrap，grid 项默认 min-width:auto 会被
+               全部标签的总宽顶开，窄屏下整张卡撑破视口。 */
+            padding: 1.25rem; position: relative; overflow: visible; min-width: 0;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             text-decoration: none; color: inherit;
             /* 纵向 flex：footer 的 margin-top:auto 才能把标签与元信息压到卡片底部，
@@ -68,7 +70,7 @@
             min-height: calc(3 * 1.6 * 0.85rem);
         }
         .blog-page-card-footer { margin-top: auto; }
-        .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: nowrap; overflow: hidden; margin-bottom: 1rem; min-width: 0; }
         /* 这一行是长句（阅读 / 创建 / 更新 / 字数 / 图片），窄卡里会换行。
            keep-all 禁止在中文词内部断行：否则行尾刚好塞满时会掉一个「片」到下一行；
            分隔点前的空格在构建时写成 \u00a0，所以「·」跟着前一段走，不会顶到行首。 */

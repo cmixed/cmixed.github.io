@@ -603,7 +603,7 @@ ${sitemapUrls}
             <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-footer">
-                <div class="blog-page-card-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`).join('')}</div>
+                <div class="blog-page-card-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`).join('')}<span class="tag-more" hidden></span></div>
                 <div class="blog-page-card-meta">阅读约 ${p.readTime}\u00a0分钟\u00a0· 创建于\u00a0${escapeXml(p.date)}\u00a0· 更新于\u00a0${escapeXml(p.updated)}\u00a0· ${p.wordCount}\u00a0字\u00a0· ${p.imageCount}\u00a0张图片</div>
             </div>
             <span class="card-popover" aria-hidden="true">
