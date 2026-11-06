@@ -487,6 +487,10 @@ async function build(): Promise<void> {
       wordCount: String(post.wordCount),
       imageCount: String(post.imageCount),
       tags: post.tags.map((t) => `<span class="tag">${escapeXml(t)}</span>`).join(' '),
+      keywords: escapeXml(post.tags.join(', ')),
+      articleTags: post.tags
+        .map((t) => `<meta property="article:tag" content="${escapeXml(t)}">`)
+        .join('\n    '),
       toc,
       content,
       tocCollapsed: tocCollapsed ? ' class="toc-collapsed"' : '',
