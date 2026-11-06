@@ -30,11 +30,12 @@
            「列表页头部」「小标签」两节里，博客与资源小窝共用同一份。 */
 
         .blog-page { --list-max: 800px; max-width: var(--list-max); margin: 0 auto; padding: 3rem 2rem; }
-        .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+        .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; grid-auto-rows: 1fr; }
         .blog-page-card {
             /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
             border: 1px solid var(--border); border-radius: 12px;
-            padding: 1.5rem; position: relative; overflow: hidden;
+            /* overflow 必须是 visible：浮窗绝对定位在卡片下方，hidden 会把它裁掉 */
+            padding: 1.25rem; position: relative; overflow: visible;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             text-decoration: none; color: inherit;
             /* 纵向 flex：footer 的 margin-top:auto 才能把标签与元信息压到卡片底部，
@@ -51,8 +52,21 @@
         /* 卡片内部顺序与小窝列表一致：标题 → 摘要 → 标签 → 元信息。
            之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间，
            正文反而沉到卡片最底下，两页放在一起看是两种卡片。 */
-        .blog-page-card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.75rem; }
-        .blog-page-card-desc { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem; }
+        .blog-page-card-title {
+            font-weight: 700; font-size: 1.1rem; margin-bottom: 0.75rem;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        /* 摘要固定三行：卡片高度不再随摘要长短起伏，同一页的卡看起来才像一套。
+           被截掉的部分由浮窗补（只有真的截断时才出现，见 style.css「卡片浮窗」）。 */
+        .blog-page-card-desc {
+            font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+            overflow: hidden;
+            /* 固定三行高：摘要只有一两行的卡不再留一块空洞，
+               同一行卡片的标签行与元信息行因此落在同一条水平线上。 */
+            min-height: calc(3 * 1.6 * 0.85rem);
+        }
         .blog-page-card-footer { margin-top: auto; }
         .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
         /* 这一行是长句（阅读 / 创建 / 更新 / 字数 / 图片），窄卡里会换行。
@@ -264,6 +278,7 @@
             });
 
             window.initFilterPanel();
+            window.initCardPopover();
         })();
     </script>
 </body>

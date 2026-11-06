@@ -20,14 +20,22 @@ import { join } from 'node:path';
 import { transform } from 'esbuild';
 import type { Plugin } from 'vite-plus';
 
-type SourceScript = 'theme' | 'cursor' | 'search' | 'sort' | 'filter-panel' | 'fab' | 'scrollbar';
+type SourceScript =
+  | 'theme'
+  | 'cursor'
+  | 'search'
+  | 'sort'
+  | 'filter-panel'
+  | 'card-popover'
+  | 'fab'
+  | 'scrollbar';
 
 /** 产物名 → 源码（按顺序拼接，各自仍是独立 IIFE）。 */
 const BUNDLES = {
   theme: ['theme'],
   cursor: ['cursor'],
   ui: ['cursor', 'fab', 'scrollbar'],
-  list: ['search', 'sort', 'filter-panel'],
+  list: ['search', 'sort', 'filter-panel', 'card-popover'],
 } as const satisfies Record<string, readonly SourceScript[]>;
 
 type BundleName = keyof typeof BUNDLES;
