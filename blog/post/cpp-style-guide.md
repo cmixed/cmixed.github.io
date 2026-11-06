@@ -76,14 +76,14 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 
 # ==========================================
-# Header Sorting & Comment Protection
+# Header Order & Comment Protection
 # ==========================================
-SortIncludes: true
+SortIncludes: Never
 # 保护 Doxygen 注释中的 @ 命令不被 clang-format 破坏
 CommentPragmas: ' ?[\\@][a-zA-Z].*$'
 ```
 
-> 如果项目对 include 顺序有硬依赖（PCH、平台头、必须第一的配置头），把 `SortIncludes` 改成 `Never`，或加一行 `IncludeBlocks: Preserve`，避免 clang-format 重新分组。
+> `SortIncludes: Never` 是默认：clang-format 不重排 include，避免打乱 PCH、平台头或必须第一的配置头。需要自动排序时再改成 `CaseSensitive`，并先确认 include 顺序没有依赖。
 
 ## 3. 命名规范（`.clang-tidy`）
 
