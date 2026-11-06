@@ -41,8 +41,8 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 
 # ==========================================
-# Header Sorting & Comment Protection
+# Header Order & Comment Protection
 # ==========================================
-SortIncludes: true
+SortIncludes: Never
 # 保护 Doxygen 注释中的 @ 命令不被 clang-format 破坏
 CommentPragmas: ' ?[\\@][a-zA-Z].*$'
