@@ -8,6 +8,7 @@ import {
   getGitLastModified,
   type NameCount,
 } from '../src/lib/build-utils';
+import { categoryIcon, icon, pinBadge, replaceIcons } from '../src/lib/icons';
 import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -46,13 +47,6 @@ interface ResourceMeta extends Record<string, unknown> {
 function parseFrontmatter(content: string): { meta: ResourceMeta; body: string } {
   return parseFrontmatterBase<ResourceMeta>(content);
 }
-
-const CATEGORY_ICONS: Record<string, string> = {
-  doc: '📄',
-  tool: '🔧',
-  code: '💻',
-  website: '🌐',
-};
 
 const CATEGORY_NAMES: Record<string, string> = {
   doc: '文档',
@@ -160,15 +154,15 @@ function discoverResources(): ResourceData[] {
 }
 
 function renderFilters(categories: NameCount[], total: number): string {
-  const allBtn = `<button type="button" class="list-chip active" data-category=""><span class="list-chip-label">全部</span><span class="list-chip-count">${total}</span></button>`;
+  const allBtn = `<button type="button" class="list-chip active" data-category=""><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${total}</span></button>`;
   const catBtns = categories
     .map(
       ({ name, count }) =>
         `<button type="button" class="list-chip" data-category="${escapeXml(
           name
-        )}"><span class="list-chip-label">${CATEGORY_ICONS[name] || ''} ${escapeXml(
+        )}"><span class="list-chip-label">${categoryIcon(name)}<span class="list-chip-text">${escapeXml(
           CATEGORY_NAMES[name] || name
-        )}</span><span class="list-chip-count">${count}</span></button>`
+        )}</span></span><span class="list-chip-count">${count}</span></button>`
     )
     .join('');
   return allBtn + catBtns;
@@ -176,12 +170,12 @@ function renderFilters(categories: NameCount[], total: number): string {
 
 function renderResources(resources: ResourceData[]): string {
   if (resources.length === 0) {
-    return `<div class="nook-empty"><div class="nook-empty-icon">📦</div><p>暂无资源</p></div>`;
+    return `<div class="nook-empty"><div class="nook-empty-icon">${icon('package')}</div><p>暂无资源</p></div>`;
   }
 
   return resources
     .map((r) => {
-      const icon = CATEGORY_ICONS[r.category] || '📦';
+      const catIcon = categoryIcon(r.category);
       const catName = CATEGORY_NAMES[r.category] || r.category;
       const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
       let fileBtn: string;
@@ -205,7 +199,7 @@ function renderResources(resources: ResourceData[]): string {
       return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}" data-date="${escapeXml(r.date)}" data-updated="${escapeXml(r.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="nook-card-header">
                 <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
-                <span class="nook-card-category">${icon} ${catName}</span>
+                <span class="nook-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
             <div class="nook-card-footer">
@@ -226,7 +220,7 @@ function renderResources(resources: ResourceData[]): string {
 }
 
 function renderDetailPage(r: ResourceData): string {
-  const icon = CATEGORY_ICONS[r.category] || '📦';
+  const catIcon = categoryIcon(r.category);
   const catName = CATEGORY_NAMES[r.category] || r.category;
   const tags = r.tags.map((t) => `<span>${escapeXml(t)}</span>`).join('');
   const metaParts = [];
@@ -247,20 +241,22 @@ function renderDetailPage(r: ResourceData): string {
     : '';
 
   const tpl = readFileSync(join(__dirname, 'template', 'detail.html'), 'utf-8');
-  const pinMark = r.pin ? '<span class="pin-badge">置顶</span>' : '';
-  return tpl
-    .replace('{{titleHtml}}', pinMark + escapeXml(r.title))
-    .replace(/\{\{title\}\}/g, escapeXml(r.title))
-    .replace('{{description}}', escapeXml(r.description))
-    .replace('{{slug}}', encodeURIComponent(r.id))
-    .replace('{{categoryIcon}}', icon)
-    .replace('{{categoryName}}', catName)
-    .replace('{{size}}', metaStr)
-    .replace('{{date}}', '')
-    .replace('{{tags}}', tags)
-    .replace('{{downloadBtn}}', downloadBtn)
-    .replace('{{descriptionHtml}}', descriptionHtml)
-    .replace('{{content}}', content);
+  const pinMark = r.pin ? pinBadge() : '';
+  return replaceIcons(
+    tpl
+      .replace('{{titleHtml}}', pinMark + escapeXml(r.title))
+      .replace(/\{\{title\}\}/g, escapeXml(r.title))
+      .replace('{{description}}', escapeXml(r.description))
+      .replace('{{slug}}', encodeURIComponent(r.id))
+      .replace('{{categoryIcon}}', catIcon)
+      .replace('{{categoryName}}', catName)
+      .replace('{{size}}', metaStr)
+      .replace('{{date}}', '')
+      .replace('{{tags}}', tags)
+      .replace('{{downloadBtn}}', downloadBtn)
+      .replace('{{descriptionHtml}}', descriptionHtml)
+      .replace('{{content}}', content)
+  );
 }
 
 async function build(): Promise<void> {
@@ -274,7 +270,9 @@ async function build(): Promise<void> {
   const resourcesHtml = renderResources(resources);
 
   const template = readFileSync(join(__dirname, 'index.html'), 'utf-8');
-  const html = template.replace('{{filters}}', filtersHtml).replace('{{resources}}', resourcesHtml);
+  const html = replaceIcons(
+    template.replace('{{filters}}', filtersHtml).replace('{{resources}}', resourcesHtml)
+  );
   writeFileSync(join(outDir, 'index.html'), html);
 
   // Generate detail pages
@@ -287,7 +285,7 @@ async function build(): Promise<void> {
   const notFoundSrc = join(__dirname, '404.html');
   try {
     statSync(notFoundSrc);
-    copyFileSync(notFoundSrc, join(outDir, '404.html'));
+    writeFileSync(join(outDir, '404.html'), replaceIcons(readFileSync(notFoundSrc, 'utf-8')));
   } catch {
     // 404 page is optional
   }

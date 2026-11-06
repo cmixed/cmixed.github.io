@@ -72,7 +72,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 `--primary-text` 专供文字 / 图标（暗色亮青 `#5fd8c0`、浅色深青 `#0b5f57`），`--primary` 只作填充与描边 —— 且填充值两个主题**共用** `#0f766e`（白字 5.47:1），切主题时强调色不变形；卡片内的小标签走 `--mica-chip` / `--mica-chip-border` / `--mica-chip-text`，两个主题各取一档合适的浓度与描边。
 
-**小标签只有一套设计语言，两个角色**：尺寸由 `--chip-radius` / `--chip-pad-*` / `--chip-font` 统一。只读标签（卡片标签、项目状态、分类、文章标签、代码语言角标）是 **6px 圆角方片**、不可点，材质走 `--mica-chip` / `--mica-chip-border` / `--mica-chip-text`：浅色保持柔和的青绿填色 + 深青描边 + 深青文字，暗色把填色从 0.20 降到 0.10、描边换成半透明 mint、文字用更柔和的浅薄荷 —— 原来那层高饱和填色 + 亮青字在深色卡上会发荧光。可点胶囊只有两处：列表页的筛选控件（`.list-chip`，博客与资源小窝同用一个类）与主页技能胶囊（`.skill-chip`，点一下滚到对应项目卡，不跳出站）。筛选胶囊用 `--chip-fill` / `--chip-border` / `--chip-fill-hover`（浅色用「比底色更亮」的抬升填充，深色用 mint 微光）；技能胶囊另有 `--skill-fill` / `--skill-fill-hover`：浅色白卡上不能再用近白芯（中间会是空的），所以给一层 0.10 的薄荷芯；深色用 0.12，比标签的 0.10 略实一档，但仍保留强描边。原因很具体：胶囊原本是「透明底 + `--border` 描边」，而那条边框相对页面底色只有 **1.69:1（浅色 1.38:1）**，远低于控件边界该有的 3:1，未激活时几乎看不出是个控件（`--border` 又不能整体加深：它是所有面板的描边，加深会把材质层次拉平）。现在暗色给一层 mint 微光（不加白，加白会读成灰片）+ 亮青描边，屏上实测 **4.5:1**；浅色用「比底色更亮」的填充 —— 和浅色面板同一个抬升语言 —— 配深青描边，实测 **2.9:1**；填充按 未激活 < hover < 选中 **单调变实**。文字只用 `--text-dim`，未激活给 `font-weight: 500`（12px 下 400 太细，边界清楚之后字也要跟上）。形状与状态仍是语义分界 —— **6px 方片=信息，999px 胶囊=可点**。触屏下筛选胶囊不再横向排成一串小圆环，而是放进左侧筛选栏的整行列表：标签左对齐、数量右对齐，`min-height` 仍是 44px，形状从「小胶囊包一行小字」变成明确的列表项。
+**小标签只有一套设计语言，两个角色**：尺寸由 `--chip-radius` / `--chip-pad-*` / `--chip-font` 统一。只读标签（卡片标签、项目状态、分类、文章标签、代码语言角标）是 **6px 圆角方片**、不可点，材质走 `--mica-chip` / `--mica-chip-border` / `--mica-chip-text`：浅色保持柔和的青绿填色 + 深青描边 + 深青文字，暗色把填色从 0.20 降到 0.10、描边换成半透明 mint、文字用更柔和的浅薄荷 —— 原来那层高饱和填色 + 亮青字在深色卡上会发荧光。可点胶囊只有两处（导航里的搜索框是输入控件，不算）：列表页的筛选控件（`.list-chip`，博客与资源小窝同用一个类）与主页技能胶囊（`.skill-chip`，点一下滚到对应项目卡，不跳出站）。筛选胶囊用 `--chip-fill` / `--chip-border` / `--chip-fill-hover`（浅色用「比底色更亮」的抬升填充，深色用 mint 微光）；技能胶囊另有 `--skill-fill` / `--skill-fill-hover`：浅色白卡上不能再用近白芯（中间会是空的），所以给一层 0.10 的薄荷芯；深色用 0.12，比标签的 0.10 略实一档，但仍保留强描边。原因很具体：胶囊原本是「透明底 + `--border` 描边」，而那条边框相对页面底色只有 **1.69:1（浅色 1.38:1）**，远低于控件边界该有的 3:1，未激活时几乎看不出是个控件（`--border` 又不能整体加深：它是所有面板的描边，加深会把材质层次拉平）。现在暗色给一层 mint 微光（不加白，加白会读成灰片）+ 亮青描边，屏上实测 **4.5:1**；浅色用「比底色更亮」的填充 —— 和浅色面板同一个抬升语言 —— 配深青描边，实测 **2.9:1**；填充按 未激活 < hover < 选中 **单调变实**。文字只用 `--text-dim`，未激活给 `font-weight: 500`（12px 下 400 太细，边界清楚之后字也要跟上）。形状与状态仍是语义分界 —— **6px 方片=信息，999px 胶囊=可点**。触屏下筛选胶囊不再横向排成一串小圆环，而是放进左侧筛选栏的整行列表：标签左对齐、数量右对齐，`min-height` 仍是 44px，形状从「小胶囊包一行小字」变成明确的列表项。
 
 ### 页脚：关于本站 / 更新日志
 
@@ -112,13 +112,15 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 首页博客预览固定取 `blog/data.json` 的**前 4 篇**。构建时 `data.json` 已经是「置顶按更新时间降序 → 普通按创建时间降序」，所以首页和博客列表的前 4 张卡永远一致：置顶变了、文章更新了，首页跟着变，不需要再手动改首页。之前是「全部置顶 + 2 篇普通」，置顶一多首页会被越撑越长，旧置顶也一直占位。`fetch` 加 `cache: 'no-store'`，避免浏览器缓存让新置顶晚一步出现。
 
-置顶标记不再用 `📌` emoji，改成文字徽标 `.pin-badge`（`置顶`，6px 方片 + accent 淡填）。没有 emoji 字体的设备会把 `📌` 渲染成方框，首页、博客列表、资源列表和详情页现在都用同一颗徽标，`<title>` / OG 标题里仍是纯文字。
+置顶标记是 `.pin-badge`：6px 方片 + 内联 SVG pushpin，accent 描边 / 淡填。不用系统 emoji：彩色字形在 Windows / macOS / Android / iOS 各画一套，不跟 `currentColor`，和全站单色内联 SVG 的图标语言冲突。首页、博客列表、资源列表和详情页共用 `src/lib/icons.ts` 里的同一颗徽标，`<title>` / OG 标题里仍是纯文字。
 
 ### 列表页头部与排序
 
 博客与资源小窝的列表页头部现在同构：标题一行，小字与排序共用下一行（小字靠左、排序靠右，`margin-left: auto` 保证窄屏换行后仍贴右）。标题不再是每页自己定的 `1.8rem`，而是直接读 `--section-header-size`（`1.75rem` / 窄屏 `1.5rem`）—— 这对 token 从 `.section-header` 提到了 `:root`，所以从首页点进列表页，标题字号不再跳变。小字的行盒与排序控件同高（`--list-row`：桌面 `2rem`、窄屏 `2.25rem`、触屏 `2.75rem`），上下两端严丝合缝；排序因此读起来是小字那一行的右端，而不是另起一块控件。
 
 排序做成「一个容器 + 三段」的分段胶囊，选中段用 `--primary-dim` 淡填 + accent 描边，**刻意不用筛选胶囊的实心 accent**：同一张页面上，「我筛了哪个标签」和「我按什么排序」不该长得一模一样。三个选项（默认 / 创建时间 / 更新时间）两页一致；默认顺序永远回到构建时的顺序（置顶项在最前），同一日期时也不会因为上一次点过别的排序而换位。小窝原来没有排序，这次补上：`date` 一直有，`updated` 读 frontmatter 的可选字段，没写就等同创建时间。
+
+搜索框从列表内容区搬进导航中段。桌面（≥768px）是常驻的 `999px` 胶囊：`flex: 1 1 200px`、`max-width: 360px`，吃掉左右两组之间的空余，768–1023px 按剩余空间自动收缩；输入框 34px 高，字号 0.85rem。手机（<768px）收成一颗放大镜 `.fab-btn`，点开后是导航内的第二行（`nav.search-open`：`height: auto; flex-wrap: wrap`，搜索行 `flex: 0 0 100%` + `order: 3`）—— 不用绝对定位 / `fixed`，因为导航有 `overflow-x: clip`，浮层会被裁掉；第二行走文档流，sticky 导航变高后内容自然下移。手机行高 44px、输入 16px（根字号在 ≤480px 是 15px，这里写死 16px，避免 iOS 聚焦时放大整页），右侧「取消」，`Esc` / 点面板外 / 软键盘搜索键都能收起，焦点回到放大镜。`/` 快捷键在手机上先展开再聚焦；有 `?q=` 或输入了内容但面板收起时，放大镜右上角显示和筛选按钮同款的小圆点。`#searchCount`（找到 N 篇）和空态仍留在列表区，不塞进 58px 的导航。
 
 筛选胶囊从卡片上方搬到卡片左侧，做成文章目录的列表页版本。桌面 `≥1280px` 停靠在左（`sticky`，宽 `200px`），页面 `max-width` 同时增加「栏宽 + gap」的 `232px`，卡片宽度基本不变，栏占的是页面原来的左侧留白；展开状态存在 `localStorage: list-filters-open`，首帧前由 `<head>` 里的同步脚本加 `html.filters-open`，不会先按窄版排一遍再跳宽。`<1280px` 变成左侧抽屉：遮罩 + Esc + 选中标签自动收起，手机默认收起，抽屉里锁住整页滚动。
 
@@ -136,7 +138,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 块内滚动（弹窗正文、代码块横向、表格）保持**系统 thin 条**：`scrollbar-width: thin` + `scrollbar-color`（Firefox、Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、经典滚动条），两条路径取同一个颜色。它们都在面板内部，轨道透明就够 —— 拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮，看上去和整页那枚一样是浮着的。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
 
-**右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（和 cursor / scrollbar 一起构建成 `dist/ui.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框（导航 RSS 那个 `&#9741;` 就是前车之鉴）。
+**右下角浮动操作**：回上级 / 回到顶部 / 直达底部，由 `src/client/fab.ts`（和 cursor / scrollbar 一起构建成 `dist/ui.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入同一组按钮 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。第一个按钮的落点是算出来的：目录页指向父目录、内容页指向所在目录（`/blog/` → 站点主页、`/blog/x.html` → 博客主页、`/nook/x.html` → 资源小窝主页）；主页本身就是站点主页，这一颗直接省略。整组滚过一段才淡入，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框，而且字体字符在不同平台上的字重 / 字形也不一致；现在导航 RSS / 主题 / 目录 / 缩进也统一到 `src/lib/icons.ts`。
 
 「直达底部」不能直接滚到 `document.scrollHeight`：主页（`#about` 除外）与文章页的 `<section>` 用了 `content-visibility: auto`，没进过视口的区块只按 `contain-intrinsic-size` 的占位高度计高（文章 800px、主页 500px），长文实测 `scrollHeight` 只有 46,065，真实高度 172,218。直接滚过去等于滚到「估算出来的底部」，滚动途中区块逐节展开、页面变长，于是停在半路 —— 表现为「卡在第 3 章，再点一次才到底」。所以点击时先给 `<html>` 加一帧 `fab-measuring`：所有 section 临时 `content-visibility: visible`，读一次 `scrollHeight` 逼出真实布局（长文 3.8ms）并滚过去，下一帧再撤类 —— 这一帧足够让 `contain-intrinsic-size: auto` 记住真实高度，撤掉后页面不会缩回去，`scrollTo` 的目标也不会被夹小。落地后再量一次，若仍差 >2px、且用户没有自己滚（`wheel` / 触摸 / 按键），补一次；`scrollend` 不可用时用 2.2s 超时兜底。
 
@@ -150,8 +152,8 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 │   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / sort / filter-panel / fab / scrollbar
 │   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（.md-body，token 的唯一来源）
 │   ├── data/            # projects.json / skills.json（主页卡片的内容源）
-│   ├── __tests__/       # 单测：构建工具、站点元数据、技能与项目 id 的一致性
-│   └── lib/             # 构建工具：front-matter 解析、模板渲染、日期与 git 时间
+│   ├── __tests__/       # 单测：构建工具、图标、站点元数据、技能与项目 id 的一致性
+│   └── lib/             # 构建工具（front-matter / 模板 / 日期 / git）与图标单一来源 icons.ts
 ├── blog/
 │   ├── post/            # Markdown 文章（可在同目录放 asset/ 图片）
 │   ├── template/        # 文章页、博客 404 模板
@@ -175,6 +177,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 ├── scripts/             # 构建期脚本：都由 vp 调起，不进前端打包图
 │   ├── optimize-images.ts   # PNG → AVIF
 │   ├── client-scripts.ts    # src/client/*.ts → dist/{theme,cursor,ui,list}.js（固定文件名，按共用场景分组）
+│   ├── icon-tokens.ts       # HTML 里的 {{icon:…}} → 内联 SVG（首页 Vite 入口）
 │   ├── site-meta.ts         # README + git log → dist/site-about.json / site-commits.json（页脚两个悬浮框）
 │   └── og-image.ts          # 生成分享卡 public/assets/og-image.png
 ├── docs/                # 迁移计划与报告
@@ -310,6 +313,7 @@ tags: [标签1, 标签2]
 
 - **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
 - **七个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `filter-panel` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar，全站主页面）、`list.js`（search + sort + filter-panel，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
+- **图标一律内联 SVG。** `src/lib/icons.ts` 是唯一来源：24×24、`currentColor`、1.7px 描边、圆头圆角；`{{icon:name}}` / `{{icon:name:class}}` 令牌由 `scripts/icon-tokens.ts`（首页 Vite 入口）和 `replaceIcons()`（博客 / 小窝构建）展开。GitHub 官方 mark 是唯一品牌例外。不再用 emoji（置顶图钉 / 分类图标）或字体字符（RSS / 太阳 / 月亮 / 目录 / 缩进用的 `U+260D`、`U+263C`、`U+263E`、`U+2630`、`U+21E5`）：彩色字形跨平台不一致，也不跟主题色走。
 - **图标只留有人用的尺寸。** favicon 只给 32×32（标签页就是它），192 只写 `apple-touch-icon`：桌面 Chrome 看到一条没有 `sizes` 的 `rel="icon"` 会把它当候选去拉，实测白拉 38.4KB。首页签名图补上 `width`，图片到达前后不跳行。
 - **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
 

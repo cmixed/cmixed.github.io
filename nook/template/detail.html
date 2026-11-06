@@ -130,11 +130,11 @@
             <a href="./" class="nook-detail-nav-title nook-detail-nav-active">资源小窝</a>
         </div>
         <div class="nook-detail-nav-right">
-            <a href="../feed.xml" title="RSS 订阅" class="nook-nav-rss">&#9741;</a>
+            <a href="../feed.xml" title="RSS 订阅" class="nook-nav-rss">{{icon:rss}}</a>
             <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
                 <div class="theme-toggle-slider">
-                    <span class="theme-icon moon-icon">&#9684;</span>
-                    <span class="theme-icon sun-icon">&#9685;</span>
+                    <span class="theme-icon moon-icon">{{icon:moon}}</span>
+                    <span class="theme-icon sun-icon">{{icon:sun}}</span>
                 </div>
             </button>
         </div>
@@ -145,7 +145,7 @@
         <div class="nook-detail-header">
             <h1 class="nook-detail-title">{{titleHtml}}</h1>
             <div class="nook-detail-meta">
-                <span class="nook-detail-category">{{categoryIcon}} {{categoryName}}</span>
+                <span class="nook-detail-category">{{categoryIcon}}<span class="chip-text">{{categoryName}}</span></span>
                 <span class="nook-detail-info">{{size}} · {{date}}</span>
             </div>
             <div class="nook-detail-tags">{{tags}}</div>

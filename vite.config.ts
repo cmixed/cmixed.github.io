@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite-plus';
 import { clientScripts } from './scripts/client-scripts';
+import { iconTokens } from './scripts/icon-tokens';
 import { siteMeta } from './scripts/site-meta';
 
 export default defineConfig({
-  plugins: [clientScripts(), siteMeta()],
+  plugins: [iconTokens(), clientScripts(), siteMeta()],
   lint: {
     plugins: ['oxc', 'typescript', 'unicorn'],
     categories: {
