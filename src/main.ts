@@ -104,11 +104,18 @@ const typeElement = document.getElementById('type-text') as HTMLElement;
    ① prefers-reduced-motion: reduce —— CSS 只压得动 animation / transition，
      管不到 JS 定时器；不短路的话，开了「减少动态效果」的用户照样看到逐字跳动，
      与 README 承诺的降级不符。此时直接写死第一句，不启动循环。
-   ② 页面隐藏（切标签 / 最小化）时停表，回到前台再续上，避免后台空转。 */
+   ② 页面隐藏（切标签 / 最小化）或 hero 滚出视口时停表，重新可见再续上，
+      避免后台 / 离屏空转。 */
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 let typeTimer = 0;
+let typewriterVisible = true;
 
 function type(): void {
+  if (document.hidden || !typewriterVisible) {
+    typeTimer = 0;
+    return;
+  }
+
   const currentText = texts[textIndex];
 
   if (isDeleting) {
@@ -136,6 +143,22 @@ function type(): void {
 if (prefersReduced.matches) {
   typeElement.textContent = texts[0];
 } else {
+  const typewriter = document.getElementById('typewriter') as HTMLElement;
+  const typewriterObserver = new IntersectionObserver(
+    ([entry]) => {
+      typewriterVisible = entry.isIntersecting;
+      if (!typewriterVisible) {
+        window.clearTimeout(typeTimer);
+        typeTimer = 0;
+        return;
+      }
+      // 重新进入视口 / 回到前台不立刻补一个字，照常等一个间隔再续
+      if (!typeTimer && !document.hidden) typeTimer = window.setTimeout(type, 300);
+    },
+    { threshold: 0 }
+  );
+  typewriterObserver.observe(typewriter);
+
   type();
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -143,8 +166,7 @@ if (prefersReduced.matches) {
       typeTimer = 0;
       return;
     }
-    // 回到前台不立刻补一个字（那会跳一下），照常等一个间隔再续
-    if (!typeTimer) typeTimer = window.setTimeout(type, 300);
+    if (!typeTimer && typewriterVisible) typeTimer = window.setTimeout(type, 300);
   });
 }
 
@@ -388,19 +410,25 @@ document.body.prepend(scrollProgress);
 
 let progressMax = 0;
 let progressQueued = false;
+let progressDirty = true;
 
 function measureProgress(): void {
   progressMax = html.scrollHeight - html.clientHeight;
+  progressDirty = false;
 }
 
 function paintProgress(): void {
   progressQueued = false;
+  if (progressDirty) measureProgress();
   const progress = progressMax > 0 ? html.scrollTop / progressMax : 0;
   scrollProgress.style.transform = `scaleX(${progress})`;
 }
 
-/* 一帧内的多次 scroll 合并成一次写入：事件频率不等于帧率。 */
-function queueProgress(): void {
+/* 一帧内的多次 scroll 合并成一次写入：事件频率不等于帧率。
+   resize / ResizeObserver 只标脏，把 scrollHeight 的读取也合并到这一帧，
+   不在 observer 回调里同步读布局。 */
+function queueProgress(measure = false): void {
+  if (measure) progressDirty = true;
   if (progressQueued) return;
   progressQueued = true;
   requestAnimationFrame(paintProgress);
@@ -409,22 +437,13 @@ function queueProgress(): void {
 measureProgress();
 paintProgress();
 
-window.addEventListener('scroll', queueProgress, { passive: true });
-window.addEventListener(
-  'resize',
-  () => {
-    measureProgress();
-    queueProgress();
-  },
-  { passive: true }
-);
+window.addEventListener('scroll', () => queueProgress(), { passive: true });
+window.addEventListener('resize', () => queueProgress(true), { passive: true });
 
-// 图片解码、异步插入的预览卡、区块展开都会改变总高；只观察 body 尺寸，不读布局属性
+// 图片解码、异步插入的预览卡、区块展开都会改变总高；只观察 body 尺寸，
+// scrollHeight 的读取合并到下一帧，不在 observer 回调里同步读布局。
 if ('ResizeObserver' in window) {
-  new ResizeObserver(() => {
-    measureProgress();
-    queueProgress();
-  }).observe(document.body);
+  new ResizeObserver(() => queueProgress(true)).observe(document.body);
 }
 
 /* ===== 页脚悬浮框（关于本站 / 更新日志） =====
