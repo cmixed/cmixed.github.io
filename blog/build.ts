@@ -16,6 +16,7 @@ import { promisify } from 'util';
 import { tmpdir } from 'os';
 import { randomBytes, createHash } from 'crypto';
 import {
+  countAndSortNames,
   countImages,
   countWords,
   escapeXml,
@@ -500,6 +501,7 @@ async function build(): Promise<void> {
   }
 
   const allTags = [...new Set(posts.flatMap((p) => p.tags))];
+  const tagStats = countAndSortNames(posts.flatMap((p) => p.tags));
 
   // Generate data.json for main site blog preview
   const dataJson = posts.map((p) => ({
@@ -571,13 +573,16 @@ ${sitemapUrls}
   const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
   // 「全部」与筛选标签用同一套胶囊（.list-chip），和资源小窝的分类栏同构：
   // 首项是「全部」、默认激活，点它等于清掉筛选。
+  // 每行拆成 label + count 两段：左侧标签左对齐、右侧数量右对齐，整行不再是小圆环。
   const tagsHtml = [
-    '<a href="./" class="list-chip active" data-tag="">全部</a>',
-    ...allTags.map(
-      (t) =>
-        `<a href="./?tag=${encodeURIComponent(t)}" class="list-chip" data-tag="${escapeXml(
-          t
-        )}">${escapeXml(t)}</a>`
+    `<a href="./" class="list-chip active" data-tag=""><span class="list-chip-label">全部</span><span class="list-chip-count">${posts.length}</span></a>`,
+    ...tagStats.map(
+      ({ name, count }) =>
+        `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip" data-tag="${escapeXml(
+          name
+        )}"><span class="list-chip-label">${escapeXml(
+          name
+        )}</span><span class="list-chip-count">${count}</span></a>`
     ),
   ].join('');
   const postsHtml = posts

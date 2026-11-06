@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vite-plus/test';
 import {
+  countAndSortNames,
   countImages,
   countWords,
   escapeXml,
@@ -143,6 +144,27 @@ describe('countImages', () => {
 
   it('没有图片为 0', () => {
     expect(countImages('<p>no images</p>')).toBe(0);
+  });
+});
+
+describe('countAndSortNames', () => {
+  it('按出现次数降序，同次数按名称排序', () => {
+    expect(countAndSortNames(['C++', '工程化', 'C++', 'Git', 'Git', 'Git'])).toEqual([
+      { name: 'Git', count: 3 },
+      { name: 'C++', count: 2 },
+      { name: '工程化', count: 1 },
+    ]);
+  });
+
+  it('同次数按名称排序，不依赖输入顺序', () => {
+    expect(countAndSortNames(['b', 'a', 'b', 'a'])).toEqual([
+      { name: 'a', count: 2 },
+      { name: 'b', count: 2 },
+    ]);
+  });
+
+  it('空输入返回空数组', () => {
+    expect(countAndSortNames([])).toEqual([]);
   });
 });
 

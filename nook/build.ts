@@ -2,9 +2,11 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, stat
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import {
+  countAndSortNames,
   parseFrontmatter as parseFrontmatterBase,
   escapeXml,
   getGitLastModified,
+  type NameCount,
 } from '../src/lib/build-utils';
 import { marked } from 'marked';
 
@@ -157,14 +159,16 @@ function discoverResources(): ResourceData[] {
   return results;
 }
 
-function renderFilters(categories: string[]): string {
-  const allBtn = `<button type="button" class="list-chip active" data-category="">全部</button>`;
+function renderFilters(categories: NameCount[], total: number): string {
+  const allBtn = `<button type="button" class="list-chip active" data-category=""><span class="list-chip-label">全部</span><span class="list-chip-count">${total}</span></button>`;
   const catBtns = categories
     .map(
-      (cat) =>
-        `<button type="button" class="list-chip" data-category="${escapeXml(cat)}">${
-          CATEGORY_ICONS[cat] || ''
-        } ${CATEGORY_NAMES[cat] || cat}</button>`
+      ({ name, count }) =>
+        `<button type="button" class="list-chip" data-category="${escapeXml(
+          name
+        )}"><span class="list-chip-label">${CATEGORY_ICONS[name] || ''} ${escapeXml(
+          CATEGORY_NAMES[name] || name
+        )}</span><span class="list-chip-count">${count}</span></button>`
     )
     .join('');
   return allBtn + catBtns;
@@ -263,8 +267,9 @@ async function build(): Promise<void> {
 
   const resources = discoverResources();
   const categories = [...new Set(resources.map((r) => r.category))];
+  const categoryStats = countAndSortNames(resources.map((r) => r.category));
 
-  const filtersHtml = renderFilters(categories);
+  const filtersHtml = renderFilters(categoryStats, resources.length);
   const resourcesHtml = renderResources(resources);
 
   const template = readFileSync(join(__dirname, 'index.html'), 'utf-8');
