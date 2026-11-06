@@ -1,14 +1,14 @@
 ---
-title: C++ 现代代码风格配置包
+title: 现代C++个人代码风格配置包
 category: doc
-description: 《C++ 现代代码风格与工程规范》配套的 .clang-format、.clang-tidy 与 Doxyfile。
+description: 《现代C++个人代码风格与工程规范》配套的 .clang-format、.clang-tidy 与 Doxyfile。
 file: cpp-style-config.zip
 pin: false
 date: 2026-11-06
 tags: [C++, clang-format, clang-tidy, Doxygen]
 ---
 
-配套文章：[C++ 现代代码风格与工程规范](/blog/cpp-style-guide.html)
+配套文章：[现代C++个人代码风格与工程规范](/blog/cpp-style-guide.html)
 
 ## 包含文件
 

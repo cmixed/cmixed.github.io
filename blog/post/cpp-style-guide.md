@@ -1,15 +1,16 @@
-# C++ 现代代码风格与工程规范
+# 现代C++个人代码风格与工程规范
 
 ---
-title: C++ 现代代码风格与工程规范
+title: 现代C++个人代码风格与工程规范
 date: 2026-11-06
+pinned: true
 tags: [C++, 代码规范, 工程化, clang-format, clang-tidy, Doxygen]
 description: 一套现代、清爽、高度自洽的 C++ 开发规范：类型与值分离、左指针、尾随下划线，并由 clang-format / clang-tidy / Doxygen 强制执行。
 ---
 
 本指南定义一套**现代、清爽、高度自洽**的 C++ 开发规范。整体设计融合 Rust / Python 的命名哲学与现代 C++ 的最佳实践，并通过自动化工具链强制执行，把排版和命名的争论从代码评审里拿走。
 
-> 配套配置包：[C++ 现代代码风格配置包](/nook/cpp-style-config.html)（`.clang-format`、`.clang-tidy`、`Doxyfile`）。
+> 配套配置包：[现代C++个人代码风格配置包](/nook/cpp-style-config.html)（`.clang-format`、`.clang-tidy`、`Doxyfile`）。
 
 ## 1. 核心设计原则
 
@@ -246,4 +247,4 @@ git ls-files -z '*.cpp' '*.cc' '*.cxx' \
 
 > 验证版本：clang-format 23.1.5、clang-tidy 23.1.4、Doxygen 1.18.0。版本不同输出可能略有差异，CI 与本地钩子保持一致即可。
 
-[下载 C++ 现代代码风格配置包](/nook/cpp-style-config.html)
+[下载现代C++个人代码风格配置包](/nook/cpp-style-config.html)
