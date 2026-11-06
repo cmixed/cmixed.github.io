@@ -63,6 +63,20 @@ export function countImages(html: string): number {
   return matches ? matches.length : 0;
 }
 
+export interface NameCount {
+  name: string;
+  count: number;
+}
+
+/** 统计名称出现次数；按次数降序，同次数按名称排序（中文按拼音）。 */
+export function countAndSortNames(values: readonly string[]): NameCount[] {
+  const counts = new Map<string, number>();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh-CN'));
+}
+
 /** 以本地时区格式化为 YYYY-MM-DD */
 export function toYmd(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;

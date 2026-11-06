@@ -12,7 +12,7 @@
  *   cursor.js  只给 public/404.html —— 那个页面是自带内联样式的独立页，
  *              没有 fab / 滚动条的样式，不能塞进 ui.js
  *   ui.js      cursor + fab + scrollbar，全站主页面（主页 / 博客 / 小窝）共用
- *   list.js    search + sort，只有博客与资源小窝的列表页要
+ *   list.js    search + sort + filter-panel，只有博客与资源小窝的列表页要
  * 源码仍然是各自的文件，合并只发生在产物这一层。
  */
 import { readFile } from 'node:fs/promises';
@@ -20,14 +20,14 @@ import { join } from 'node:path';
 import { transform } from 'esbuild';
 import type { Plugin } from 'vite-plus';
 
-type SourceScript = 'theme' | 'cursor' | 'search' | 'sort' | 'fab' | 'scrollbar';
+type SourceScript = 'theme' | 'cursor' | 'search' | 'sort' | 'filter-panel' | 'fab' | 'scrollbar';
 
 /** 产物名 → 源码（按顺序拼接，各自仍是独立 IIFE）。 */
 const BUNDLES = {
   theme: ['theme'],
   cursor: ['cursor'],
   ui: ['cursor', 'fab', 'scrollbar'],
-  list: ['search', 'sort'],
+  list: ['search', 'sort', 'filter-panel'],
 } as const satisfies Record<string, readonly SourceScript[]>;
 
 type BundleName = keyof typeof BUNDLES;

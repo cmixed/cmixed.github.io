@@ -72,7 +72,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 `--primary-text` 专供文字 / 图标（暗色亮青 `#5fd8c0`、浅色深青 `#0b5f57`），`--primary` 只作填充与描边 —— 且填充值两个主题**共用** `#0f766e`（白字 5.47:1），切主题时强调色不变形；卡片内的小标签走 `--mica-chip` / `--mica-chip-border` / `--mica-chip-text`，两个主题各取一档合适的浓度与描边。
 
-**小标签只有一套设计语言，两个角色**：尺寸由 `--chip-radius` / `--chip-pad-*` / `--chip-font` 统一。只读标签（卡片标签、项目状态、分类、文章标签、代码语言角标）是 **6px 圆角方片**、不可点，材质走 `--mica-chip` / `--mica-chip-border` / `--mica-chip-text`：浅色保持柔和的青绿填色 + 深青描边 + 深青文字，暗色把填色从 0.20 降到 0.10、描边换成半透明 mint、文字用更柔和的浅薄荷 —— 原来那层高饱和填色 + 亮青字在深色卡上会发荧光。可点胶囊只有两处：列表页的筛选控件（`.list-chip`，博客与资源小窝同用一个类）与主页技能胶囊（`.skill-chip`，点一下滚到对应项目卡，不跳出站）。筛选胶囊用 `--chip-fill` / `--chip-border` / `--chip-fill-hover`（浅色用「比底色更亮」的抬升填充，深色用 mint 微光）；技能胶囊另有 `--skill-fill` / `--skill-fill-hover`：浅色白卡上不能再用近白芯（中间会是空的），所以给一层 0.10 的薄荷芯；深色用 0.12，比标签的 0.10 略实一档，但仍保留强描边。原因很具体：胶囊原本是「透明底 + `--border` 描边」，而那条边框相对页面底色只有 **1.69:1（浅色 1.38:1）**，远低于控件边界该有的 3:1，未激活时几乎看不出是个控件（`--border` 又不能整体加深：它是所有面板的描边，加深会把材质层次拉平）。现在暗色给一层 mint 微光（不加白，加白会读成灰片）+ 亮青描边，屏上实测 **4.5:1**；浅色用「比底色更亮」的填充 —— 和浅色面板同一个抬升语言 —— 配深青描边，实测 **2.9:1**；填充按 未激活 < hover < 选中 **单调变实**。文字只用 `--text-dim`，未激活给 `font-weight: 500`（12px 下 400 太细，边界清楚之后字也要跟上）。形状与状态仍是语义分界 —— **6px 方片=信息，999px 胶囊=可点**。触屏下筛选标签只把 `min-height` 撑到 44px，不放大视觉尺寸。
+**小标签只有一套设计语言，两个角色**：尺寸由 `--chip-radius` / `--chip-pad-*` / `--chip-font` 统一。只读标签（卡片标签、项目状态、分类、文章标签、代码语言角标）是 **6px 圆角方片**、不可点，材质走 `--mica-chip` / `--mica-chip-border` / `--mica-chip-text`：浅色保持柔和的青绿填色 + 深青描边 + 深青文字，暗色把填色从 0.20 降到 0.10、描边换成半透明 mint、文字用更柔和的浅薄荷 —— 原来那层高饱和填色 + 亮青字在深色卡上会发荧光。可点胶囊只有两处：列表页的筛选控件（`.list-chip`，博客与资源小窝同用一个类）与主页技能胶囊（`.skill-chip`，点一下滚到对应项目卡，不跳出站）。筛选胶囊用 `--chip-fill` / `--chip-border` / `--chip-fill-hover`（浅色用「比底色更亮」的抬升填充，深色用 mint 微光）；技能胶囊另有 `--skill-fill` / `--skill-fill-hover`：浅色白卡上不能再用近白芯（中间会是空的），所以给一层 0.10 的薄荷芯；深色用 0.12，比标签的 0.10 略实一档，但仍保留强描边。原因很具体：胶囊原本是「透明底 + `--border` 描边」，而那条边框相对页面底色只有 **1.69:1（浅色 1.38:1）**，远低于控件边界该有的 3:1，未激活时几乎看不出是个控件（`--border` 又不能整体加深：它是所有面板的描边，加深会把材质层次拉平）。现在暗色给一层 mint 微光（不加白，加白会读成灰片）+ 亮青描边，屏上实测 **4.5:1**；浅色用「比底色更亮」的填充 —— 和浅色面板同一个抬升语言 —— 配深青描边，实测 **2.9:1**；填充按 未激活 < hover < 选中 **单调变实**。文字只用 `--text-dim`，未激活给 `font-weight: 500`（12px 下 400 太细，边界清楚之后字也要跟上）。形状与状态仍是语义分界 —— **6px 方片=信息，999px 胶囊=可点**。触屏下筛选胶囊不再横向排成一串小圆环，而是放进左侧筛选栏的整行列表：标签左对齐、数量右对齐，`min-height` 仍是 44px，形状从「小胶囊包一行小字」变成明确的列表项。
 
 ### 页脚：关于本站 / 更新日志
 
@@ -114,11 +114,13 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 排序做成「一个容器 + 三段」的分段胶囊，选中段用 `--primary-dim` 淡填 + accent 描边，**刻意不用筛选胶囊的实心 accent**：同一张页面上，「我筛了哪个标签」和「我按什么排序」不该长得一模一样。三个选项（默认 / 创建时间 / 更新时间）两页一致；默认顺序永远回到构建时的顺序（置顶项在最前），同一日期时也不会因为上一次点过别的排序而换位。小窝原来没有排序，这次补上：`date` 一直有，`updated` 读 frontmatter 的可选字段，没写就等同创建时间。
 
-筛选标签栏统一成 `.list-chip`：博客补了一颗「全部」（与资源小窝同构，首项默认激活，点它等于清空筛选），两页的容器都叫 `.list-filters`。标签仍是 `<a href="?tag=…">`（真链接，JS 只是接管了点击，`?tag=` 仍可分享），分类是 `<button data-category>`；两者的外观、尺寸、激活态与 44px 触控高度完全同一份规则。
+筛选胶囊从卡片上方搬到卡片左侧，做成文章目录的列表页版本。桌面 `≥1280px` 停靠在左（`sticky`，宽 `200px`），页面 `max-width` 同时增加「栏宽 + gap」的 `232px`，卡片宽度基本不变，栏占的是页面原来的左侧留白；展开状态存在 `localStorage: list-filters-open`，首帧前由 `<head>` 里的同步脚本加 `html.filters-open`，不会先按窄版排一遍再跳宽。`<1280px` 变成左侧抽屉：遮罩 + Esc + 选中标签自动收起，手机默认收起，抽屉里锁住整页滚动。
+
+面板内每颗胶囊都是整行：`.list-chip-label` 左对齐、`.list-chip-count` 右对齐，标签按使用次数降序（同次数按名称）排序。博客补了一颗「全部」（与资源小窝同构，首项默认激活，点它等于清空筛选），两页的容器都叫 `.list-filters`。标签仍是 `<a href="?tag=…">`（真链接，JS 只是接管了点击，`?tag=` 仍可分享），分类是 `<button data-category>`；两者的外观、尺寸、激活态与 44px 触控高度完全同一份规则。导航右端新增一颗 `.fab-btn`（复用文章页目录按钮的尺寸与位置）负责开关，`aria-expanded` / `aria-controls` 与当前是否有筛选（`data-filtered` 小圆点）都会同步。
 
 卡片内部顺序也统一了：**标题 → 摘要 → 标签 → 元信息**（小窝是标签 → 大小 / 日期 + 动作按钮）。卡片是纵向 flex、标签那一块用 `margin-top: auto` 压到底，同一行的卡片底边因此对齐。博客卡片之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间、摘要沉到卡片最底下，两页并排看是两种卡片。
 
-排序逻辑在 `src/client/sort.ts`（和 `search.ts` 一起构建成 `dist/list.js`，两个列表页共用）：博客页原来那份内联实现顺手带走了「点了排序不改 URL」的毛病，现在两个页面都写 `?sort=`、都支持前进 / 后退，且共用同一个稳定排序。
+排序逻辑在 `src/client/sort.ts`（和 `search.ts`、`filter-panel.ts` 一起构建成 `dist/list.js`，两个列表页共用）：博客页原来那份内联实现顺手带走了「点了排序不改 URL」的毛病，现在两个页面都写 `?sort=`、都支持前进 / 后退，且共用同一个稳定排序。
 
 ### 滚动条与右下角浮动操作
 
@@ -139,7 +141,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 ```
 ├── src/
 │   ├── main.ts          # 主站交互：主题接线、导航、搜索、项目与技能渲染、悬浮框（页脚 + 首页入口）
-│   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / sort / fab / scrollbar
+│   ├── client/          # 全站共用的经典脚本源码（TS）：theme / cursor / search / sort / filter-panel / fab / scrollbar
 │   ├── style.css        # 全站样式、Mica Alt 材质与 Markdown 正文排版（.md-body，token 的唯一来源）
 │   ├── data/            # projects.json / skills.json（主页卡片的内容源）
 │   ├── __tests__/       # 单测：构建工具、站点元数据、技能与项目 id 的一致性
@@ -185,7 +187,7 @@ dist/
 ├── theme.js              # 四个固定文件名的经典脚本（不进打包图）
 ├── cursor.js             # 仅 public/404.html 这个独立页用
 ├── ui.js                 # cursor + fab + scrollbar，全站主页面共用
-├── list.js               # search + sort，博客 / 资源小窝列表页共用
+├── list.js               # search + sort + filter-panel，博客 / 资源小窝列表页共用
 ├── assets/               # 打包后的 CSS / JS，外加 public/assets 原样拷来的图
 ├── blog/                 # 列表页、文章页、data.json、feed.xml、sitemap.xml、vendor/、mermaid/
 ├── nook/                 # 列表页、详情页、data.json、feed.xml、sitemap.xml
@@ -301,7 +303,7 @@ tags: [标签1, 标签2]
 ## 工程约定
 
 - **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
-- **六个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar，全站主页面）、`list.js`（search + sort，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
+- **七个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `filter-panel` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar，全站主页面）、`list.js`（search + sort + filter-panel，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
 - **图标只留有人用的尺寸。** favicon 只给 32×32（标签页就是它），192 只写 `apple-touch-icon`：桌面 Chrome 看到一条没有 `sizes` 的 `rel="icon"` 会把它当候选去拉，实测白拉 38.4KB。首页签名图补上 `width`，图片到达前后不跳行。
 - **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
 

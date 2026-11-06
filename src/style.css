@@ -1885,12 +1885,17 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 筛选标签要够大的点击目标（视觉尺寸仍是 --chip-*，只把高度撑到 44px）。
-       撑高之后短标签（AI / Git / x86）在 999px 圆角下会变成「圆环」——
-       描边变清楚以前看不出来，现在很扎眼，所以同时给个最小宽度，形状回到胶囊。 */
+       宽度交给筛选栏的整行布局；这里不再写 min-width —— 短标签（AI / Git / x86）
+       被撑成「圆环」正是上一版的问题。 */
     .list-chip {
         min-height: 44px;
-        min-width: 4rem;
-        justify-content: center;
+    }
+
+    /* 列表页导航里的筛选按钮是手机上唯一的筛选入口，26px 太小，单独放到 32px。 */
+    .blog-nav .fab-btn,
+    .nook-nav .fab-btn {
+        width: 32px;
+        height: 32px;
     }
 }
 
@@ -2322,7 +2327,20 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .blog-nav-rss:hover, .nook-nav-rss:hover { color: var(--primary-text); }
 /* 文章阅读页导航里复用了 .fab-btn，必须收小一档：
    原来的 40×40 把导航从 58px 撑到 72px（右下角浮动的 .fab-group 仍是 40px）。 */
-.blog-nav .fab-btn { width: 26px; height: 26px; border-radius: 6px; font-size: 0.85rem; }
+.blog-nav .fab-btn,
+.nook-nav .fab-btn { width: 26px; height: 26px; border-radius: 6px; font-size: 0.85rem; position: relative; }
+/* 有筛选生效、但面板收起时，按钮右上角留一个小圆点，避免「筛选被忘了」。 */
+#filterToggle[data-filtered]::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary-text);
+    box-shadow: 0 0 0 2px var(--mica-chrome);
+}
 
 /* 导航内边距：全站同一断点，且只改左右（高度恒为 58px）。
    窄屏同时收一收 logo / 间距 / 导航项字号：文章页导航里除了 logo 和导航项，
@@ -2423,6 +2441,214 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     margin-bottom: 2rem;
 }
 
+/* ===== 列表页筛选栏（博客 / 资源小窝共用） =====
+   桌面 ≥1280：停靠在卡片左侧的 sticky 栏；页面同时加宽「栏宽 + gap」，
+   卡片宽度基本不变，栏占的是页面原来的左侧留白。
+   <1280：变成文章目录同款的左侧抽屉（遮罩 + Esc + 选中后自动收起）。
+   面板里的每颗胶囊都是整行：标签左对齐、数量右对齐，手机上不会再出现
+   「60×44 的小胶囊包着一行小字」的圆环。 */
+.list-layout,
+.list-main {
+    min-width: 0;
+}
+
+.list-filters-panel {
+    display: none;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.list-filters-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.list-filters-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+}
+
+.list-filters-close {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.list-filters-close:hover,
+.list-filters-close:focus-visible {
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+.list-filters-panel .list-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+.list-filters-panel .list-chip {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: var(--chip-pad-y) 0.8rem;
+    text-align: left;
+}
+
+.list-chip-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-chip-count {
+    flex: 0 0 auto;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.list-chip.active .list-chip-count {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+/* 长标签列表：隐藏原生滚动条，用上下渐隐提示还有内容（和文章目录同一套） */
+.list-filters-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+}
+
+.list-filters-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.list-filters-scroll.fade-top {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18px);
+    mask-image: linear-gradient(180deg, transparent 0, #000 18px);
+}
+
+.list-filters-scroll.fade-bottom {
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent 100%);
+}
+
+.list-filters-scroll.fade-top.fade-bottom {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+}
+
+.list-filters-overlay {
+    display: none;
+}
+
+/* 触屏：整行胶囊保持 44px 点击高度；宽度由面板决定，不再靠 min-width 撑成圆环。 */
+@media (hover: none) and (pointer: coarse) {
+    .list-filters-panel .list-chip {
+        min-height: 44px;
+        min-width: 0;
+        padding: 0 0.9rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    html.filters-open .blog-page,
+    html.filters-open .nook-page {
+        max-width: min(calc(var(--list-max) + 232px), calc(100vw - 2rem));
+    }
+
+    html.filters-open .list-layout {
+        display: grid;
+        grid-template-columns: 200px minmax(0, 1fr);
+        grid-template-areas: 'filters main';
+        gap: 2rem;
+        align-items: start;
+    }
+
+    html.filters-open .list-main {
+        grid-area: main;
+    }
+
+    html.filters-open .list-filters-panel {
+        grid-area: filters;
+        display: flex;
+        position: sticky;
+        top: calc(var(--nav-h) + 1.5rem);
+        max-height: calc(100dvh - var(--nav-h) - 3rem);
+        padding-top: 0.2rem;
+    }
+}
+
+@media (max-width: 1279px) {
+    .list-filters-panel {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(85vw, 320px);
+        height: 100dvh;
+        padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1rem
+            calc(1rem + env(safe-area-inset-bottom, 0px));
+        background: var(--mica-chrome);
+        background-image: linear-gradient(180deg, var(--mica-panel-sheen), transparent 120px);
+        -webkit-backdrop-filter: var(--mica-nav-glass);
+        backdrop-filter: var(--mica-nav-glass);
+        border-right: 1px solid var(--border);
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.3s ease, visibility 0.3s;
+        z-index: 200;
+    }
+
+    .list-filters-close {
+        display: inline-flex;
+        width: 44px;
+        height: 44px;
+    }
+
+    html.filters-open .list-filters-panel {
+        transform: translateX(0);
+        visibility: visible;
+    }
+
+    .list-filters-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 199;
+    }
+
+    html.filters-open .list-filters-overlay {
+        display: block;
+    }
+
+    /* 抽屉打开时锁住整页滚动。原生滚动条已隐藏，不会出现宽度跳变。 */
+    html.filters-drawer-open {
+        overflow: hidden;
+    }
+}
+
 .list-sort {
     display: inline-flex;
     align-items: center;
@@ -2499,9 +2725,13 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     .search-clear { min-width: 44px; min-height: 44px; }
 }
 
-/* 打印时隐藏搜索相关元素 */
+/* 打印时隐藏搜索与筛选栏：桌面网格 / 手机抽屉都不该出现在纸上 */
 @media print {
-    .search-bar, .search-count, .search-empty { display: none !important; }
+    .search-bar, .search-count, .search-empty,
+    .list-filters-panel, .list-filters-overlay { display: none !important; }
+    html.filters-open .list-layout { display: block; }
+    html.filters-open .blog-page,
+    html.filters-open .nook-page { max-width: none; }
 }
 
 /* ===== MICA ALT MATERIAL ===== */
