@@ -37,16 +37,22 @@
            「列表页头部」「小标签」两节里，博客与资源小窝共用同一份。 */
 
         .nook-page { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
-        .nook-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        /* 320px 一档：1024px 时保持两列，避免三列窄卡把长标题/长标签撑成两行；
+           grid-auto-rows: 1fr 让同一页所有卡片等高，不再被最长的那张单独撑高。 */
+        .nook-grid {
+            display: grid;
+            gap: 1.25rem;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            grid-auto-rows: 1fr;
+        }
 
         .nook-card {
             /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
             border: 1px solid var(--border); border-radius: 12px;
             padding: 1.5rem; position: relative; display: flex; flex-direction: column;
-            text-decoration: none; color: inherit; overflow: hidden;
+            text-decoration: none; color: inherit; overflow: visible; height: 100%;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             box-shadow: var(--mica-elev-1);
-            content-visibility: auto; contain-intrinsic-size: auto 200px;
         }
         .nook-card.fade-in-item { opacity: 0; transform: translateY(12px); }
         .nook-card.fade-in-item.visible { opacity: 1; transform: translateY(0); }
@@ -55,23 +61,62 @@
             width: 100%; height: 2px; background: var(--primary);
             transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
         }
-        .nook-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: var(--mica-elev-2); }
+        .nook-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: var(--mica-elev-2); z-index: 20; }
+        .nook-card:focus-visible { z-index: 20; }
         /* .visible 的权重比 :hover 高，会把上面的 hover 抬升顶掉（列表卡片悬停不动）；补一条更高权重的 */
         .nook-card.fade-in-item.visible:hover { transform: translateY(-4px); }
         .nook-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
 
         .nook-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; }
-        .nook-card-title { font-weight: 700; font-size: 1.1rem; color: var(--text); }
+        .nook-card-title {
+            font-weight: 700; font-size: 1.1rem; color: var(--text);
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
         .nook-card-category {
             display: inline-flex; align-items: center; gap: 0.3rem;
             font-weight: 600;
             white-space: nowrap;
         }
-        .nook-card-desc { color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem; }
+        .nook-card-desc {
+            color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
         .nook-card-footer { margin-top: auto; }
-        .nook-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .nook-card-tags {
+            display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem;
+            max-height: 3.9rem; overflow: hidden;
+        }
         .nook-card-meta { display: flex; justify-content: space-between; align-items: center; }
         .nook-card-info { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* 悬停 / 键盘聚焦时显示完整标题、描述与标签；桌面才有 hover，
+           触摸端仍以进入详情页为主。浮窗不拦截点击。 */
+        .nook-card-popover {
+            position: absolute; left: 0; right: 0; top: calc(100% + 0.5rem); z-index: 1;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--border); border-top-color: var(--mica-panel-rim);
+            border-radius: 10px;
+            background-color: var(--mica-chrome);
+            background-image: linear-gradient(180deg, var(--mica-panel-top), transparent 24px);
+            box-shadow: var(--mica-elev-2);
+            opacity: 0; visibility: hidden; transform: translateY(-4px);
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+            pointer-events: none;
+        }
+        .nook-card-popover-title {
+            display: block; color: var(--text); font-weight: 700; font-size: 0.95rem;
+            line-height: 1.4; margin-bottom: 0.35rem;
+        }
+        .nook-card-popover-desc { display: block; color: var(--text-dim); font-size: 0.82rem; line-height: 1.6; }
+        .nook-card-popover-tags { max-height: none; overflow: visible; margin: 0.6rem 0 0; }
+        /* JS 在悬停时量一次：下方放不下就翻到卡片上方，避免浮窗被视口底边截断 */
+        .nook-card.popover-up .nook-card-popover { top: auto; bottom: calc(100% + 0.5rem); }
+        .nook-card:focus-visible .nook-card-popover { opacity: 1; visibility: visible; transform: translateY(0); }
+        @media (hover: hover) and (pointer: fine) {
+            .nook-card:hover .nook-card-popover { opacity: 1; visibility: visible; transform: translateY(0); }
+        }
         .nook-download {
             display: inline-flex; align-items: center; gap: 0.4rem;
             padding: 0.5rem 1rem; background: var(--primary); color: #fff;
@@ -200,6 +245,17 @@
             var categoryByCard = new Map();
             cards.forEach(function(card) {
                 categoryByCard.set(card, card.getAttribute('data-category'));
+
+                // 浮窗默认在卡片下方；量到会越过视口底边时翻到上方。
+                function placePopover() {
+                    var pop = card.querySelector('.nook-card-popover');
+                    if (!pop) return;
+                    card.classList.remove('popover-up');
+                    var rect = pop.getBoundingClientRect();
+                    if (rect.bottom > window.innerHeight - 8) card.classList.add('popover-up');
+                }
+                card.addEventListener('mouseenter', placePopover);
+                card.addEventListener('focusin', placePopover);
             });
 
             if ('IntersectionObserver' in window) {
