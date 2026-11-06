@@ -295,17 +295,19 @@ renderSkills();
 async function loadBlogPreview(): Promise<void> {
   try {
     const base = import.meta.env.MODE === 'production' ? './' : '/';
-    const res = await fetch(base + 'blog/data.json');
+    // no-store：置顶 / 新文章是构建时写进 data.json 的，不能吃浏览器缓存，
+    // 否则推上去后首页还会显示上一次的置顶。
+    const res = await fetch(base + 'blog/data.json', { cache: 'no-store' });
     const data: BlogData = await res.json();
-    const pinned = data.posts.filter((p) => p.pinned);
-    const rest = data.posts.filter((p) => !p.pinned).slice(0, 2);
-    const preview = [...pinned, ...rest];
+    // 固定取博客列表前 4 篇（构建时已经是「置顶按更新时间 → 普通按创建时间」）。
+    // 不再用「全部置顶 + 2 篇普通」：置顶一多，首页会被无限撑长，旧的置顶也一直占位。
+    const preview = data.posts.slice(0, 4);
     const grid = document.getElementById('blogPreviewGrid') as HTMLElement;
     grid.innerHTML = preview
       .map(
         (p) => `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}">
-                <div class="blog-preview-card-title">${p.pinned ? '📌 ' : ''}${escapeHtml(p.title)}</div>
+                <div class="blog-preview-card-title">${p.pinned ? '<span class="pin-badge">置顶</span>' : ''}${escapeHtml(p.title)}</div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
                     <div class="blog-preview-card-tags">
@@ -327,7 +329,8 @@ void loadBlogPreview();
 async function loadNookPreview(): Promise<void> {
   try {
     const base = import.meta.env.MODE === 'production' ? './' : '/';
-    const res = await fetch(base + 'nook/data.json');
+    // 和博客预览一样不吃缓存：资源置顶 / 新增资源应在刷新后立刻出现。
+    const res = await fetch(base + 'nook/data.json', { cache: 'no-store' });
     const data = await res.json();
     const sorted = data.resources.sort((a: NookResource, b: NookResource) => {
       if (a.pin !== b.pin) return a.pin ? -1 : 1;
@@ -351,7 +354,7 @@ async function loadNookPreview(): Promise<void> {
       .map((r: NookResource) => {
         const icon = CATEGORY_ICONS[r.category] || '📦';
         const catName = CATEGORY_NAMES[r.category] || r.category;
-        const pinMark = r.pin ? '📌 ' : '';
+        const pinMark = r.pin ? '<span class="pin-badge">置顶</span>' : '';
         return `
             <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}">
                 <div class="nook-preview-card-header">

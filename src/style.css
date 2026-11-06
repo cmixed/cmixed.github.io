@@ -2032,10 +2032,10 @@ html.modal-open .page-scrollbar-thumb {
         height: 400px;
     }
 
-    /* 四颗不再竖着堆成四行（那会把 hero 撑长、首屏看不到内容）：
-       主两颗各占一半并排，次两颗自然折到第二行居中。
-       DOM 顺序已经是「重 - 重 - 轻 - 轻」，所以不需要 order：
-       键盘焦点顺序与视觉顺序保持一致。 */
+    /* 小屏：两颗轻胶囊在上、两颗主胶囊在下。
+       桌面 DOM 是「轻 - 重 - 重 - 轻」，自然顺序就是左右对称的「小 - 大 - 大 - 小」；
+       手机上用 order 把轻档提到第一行，主档各占一半排在第二行。
+       主档保留 48px 高，和 44px 的轻档拉开一档，不在触屏上被抹成同一层。 */
     .cta-buttons {
         flex-direction: row;
         flex-wrap: wrap;
@@ -2048,8 +2048,24 @@ html.modal-open .page-scrollbar-thumb {
         text-align: center;
     }
 
+    /* 一条零高的整行 flex 项，把轻档和主档隔成两行；
+       没有它时，宽屏手机（≥~600px）剩余空间够第一颗主胶囊挤进第一行，
+       第二颗才换行，两颗主胶囊会被拆到不同行。 */
+    .cta-buttons::before {
+        content: '';
+        order: 2;
+        flex: 0 0 100%;
+        height: 0;
+    }
+
+    .btn-quiet {
+        order: 1;
+    }
+
     .btn-strong {
+        order: 3;
         flex: 1 1 calc(50% - 0.3rem);
+        min-height: 48px;
     }
 
     .projects-grid {
@@ -2076,11 +2092,12 @@ html.modal-open .page-scrollbar-thumb {
     .hero h1 { font-size: clamp(2rem, 10vw, 3rem); }
     .hero::before { width: 300px; height: 300px; }
 
-    /* 两颗主胶囊并排后每颗只剩约 45vw：内边距与字号各收一档，避免「个人博客 →」折行 */
+    /* 两颗主胶囊并排后每颗只剩约 45vw：只收内边距，字号保持和桌面一致，
+       避免手机上主档反而比轻档大不了多少。 */
     .btn-strong {
-        padding: 0.7rem 0.9rem;
-        font-size: 0.88rem;
-        gap: 0.3rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        gap: 0.35rem;
     }
 
     .about-avatar img { width: 110px; height: 110px; }
@@ -2927,6 +2944,23 @@ html::after {
    --mica-chip-border / --mica-chip-text，可点走 --chip-fill / --chip-border
    （技能胶囊另有 --skill-fill，避免白卡上的近白芯）。
    只靠「形状 + 状态」区分语义 —— 6px 方片是信息，999px 胶囊是可点，不会互相误认。 */
+/* 置顶标记：文字徽标，不走 emoji —— 没有 emoji 字体的设备会把 📌 渲染成方框。
+   6px 小方片 = 只读信息，和卡片标签同一套语义。 */
+.pin-badge {
+    display: inline-block;
+    margin-right: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    background: var(--primary-dim);
+    color: var(--primary-text);
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.5;
+    vertical-align: 0.08em;
+    white-space: nowrap;
+}
+
 .tech-tag,
 .project-status,
 .nook-preview-card-category,

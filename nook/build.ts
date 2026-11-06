@@ -196,7 +196,7 @@ function renderResources(resources: ResourceData[]): string {
       if (r.size) metaParts.push(escapeXml(r.size));
       if (r.date) metaParts.push(escapeXml(r.date));
       const metaStr = metaParts.join(' · ');
-      const pinMark = r.pin ? '📌 ' : '';
+      const pinMark = r.pin ? '<span class="pin-badge">置顶</span>' : '';
       // 客户端搜索的匹配源：标题 + 摘要 + 分类 + 标签（仅元数据，不含正文）
       const searchKey = [r.title, r.description, r.category, catName, ...r.tags]
         .join(' ')
@@ -247,9 +247,10 @@ function renderDetailPage(r: ResourceData): string {
     : '';
 
   const tpl = readFileSync(join(__dirname, 'template', 'detail.html'), 'utf-8');
-  const pinMark = r.pin ? '📌 ' : '';
+  const pinMark = r.pin ? '<span class="pin-badge">置顶</span>' : '';
   return tpl
-    .replace(/\{\{title\}\}/g, pinMark + escapeXml(r.title))
+    .replace('{{titleHtml}}', pinMark + escapeXml(r.title))
+    .replace(/\{\{title\}\}/g, escapeXml(r.title))
     .replace('{{description}}', escapeXml(r.description))
     .replace('{{slug}}', encodeURIComponent(r.id))
     .replace('{{categoryIcon}}', icon)
