@@ -1,0 +1,6 @@
+# 极简版 Doxyfile
+INPUT                  = ./src ./include
+FILE_PATTERNS          = *.h *.hpp *.cpp *.cc *.cxx *.ipp *.inl
+QT_AUTOBRIEF           = YES
+RECURSIVE              = YES
+GENERATE_LATEX         = NO

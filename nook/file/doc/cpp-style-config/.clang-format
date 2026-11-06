@@ -1,0 +1,48 @@
+# ==========================================
+# Language and Base Style
+# ==========================================
+Language: Cpp
+BasedOnStyle: LLVM
+
+# ==========================================
+# Indentation: 4 Spaces
+# ==========================================
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 8
+
+# ==========================================
+# Column Limit
+# ==========================================
+ColumnLimit: 100
+
+# ==========================================
+# Pointer / Reference Alignment: Left
+# ==========================================
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# ==========================================
+# Access Modifiers
+# ==========================================
+AccessModifierOffset: -4
+
+# ==========================================
+# Brace Style: K&R
+# ==========================================
+BreakBeforeBraces: Attach
+
+# ==========================================
+# Compactness Control
+# ==========================================
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# ==========================================
+# Header Sorting & Comment Protection
+# ==========================================
+SortIncludes: true
+# 保护 Doxygen 注释中的 @ 命令不被 clang-format 破坏
+CommentPragmas: ' ?[\\@][a-zA-Z].*$'
