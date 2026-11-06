@@ -26,6 +26,7 @@ import {
   renderTemplate,
   toYmd,
 } from '../src/lib/build-utils';
+import { pinBadge, replaceIcons } from '../src/lib/icons';
 
 const execFileAsync = promisify(execFile);
 
@@ -497,7 +498,7 @@ async function build(): Promise<void> {
       tocCollapsed: tocCollapsed ? ' class="toc-collapsed"' : '',
       prevNext: prevNextHtml,
     });
-    writeFileSync(join(outDir, `${post.slug}.html`), postHtml);
+    writeFileSync(join(outDir, `${post.slug}.html`), replaceIcons(postHtml));
   }
 
   const allTags = [...new Set(posts.flatMap((p) => p.tags))];
@@ -575,19 +576,19 @@ ${sitemapUrls}
   // 首项是「全部」、默认激活，点它等于清掉筛选。
   // 每行拆成 label + count 两段：左侧标签左对齐、右侧数量右对齐，整行不再是小圆环。
   const tagsHtml = [
-    `<a href="./" class="list-chip active" data-tag=""><span class="list-chip-label">全部</span><span class="list-chip-count">${posts.length}</span></a>`,
+    `<a href="./" class="list-chip active" data-tag=""><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${posts.length}</span></a>`,
     ...tagStats.map(
       ({ name, count }) =>
         `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip" data-tag="${escapeXml(
           name
-        )}"><span class="list-chip-label">${escapeXml(
+        )}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
           name
-        )}</span><span class="list-chip-count">${count}</span></a>`
+        )}</span></span><span class="list-chip-count">${count}</span></a>`
     ),
   ].join('');
   const postsHtml = posts
     .map((p) => {
-      const pinMark = p.pinned ? '<span class="pin-badge">置顶</span>' : '';
+      const pinMark = p.pinned ? pinBadge() : '';
       // 客户端搜索的匹配源：标题 + 摘要 + 标签（仅元数据，不含正文）
       const searchKey = [p.title, p.description, ...p.tags].join(' ').toLowerCase();
       return `
@@ -601,12 +602,14 @@ ${sitemapUrls}
         </a>`;
     })
     .join('');
-  const indexHtml = indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml);
+  const indexHtml = replaceIcons(
+    indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml)
+  );
   writeFileSync(join(outDir, 'index.html'), indexHtml);
 
   // Generate blog 404 page
   const notFoundTemplate = readFileSync(join(templatesDir, '404.html'), 'utf-8');
-  writeFileSync(join(outDir, '404.html'), notFoundTemplate);
+  writeFileSync(join(outDir, '404.html'), replaceIcons(notFoundTemplate));
 
   // Copy main CSS
   const cssDir = join(__dirname, '..', 'dist', 'assets');

@@ -452,24 +452,29 @@ body.nav-open::before {
 }
 
 .theme-icon {
-    font-size: 11px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--bg);
     transition: opacity 0.3s;
+    transform: translate(-50%, -50%);
+}
+
+.theme-icon svg {
+    width: 12px;
+    height: 12px;
+    display: block;
 }
 
 .theme-toggle .sun-icon {
-    position: absolute;
     opacity: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 
 .theme-toggle .moon-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    opacity: 1;
 }
 
 [data-theme="light"] .theme-toggle .moon-icon { opacity: 0; }
@@ -1287,9 +1292,20 @@ html.fab-measuring section {
 }
 
 .nook-preview-card-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.75rem;
     padding: 0.15rem 0.45rem;
     white-space: nowrap;
+}
+
+.nook-preview-card-category svg,
+.nook-card-category svg,
+.nook-detail-category svg {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
 }
 
 .nook-preview-card-footer {
@@ -2340,14 +2356,26 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .blog-nav-right, .nook-nav-right, .nook-detail-nav-right {
     display: flex; align-items: center; gap: 1rem;
 }
-.blog-nav-rss, .nook-nav-rss { color: var(--text-dim); font-size: 1.1rem; text-decoration: none; }
+.blog-nav-rss, .nook-nav-rss {
+    display: inline-flex; align-items: center;
+    color: var(--text-dim); text-decoration: none;
+}
+.blog-nav-rss svg, .nook-nav-rss svg { width: 16px; height: 16px; display: block; }
 .blog-nav-rss:hover, .nook-nav-rss:hover { color: var(--primary-text); }
 /* 文章阅读页导航里复用了 .fab-btn，必须收小一档：
    原来的 40×40 把导航从 58px 撑到 72px（右下角浮动的 .fab-group 仍是 40px）。 */
 .blog-nav .fab-btn,
 .nook-nav .fab-btn { width: 26px; height: 26px; border-radius: 6px; font-size: 0.85rem; position: relative; }
-/* 有筛选生效、但面板收起时，按钮右上角留一个小圆点，避免「筛选被忘了」。 */
-#filterToggle[data-filtered]::after {
+/* 导航里的按钮只有 26px，SVG 收到 14px；触屏再放大一档，和 32px 的按钮成比例。 */
+.blog-nav .fab-btn svg,
+.nook-nav .fab-btn svg { width: 14px; height: 14px; }
+@media (hover: none) and (pointer: coarse) {
+    .blog-nav .fab-btn svg,
+    .nook-nav .fab-btn svg { width: 16px; height: 16px; }
+}
+/* 有筛选 / 搜索生效、但面板收起时，按钮右上角留一个小圆点。 */
+#filterToggle[data-filtered]::after,
+#searchToggle[data-active]::after {
     content: '';
     position: absolute;
     top: 2px;
@@ -2366,28 +2394,32 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 1.5rem; }
 }
 @media (max-width: 480px) {
-    nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 1rem; }
+    nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 0.85rem; }
     :root { --nav-logo-size: 1rem; }
-    .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.75rem; }
+    .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.6rem; }
+    .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.6rem; }
     .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.85rem; }
     /* 极窄屏让位：首行缩进开关从导航里撤掉（缩进偏好仍从 localStorage 生效） */
     .blog-nav #indentToggle { display: none; }
 }
 @media (max-width: 360px) {
     /* 再窄就撤掉 RSS 图标，并允许导航换行，
-       避免固定高度下内容溢出后被 overflow-x: clip 裁掉。 */
+       避免固定高度下内容溢出后被 overflow-x: clip 裁掉。
+       换行后右组单独占一行，margin-left: auto 让它贴右而不是回到开头。 */
     .blog-nav-rss, .nook-nav-rss { display: none; }
+    .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { margin-left: auto; }
     nav, .blog-nav, .nook-nav, .nook-detail-nav {
         height: auto; min-height: var(--nav-h); flex-wrap: wrap; row-gap: 0.25rem;
     }
 }
 
 /* ===== SHARED SEARCH ===== */
-/* Blog / nook list pages share one search component (see src/client/search.ts). */
+/* 列表页的搜索框在导航里：桌面是一颗常驻胶囊，手机收成放大镜 + 导航内第二行。
+   输入 / 过滤逻辑见 src/client/search.ts。 */
 .search-bar {
     display: flex; align-items: center; gap: 0.6rem;
     background: var(--mica-surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 0 0.9rem; margin-bottom: 1rem;
+    border-radius: 8px; padding: 0 0.9rem;
     transition: border-color 0.3s, background 0.3s;
 }
 .search-bar:focus-within { border-color: var(--primary); }
@@ -2396,6 +2428,79 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     flex: none; width: 1rem; height: 1rem;
     color: var(--text-muted); fill: currentColor;
     transition: color 0.3s;
+}
+
+/* 导航中段的搜索胶囊。flex 让它吃掉左右两组之间的空余，max-width 防止
+   在大屏上拉成一条长条；768–1023px 时按剩余空间自动收缩。 */
+.nav-search {
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 360px;
+    margin: 0 clamp(0.75rem, 2vw, 1.5rem);
+}
+.nav-search .search-bar {
+    height: 34px;
+    padding: 0 0.8rem;
+    border-radius: 999px;
+    background: var(--mica-raised);
+}
+.nav-search .search-input { padding: 0; font-size: 0.85rem; }
+.nav-search .search-clear {
+    min-width: 26px; min-height: 26px; padding: 0;
+    font-size: 1rem;
+}
+.nav-search-cancel { display: none; }
+/* 桌面上搜索框常驻，放大镜只在手机出现。 */
+#searchToggle { display: none; }
+
+@media (max-width: 767px) {
+    #searchToggle { display: flex; }
+
+    /* 手机：收起时整行不占位；展开后作为导航的第二行，导航随之变高。
+       不用绝对定位 / fixed —— 导航有 overflow-x: clip，浮层会被裁掉。 */
+    .nav-search {
+        display: none;
+        flex: 0 0 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0.6rem 0 0.7rem;
+        order: 3;
+    }
+    .blog-nav.search-open,
+    .nook-nav.search-open {
+        height: auto;
+        min-height: var(--nav-h);
+        flex-wrap: wrap;
+    }
+    .blog-nav.search-open .nav-search,
+    .nook-nav.search-open .nav-search {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .nav-search .search-bar {
+        flex: 1 1 auto;
+        height: 44px;
+        padding: 0 0.9rem;
+    }
+    .nav-search .search-input { font-size: 16px; padding: 0; }
+    .nav-search .search-clear { min-width: 32px; min-height: 32px; }
+    .nav-search-cancel {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        min-width: 44px;
+        height: 44px;
+        padding: 0 0.2rem;
+        border: 0;
+        background: none;
+        color: var(--text-dim);
+        font-family: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .nav-search-cancel:hover { color: var(--primary-text); }
 }
 .search-input {
     flex: 1; min-width: 0; border: none; outline: none; background: transparent;
@@ -2411,7 +2516,8 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .search-clear:hover { color: var(--primary-text); background: var(--primary-dim); }
 .search-count { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1.5rem; }
 .search-empty { text-align: center; padding: 4rem 2rem; color: var(--text-dim); }
-.search-empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+.search-empty-icon { display: flex; justify-content: center; margin-bottom: 1rem; opacity: 0.5; }
+.search-empty-icon svg { width: 48px; height: 48px; }
 .search-empty p { font-size: 0.9rem; }
 
 /* ===== 列表页头部（博客 / 资源小窝共用） =====
@@ -2528,6 +2634,19 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 .list-chip-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.list-chip-label svg {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+}
+
+.list-chip-text {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2740,6 +2859,9 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 @media (hover: none) and (pointer: coarse) {
     .search-input { font-size: 1rem; padding: 0.85rem 0; }
     .search-clear { min-width: 44px; min-height: 44px; }
+    /* 导航里的搜索框不受 15px 根字号影响：iOS 聚焦 <16px 的输入框会放大整页。 */
+    .nav-search .search-input { font-size: 16px; padding: 0; }
+    .nav-search .search-clear { min-width: 32px; min-height: 32px; }
 }
 
 /* 打印时隐藏搜索与筛选栏：桌面网格 / 手机抽屉都不该出现在纸上 */
@@ -2944,21 +3066,25 @@ html::after {
    --mica-chip-border / --mica-chip-text，可点走 --chip-fill / --chip-border
    （技能胶囊另有 --skill-fill，避免白卡上的近白芯）。
    只靠「形状 + 状态」区分语义 —— 6px 方片是信息，999px 胶囊是可点，不会互相误认。 */
-/* 置顶标记：文字徽标，不走 emoji —— 没有 emoji 字体的设备会把 📌 渲染成方框。
-   6px 小方片 = 只读信息，和卡片标签同一套语义。 */
+/* 置顶标记：6px 方片里放一颗单色 pin —— 和只读标签同一套「信息」语义。
+   不用 emoji：彩色字形跨平台不一致，也不跟 currentColor / 主题走。 */
 .pin-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 1.15rem;
+    height: 1.15rem;
     margin-right: 0.4rem;
-    padding: 0.05rem 0.4rem;
     border: 1px solid var(--primary);
     border-radius: 6px;
     background: var(--primary-dim);
     color: var(--primary-text);
-    font-size: 0.65rem;
-    font-weight: 600;
-    line-height: 1.5;
-    vertical-align: 0.08em;
-    white-space: nowrap;
+    vertical-align: -0.18em;
+}
+.pin-badge svg {
+    width: 0.8rem;
+    height: 0.8rem;
 }
 
 .tech-tag,
@@ -3506,6 +3632,12 @@ html.modal-open .fx-layer { visibility: hidden; }
     background: var(--chip-fill-hover);
     border-color: var(--primary);
     color: var(--primary-text);
+}
+
+/* 键盘焦点：和 .btn / skill-chip 同一套轮廓，不用浏览器默认的黑框 */
+.fab-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 .fab-btn:active {

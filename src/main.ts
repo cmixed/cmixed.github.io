@@ -1,5 +1,6 @@
 import projects from './data/projects.json';
 import skills from './data/skills.json';
+import { categoryIcon, pinBadge } from './lib/icons';
 
 interface SkillItem {
   name: string;
@@ -307,7 +308,7 @@ async function loadBlogPreview(): Promise<void> {
       .map(
         (p) => `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}">
-                <div class="blog-preview-card-title">${p.pinned ? '<span class="pin-badge">置顶</span>' : ''}${escapeHtml(p.title)}</div>
+                <div class="blog-preview-card-title">${p.pinned ? pinBadge() : ''}${escapeHtml(p.title)}</div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
                     <div class="blog-preview-card-tags">
@@ -338,12 +339,6 @@ async function loadNookPreview(): Promise<void> {
     });
     const preview = sorted.slice(0, 8);
     const grid = document.getElementById('nookPreviewGrid') as HTMLElement;
-    const CATEGORY_ICONS: Record<string, string> = {
-      doc: '📄',
-      tool: '🔧',
-      code: '💻',
-      website: '🌐',
-    };
     const CATEGORY_NAMES: Record<string, string> = {
       doc: '文档',
       tool: '工具',
@@ -352,14 +347,14 @@ async function loadNookPreview(): Promise<void> {
     };
     grid.innerHTML = preview
       .map((r: NookResource) => {
-        const icon = CATEGORY_ICONS[r.category] || '📦';
+        const catIcon = categoryIcon(r.category);
         const catName = CATEGORY_NAMES[r.category] || r.category;
-        const pinMark = r.pin ? '<span class="pin-badge">置顶</span>' : '';
+        const pinMark = r.pin ? pinBadge() : '';
         return `
             <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}">
                 <div class="nook-preview-card-header">
                     <div class="nook-preview-card-title">${pinMark}${escapeHtml(r.title)}</div>
-                    <span class="nook-preview-card-category">${icon} ${catName}</span>
+                    <span class="nook-preview-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
                 </div>
                 <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>
                 <div class="nook-preview-card-footer">
