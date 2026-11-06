@@ -305,9 +305,9 @@ async function loadBlogPreview(): Promise<void> {
     // 否则推上去后首页还会显示上一次的置顶。
     const res = await fetch(base + 'blog/data.json', { cache: 'no-store' });
     const data: BlogData = await res.json();
-    // 固定取博客列表前 4 篇（构建时已经是「置顶按更新时间 → 普通按创建时间」）。
-    // 不再用「全部置顶 + 2 篇普通」：置顶一多，首页会被无限撑长，旧的置顶也一直占位。
-    const preview = data.posts.slice(0, 4);
+    // 固定取前 6 篇（构建时已经是「置顶按更新时间 → 普通按创建时间」）。
+    // 6 在 2 列网格里正好排满 3 行；不取全部，是因为置顶一多首页会被无限撑长。
+    const preview = data.posts.slice(0, 6);
     const grid = document.getElementById('blogPreviewGrid') as HTMLElement;
     grid.innerHTML = preview
       .map(
