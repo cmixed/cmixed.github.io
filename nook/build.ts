@@ -214,10 +214,10 @@ function renderResources(resources: ResourceData[]): string {
                     ${fileBtn}
                 </div>
             </div>
-            <span class="nook-card-popover" aria-hidden="true">
-                <span class="nook-card-popover-title">${pinMark}${escapeXml(r.title)}</span>
-                <span class="nook-card-popover-desc">${escapeXml(r.description)}</span>
-                <span class="nook-card-tags nook-card-popover-tags">${tags}</span>
+            <span class="card-popover" aria-hidden="true">
+                <span class="card-popover-title">${pinMark}${escapeXml(r.title)}</span>
+                <span class="card-popover-desc">${escapeXml(r.description)}</span>
+                <span class="nook-card-tags card-popover-tags">${tags}</span>
             </span>
         </a>`;
     })

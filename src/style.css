@@ -3093,7 +3093,9 @@ html::after {
     border-radius: 0.25em;
     background: var(--primary-dim);
     color: var(--primary-text);
-    vertical-align: -0.12em;
+    /* 与标题首行基线对齐：1em 的方框比文字高，靠 vertical-align 往下压 0.16em
+       才和汉字的视觉中线齐平（-0.12em 时图标顶端会冒出去一点）。 */
+    vertical-align: -0.16em;
 }
 .pin-badge svg {
     width: 0.78em;
@@ -3225,6 +3227,76 @@ html::after {
 .list-chip-more:hover {
     color: var(--primary-text);
     border-color: var(--primary);
+}
+
+/* ===== 卡片浮窗（博客 / 资源小窝共用）=====
+   只做一件事：把卡片里被 line-clamp 截掉的正文完整露出来。
+   所以它必须「只在真的被截断时」出现 —— list.js 里的 card-popover 会逐个量
+   scrollHeight 与 clientHeight，截断了才给卡片加 .is-clamped，这里只认这个类。
+   内容与卡片同源（标题 / 摘要 / 标签），不额外加载数据。
+   材质走 --mica-chrome + 顶部柔光，和导航、悬浮框同一套面板语言。 */
+.card-popover {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 30;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-top-color: var(--mica-panel-rim);
+    border-radius: 10px;
+    background-color: var(--mica-chrome);
+    background-image: linear-gradient(180deg, var(--mica-panel-top), transparent 24px);
+    box-shadow: var(--mica-elev-2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    pointer-events: none;
+}
+
+.card-popover-title {
+    display: block;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 0.35rem;
+}
+
+.card-popover-desc {
+    display: block;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+/* 浮窗里的标签沿用卡片那套只读标签，但不受卡片内 max-height 的裁剪 */
+.card-popover-tags {
+    max-height: none;
+    overflow: visible;
+    margin: 0.6rem 0 0;
+}
+
+:is(.blog-page-card, .nook-card).is-clamped:hover .card-popover,
+:is(.blog-page-card, .nook-card).is-clamped:focus-visible .card-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 触屏没有 hover：浮窗会盖住下一张卡，直接不给 */
+@media (hover: none) {
+    :is(.blog-page-card, .nook-card).is-clamped:hover .card-popover {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* 下方放不下时翻到卡片上方（list.js 按视口余量加 .popover-up） */
+:is(.blog-page-card, .nook-card).popover-up .card-popover {
+    top: auto;
+    bottom: calc(100% + 0.5rem);
 }
 
 /* ===== MARKDOWN 正文（唯一来源） =====
