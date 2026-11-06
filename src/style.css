@@ -2106,6 +2106,9 @@ html.modal-open .page-scrollbar-thumb {
         padding: 2rem 1rem;
     }
     .hero h1 { font-size: clamp(2rem, 10vw, 3rem); }
+
+    /* 列表页副标题收一档：390px 下要和「排序」挤同一行，1.0625rem 会把排序顶下去 */
+    .list-sub { font-size: 0.95rem; }
     .hero::before { width: 300px; height: 300px; }
 
     /* 两颗主胶囊并排后每颗只剩约 45vw：只收内边距，字号保持和桌面一致，
@@ -2528,8 +2531,23 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
    排序做成一条分段胶囊（一个容器 + 三段），刻意与筛选胶囊区分：
    筛选是实心 accent 的「标签」，排序是容器里浮起的「模式」。
    窄屏允许换行，`.list-sort` 的 margin-left:auto 让它在第二行仍贴右。 */
+/* 视觉隐藏、但保留给读屏与搜索引擎的标题 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .list-head {
-    margin-bottom: 2.5rem;
+    /* 大标题已改为 sr-only：视觉上这一区只剩「副标题 + 排序」一行，
+       上方空白交给 .list-page 的 padding，这里只留与列表的间隔 */
+    margin-bottom: 1.75rem;
 }
 
 .list-title {
@@ -3107,20 +3125,21 @@ html::after {
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 1em;
-    height: 1em;
+    /* 方框 1.2em：与文字完全同高时，字面里那圈留白会让方框看起来比字小；
+       图标 0.9em 填满，视觉尺寸才压得住标题。 */
+    width: 1.2em;
+    height: 1.2em;
     margin-right: 0.35em;
     border: 1px solid var(--primary);
-    border-radius: 0.25em;
+    border-radius: 0.22em;
     background: var(--primary-dim);
     color: var(--primary-text);
-    /* 与标题首行基线对齐：1em 的方框比文字高，靠 vertical-align 往下压 0.16em
-       才和汉字的视觉中线齐平（-0.12em 时图标顶端会冒出去一点）。 */
-    vertical-align: -0.16em;
+    /* 与标题首行基线对齐：压 0.18em 才落在汉字的视觉中线上 */
+    vertical-align: -0.18em;
 }
 .pin-badge svg {
-    width: 0.78em;
-    height: 0.78em;
+    width: 0.9em;
+    height: 0.9em;
 }
 
 .tech-tag,
