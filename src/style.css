@@ -274,8 +274,10 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
     background: var(--bg);
     color: var(--text);
+    /* 用 lvh 而不是 dvh：移动端地址栏 / 底部工具栏收放时 dvh 会变，
+       body 跟着重排；lvh 是「工具栏收起」的稳定高度，切换时不会跳。 */
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100lvh;
     /* 横向溢出裁剪。这里必须是 hidden 而不是 clip：
        hidden 会让 body 形成滚动容器，从而连 position: fixed 的移动端抽屉
        也一起裁掉（否则抽屉停在 right:-100% 会把整页撑出横向滚动条）。 */
@@ -475,8 +477,10 @@ body.nav-open::before {
 
 /* ===== HERO ===== */
 .hero {
+    /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
+       下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。 */
     min-height: 85vh;
-    min-height: 85dvh;
+    min-height: 85svh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1913,8 +1917,8 @@ html.modal-open .page-scrollbar-thumb {
         right: -100%;
         width: 75%;
         max-width: 320px;
-        height: 100dvh;
         height: 100vh;
+        height: 100dvh;
         background: var(--mica-chrome);
         -webkit-backdrop-filter: var(--mica-nav-glass);
         backdrop-filter: var(--mica-nav-glass);
@@ -2014,7 +2018,7 @@ html.modal-open .page-scrollbar-thumb {
 
     .hero {
         min-height: 80vh;
-        min-height: 80dvh;
+        min-height: 80svh;
         padding: 2rem 1.5rem;
     }
 
@@ -2024,7 +2028,9 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 四颗不再竖着堆成四行（那会把 hero 撑长、首屏看不到内容）：
-       主两颗各占一半并排，次两颗自然折到第二行居中。 */
+       主两颗各占一半并排，次两颗自然折到第二行居中。
+       DOM 顺序已经是「重 - 重 - 轻 - 轻」，所以不需要 order：
+       键盘焦点顺序与视觉顺序保持一致。 */
     .cta-buttons {
         flex-direction: row;
         flex-wrap: wrap;
@@ -2039,13 +2045,6 @@ html.modal-open .page-scrollbar-thumb {
 
     .btn-strong {
         flex: 1 1 calc(50% - 0.3rem);
-        /* DOM 顺序是「轻 - 重 - 重 - 轻」，只靠换行会变成「轻重 / 重轻」，
-           两颗主按钮被拆到两行。让主档先进第一行，轻档折到第二行居中。 */
-        order: 1;
-    }
-
-    .btn-quiet {
-        order: 2;
     }
 
     .projects-grid {
@@ -2066,7 +2065,7 @@ html.modal-open .page-scrollbar-thumb {
 
     .hero {
         min-height: 75vh;
-        min-height: 75dvh;
+        min-height: 75svh;
         padding: 2rem 1rem;
     }
     .hero h1 { font-size: clamp(2rem, 10vw, 3rem); }
