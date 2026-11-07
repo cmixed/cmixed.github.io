@@ -589,9 +589,9 @@ ${sitemapUrls}
     )}</span></span><span class="list-chip-count">${count}</span></a>`;
   const headTags = tagStats.filter((t) => t.count > 1);
   const tailTags = tagStats.filter((t) => t.count === 1);
+  // 「全部」是复位动作，不算一个筛选项：放进标题行，用文字按钮而不是胶囊
+  const allChip = `<a href="./" class="list-chip list-chip-all active" data-tag=""><span class="list-chip-text">全部</span><span class="list-chip-count">${posts.length}</span></a>`;
   const tagsHtml = [
-    `<a href="./" class="list-chip active" data-tag="" style="--chip-cols:${chipCols('全部', 1)}"><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${posts.length}</span></a>`,
-    '<span class="filters-break" aria-hidden="true"></span>',
     ...headTags.map((t) => chipHtml(t.name, t.count, false)),
     tailCount > 0
       ? `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll">其他 ${tailCount} 个</button>`
@@ -620,7 +620,10 @@ ${sitemapUrls}
     })
     .join('');
   const indexHtml = replaceIcons(
-    indexTemplate.replace('{{tags}}', tagsHtml).replace('{{posts}}', postsHtml)
+    indexTemplate
+      .replace('{{allChip}}', allChip)
+      .replace('{{tags}}', tagsHtml)
+      .replace('{{posts}}', postsHtml)
   );
   writeFileSync(join(outDir, 'index.html'), indexHtml);
 
