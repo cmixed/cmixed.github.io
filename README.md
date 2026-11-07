@@ -189,13 +189,13 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 按钮 / 胶囊里的文字默认可选中：点击时若有几像素手部位移，就会选走半个标签（实测点 `26Q3` 选成 `"6Q"`），中间留下一段蓝色选区和文本光标 —— 用户看到的「点击后光标放在中间」就是这个。
 
-所以所有**可点控件**（`button`、`.list-chip`、`.list-chip-more`、`.list-sort-btn`、`.changelog-quarter`、`.skill-chip`、导航项、FAB、footer 按钮等）统一 `user-select: none`；正文、文章、代码、邮箱仍用 `user-select: text`，不影响复制。同时给 `button:focus-visible` / `a:focus-visible` 兜一圈 accent 焦点环：用 `:focus-visible` 而不是 `:focus`，鼠标点击不留框，键盘 Tab 又不会丢焦点；已有自定义焦点样式的组件特异性更高，仍走自己的规则。
+所以所有**可点控件**（`button`、`.list-chip`、`.list-chip-more`、`.list-sort-btn`、`.meta-chip`、`.skill-chip`、导航项、FAB、footer 按钮等）统一 `user-select: none`；正文、文章、代码、邮箱仍用 `user-select: text`，不影响复制。同时给 `button:focus-visible` / `a:focus-visible` 兜一圈 accent 焦点环：用 `:focus-visible` 而不是 `:focus`，鼠标点击不留框，键盘 Tab 又不会丢焦点；已有自定义焦点样式的组件特异性更高，仍走自己的规则。
 
 ### 更新日志：按季度分段
 
 日志从「按日期一行行铺下去」改成两层结构：
 
-- **季度标签在弹窗标题行右侧**（`.site-modal-actions`），不是正文里的 sticky 条 —— 标题右边那片空白本来一直空着，而标签又必须常驻；放到标题行之后它天然在滚动区之外，不用 sticky、不占正文高度。「关于本站」时容器清空，`:empty` 让它整个塌掉。窄屏（≤600px）标题行换行，标签落到第二行横跨整行。
+- **季度标签在弹窗标题行右侧**（`.site-modal-actions`），不是正文里的 sticky 条 —— 标题右边那片空白本来一直空着，而标签又必须常驻；放到标题行之后它天然在滚动区之外，不用 sticky、不占正文高度。这块按钮区两个弹窗共用（见下一节「关于本站：目录跳转」），胶囊样式统一成 `.meta-chip`，靠 `data-quarter` / `data-target` 区分行为。窄屏（≤600px）标题行换行，标签落到第二行横跨整行。
 - **每段前面一条横线，中间夹一颗胶囊**标出季度，与下面按日期分组的小标题形成两级。
 
 **点击要保证「自动加载 + 落到对应位置」**：
@@ -209,6 +209,16 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 1. 导航最初写成 `<nav>`，命中了全站导航的 `justify-content: space-between`，三个标签被撑成两端分布 —— 改成 `<div role="group">`。
 2. 分段写成 `<section>`，吃到 `section { padding: 5rem 2rem }`（每段上下各多 80px）和 **`content-visibility: auto` + 500px 占位**。前者显式 `padding: 0`，后者必须 `content-visibility: visible`：离屏季度整段被压成 500px，跳转目标被夹在几百像素处。
 3. `.changelog-day` 原本也做了按天虚拟化（340px 估算高），落点会随内容逐节展开而漂移。这里刻意**不虚拟化**：一天的条目就是几行纯文本，真正需要省的是打开时那一整篇 README，不是这份扁平列表。
+
+### 关于本站：目录跳转
+
+README 有好几节、弹窗只有一屏高，找「内容维护」得滚半天。标题行右侧那块本来给季度标签留的位置，现在两个弹窗共用：**更新日志放季度，关于本站放目录**，同一颗 `.meta-chip` 胶囊，靠 `data-quarter` / `data-target` 区分点击与高亮（`aria-label` 也按弹窗改写）。
+
+- **挑哪几节由 `ABOUT_NAV` 决定**（`scripts/site-meta.ts`），当前是「技术栈 / 主要特性 / 设计说明 / 项目结构 / 内容维护」。写的是 README 里的 `##` 标题原文：构建期按标题匹配、换成该节稳定的 `about-sec-N` id，**标题写错只告警、不进目录**，不会拼出一个点了没反应的锚点。想换一批改这个数组即可。
+- **数据随 `site-about.json` 走**（`nav: [{ id, label }]`），前端只负责渲染，没有第二份目录定义；缓存键升到 `about:v2`，`sameMeta()` 也比对 `nav`，所以「加了目录但正文没变」时后台刷新回来仍会重渲染。
+- **落点要一次量准**。分节开着 `content-visibility: auto`，离屏的节只有 550px 估算高，直接量会把目标夹在半路。`scrollToSection()` 的做法是：临时加 `.is-measuring` 把全部节展开、跑一次布局，**撤掉之后再量第二次** —— 展开过的节已经用 `contain-intrinsic-size: auto` 记住了真实高度，第二次量到的就是最终几何。顺序反过来（先量再撤、滚完再校正）不行：切虚拟化会让每节差 16px，越往下累积越多，实测前三节分别落偏 16 / 32 / 48px。
+- **滚动位置在 `showModal` 之后复位**。弹窗关着时是 `display: none`，那时给正文设 `scrollTop` 不生效，重新打开会停在上次读到的地方（高亮也跟着错）。复位挪到 `showModal()` 之后，两个弹窗都受益。
+- 窄屏（≤600px）5 颗中文胶囊按桌面内边距整行差十来像素，最后一颗会被切掉半个 —— 断点里把内边距与间距收一档，整行放下，不靠横向滚动。
 
 ### 季度总结：过完才写，写完不再重写
 
