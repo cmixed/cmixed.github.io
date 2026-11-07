@@ -218,6 +218,11 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 - **不重复总结**。总结文本写在 `src/data/quarter-summaries.json`，一个季度一条、带 `fingerprint`（该季度全部 `hash + subject` 的 sha256 前 12 位）。构建期 `selectQuarterSummaries()` **只读不生成**：已有总结原样复用；已完结但缺总结的只 `console.warn` 提醒，绝不自动补一份；指纹变了也继续复用旧总结、只提醒人工复核。所以每次构建不会重新"总结"一遍。
 - **每段一张**。`renderChangelog()` 按季度键取一次，插在横线胶囊标题之后、按日期分组的明细之前；日期分组里不会再插。统计（条数 / 活跃日 / 首末日期 / 类型分布）从完整提交记录现算，不写进存档文件，免得和 git 历史对不上。
 
+**构建时自动判断，不用自己记得**：`quarterSummaryGaps()` 是缺口判定的唯一入口，`buildCommits()` 每次构建都会跑它，缺总结 / 指纹变化都算缺口，进行中的季度不算。结果由 `.github/workflows/deploy.yml` 的 build job 接出来（必须放 build job —— 它 `fetch-depth: 0` 有完整历史，`check` job 的浅 checkout 拿不到季度数据）：
+
+- Actions 运行页顶部的 **Step Summary** 表格，外加 `::warning` 注解；
+- 需要动笔时自动开一个固定标题的 issue **`季度总结待补写`**（已存在就更新 body，不重复开；补齐后下次构建自动关闭）。用 `actions/github-script` + `issues: write`，失败 `continue-on-error`，提醒本身不阻塞部署。
+
 新季度过完后补写一次：
 
 ```bash
