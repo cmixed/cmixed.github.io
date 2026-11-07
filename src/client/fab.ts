@@ -23,10 +23,11 @@
  */
 (() => {
   const ICONS = {
-    // 与 favicon 同源的 C 形：不再是房子 —— 三颗按钮是「导航」而不是「地址」
-    home: '<path d="M18 6a8 8 0 1 0 0 12"/>',
-    up: '<path d="M12 19V5.2"/><path d="m5.8 11.4 6.2-6.2 6.2 6.2"/>',
-    down: '<path d="M12 5v13.8"/><path d="m18.2 12.6-6.2 6.2-6.2-6.2"/>',
+    /* 三颗都用闭合路径：默认只描边（镂空），hover 时给一层淡填充 —— 填充态由
+       CSS 控制（.fab-btn:hover svg），这里只保证路径闭合、填充后仍然是个完整图形。 */
+    home: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="4.6"/><rect x="9.3" y="9.3" width="5.4" height="5.4" rx="1.5"/>',
+    up: '<path d="M12 4.9 5 13.2h4.2v5.9h5.6v-5.9H19z"/>',
+    down: '<path d="M12 19.1 19 10.8h-4.2V4.9H9.2v5.9H5z"/>',
   } as const;
 
   type IconName = keyof typeof ICONS;

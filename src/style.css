@@ -3979,6 +3979,15 @@ html.modal-open .fx-layer { visibility: hidden; }
     width: 18px;
     height: 18px;
     display: block;
+    /* 三个图标都是闭合路径：默认只描边（镂空），悬停给一层淡填充 */
+    fill: none;
+    transition: fill 0.2s ease;
+}
+
+.fab-btn:hover svg,
+.fab-btn:focus-visible svg {
+    fill: currentColor;
+    fill-opacity: 0.16;
 }
 
 .fab-btn:hover,
