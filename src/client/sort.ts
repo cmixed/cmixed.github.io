@@ -37,8 +37,64 @@
     /* 单独取一个非空别名：TS 不会把「外层 const 的收窄」带进下面的闭包 */
     const target: HTMLElement = list;
 
+    /* 分段控件背后的一颗滑块：切换时滑过去，而不是「旧块淡出、新块淡入」。
+       三段文字宽度不同，所以位置由 JS 量一次真实 rect 再写成两个自定义属性；
+       动画只动 transform（合成层）和这颗绝对定位元素自己的 width，不牵动页面布局。 */
+    const group = buttons[0]?.parentElement ?? null;
+    const thumb = document.createElement('span');
+    thumb.className = 'list-sort-thumb';
+    thumb.setAttribute('aria-hidden', 'true');
+    group?.insertBefore(thumb, group.firstChild);
+
+    const reduceMotion = (): boolean => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function positionThumb(animate: boolean): void {
+      if (!group) return;
+      const active =
+        buttons.find((btn) => btn.getAttribute('aria-pressed') === 'true') || buttons[0];
+      if (!active) return;
+      /* 初始化 / 窗口缩放时不要滑：先关掉过渡，下一帧再还回去 */
+      if (!animate) thumb.style.transition = 'none';
+      const box = group.getBoundingClientRect();
+      const rect = active.getBoundingClientRect();
+      group.style.setProperty('--thumb-x', `${rect.left - box.left - group.clientLeft}px`);
+      group.style.setProperty('--thumb-w', `${rect.width}px`);
+      thumb.classList.add('is-ready');
+      if (!animate) requestAnimationFrame(() => (thumb.style.transition = ''));
+    }
+
+    /**
+     * FLIP：重排前记下每张卡的位置，重排后从旧位置滑回新位置。
+     *
+     * 用 Web Animations 而不是改 inline style：动画结束自动还原，不会和卡片自身的
+     * hover transform / fade-in 打架。transform 是合成层属性，逐帧不触发布局。
+     * 代价只是两次 rect 读取 + N 个动画（博客 8 张、小窝 5 张），点击时才发生。
+     */
+    function flip(first: Map<HTMLElement, DOMRect>): void {
+      cards.forEach((card) => {
+        const before = first.get(card);
+        if (!before) return;
+        const after = card.getBoundingClientRect();
+        const dx = before.left - after.left;
+        const dy = before.top - after.top;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        card.animate(
+          [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
+          { duration: 340, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+        );
+      });
+    }
+
+    /* 首次加载只是「把顺序摆正」，不该让卡片从屏幕外飞进来 */
+    let initialized = false;
+
     function apply(value: string): void {
       const by = allowed.has(value) ? value : 'default';
+      const animate = initialized && !reduceMotion();
+      const first = animate
+        ? new Map(cards.map((card) => [card, card.getBoundingClientRect()] as const))
+        : null;
+
       const sorted = original.slice();
       if (by !== 'default') {
         const attr = 'data-' + by;
@@ -53,7 +109,10 @@
       buttons.forEach((btn) => {
         btn.setAttribute('aria-pressed', String((btn.dataset.sort || 'default') === by));
       });
+      positionThumb(animate);
+      if (first) flip(first);
       if (opts.onChange) opts.onChange(by);
+      initialized = true;
     }
 
     function syncUrl(value: string): void {
@@ -77,6 +136,8 @@
     });
 
     window.addEventListener('popstate', syncFromUrl);
+    /* 断点换了根字号 / 按钮宽度，滑块要重新量；缩放不需要滑动过渡 */
+    window.addEventListener('resize', () => positionThumb(false), { passive: true });
 
     // 初始化：读取 ?sort=，同时把 aria-pressed 与 DOM 顺序摆正
     syncFromUrl();
