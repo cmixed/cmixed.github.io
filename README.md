@@ -149,7 +149,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 左组三项与列表页的左组完全同构：都是「去别的页面」的链接，唯一区别是主页的 `cmixed` 不可点（已经在主站了）。右组五项全是「在本页里走」的锚点，点下去是滚动而不是跳页。窄屏（≤768px）右组整体收进汉堡抽屉（`body.nav-open` + `.nav-links.active`），左组保持可见——它在抽屉之上，不遮住当前页的身份。
 
-主页 logo 后面用 `.logo-arrow-space`（`inline-block; width: 0.85em`）占住子页那个 `←` 的位置：三处导航切页时，「站名 + 两个入口」不会左右跳。
+主页 logo 后面用 `.logo-arrow-space`（`inline-block; width: 1.285em`）占住子页那个 `←` 的位置。这个值是量出来的而不是估的：子页 `cmixed ←` 的 logo 实宽 104px，主页补足后 103.7px，差 0.3px（亚像素）——之前按 0.85em 估，实测差 9px，每次切页左组都会横移一下。
 
 锚点跳转会在 `scrollIntoView` 之后手工 `history.pushState`：`main.ts` 为了平滑滚动调了 `preventDefault`，浏览器不会自己改 hash，不补这一步「跳到博客卡片」这个位置就既不能分享、前进后退也记不住。
 
