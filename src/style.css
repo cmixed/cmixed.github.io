@@ -2400,10 +2400,12 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 /* 主页 logo 后面留出与子页 `←` 等宽的空位：三处导航的左组因此从同一条竖线起排，
-   切页时「站名 + 两个入口」的位置不会左右跳。 */
+   切页时「站名 + 两个入口」的位置不会左右跳。
+   1.285em 是量出来的：子页 `cmixed ←` 的 logo 宽 104px，主页必须补到同一个宽度，
+   否则每次切页左组都会横移 9px（0.8em 时）或 1.2px（1.36em 时）。 */
 .logo-arrow-space {
     display: inline-block;
-    width: 0.85em;
+    width: 1.285em;
 }
 /* 子页 logo：与主页 .logo 同字号、同字重、同字体栈。必须用 (0,2,0) 选择器，
    否则会被「导航项」里的 .xxx-nav-title 或通用 a 规则压成小字。
