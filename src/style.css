@@ -1934,6 +1934,8 @@ a.changelog-item:hover {
 
 .changelog-hash {
     flex: none;
+    /* 固定右对齐：主题长短只影响中段，hash 始终贴住行尾 */
+    margin-left: auto;
     font-family: var(--font-mono);
 }
 
@@ -2006,16 +2008,8 @@ a.changelog-item:hover {
         font-size: 0.875rem;
     }
 
-    /* 窄屏放不下「hash + 类型 + 标题」一行：让标题独占一行，
-       否则标签吃掉三分之二宽度，标题被挤成三四行、右半边还空着 */
-    .changelog-item {
-        flex-wrap: wrap;
-        row-gap: 0.35rem;
-    }
-
-    .changelog-subject {
-        flex: 1 1 100%;
-    }
+    /* 窄屏条目不再换行摊开：仍是「类型 + 主题」靠左、hash 固定右对齐一行，
+       主题在中段自己折行（min-width: 0 已允许收缩），hash 永远贴右缘 */
 }
 
 /* ===== SCROLLBAR ===== */

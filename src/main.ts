@@ -697,13 +697,14 @@ function quarterSummaryHtml(
 }
 
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
-  const inner = `<span class="changelog-hash">${escapeHtml(entry.hash)}</span>${
+  /* 类型 + 主题靠左，hash 固定右对齐贴住行尾（.changelog-hash 的 margin-left: auto） */
+  const inner = `${
     entry.type
       ? `<span class="changelog-type">${escapeHtml(
           entry.scope ? `${entry.type}/${entry.scope}` : entry.type
         )}</span>`
       : ''
-  }<span class="changelog-subject">${escapeHtml(entry.subject)}</span>`;
+  }<span class="changelog-subject">${escapeHtml(entry.subject)}</span><span class="changelog-hash">${escapeHtml(entry.hash)}</span>`;
   if (!repo) return `<li><div class="changelog-item">${inner}</div></li>`;
   return `<li><a class="changelog-item" href="${escapeHtml(
     `${repo}/commit/${entry.hash}`
