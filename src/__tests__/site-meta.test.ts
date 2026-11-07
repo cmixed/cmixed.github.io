@@ -11,6 +11,7 @@ import {
   quarterOf,
   quarterStats,
   quarterSummaryGaps,
+  readSummaryArchive,
   renderAboutHtml,
   rewriteLinks,
   selectQuarterSummaries,
@@ -221,6 +222,7 @@ describe('buildAbout / buildCommits', () => {
     expect(Object.keys(commits).sort()).toEqual([
       'changelog',
       'inProgress',
+      'inProgressNotice',
       'repo',
       'summaries',
       'total',
@@ -230,6 +232,14 @@ describe('buildAbout / buildCommits', () => {
     for (const quarter of commits.inProgress) {
       expect(isQuarterComplete(quarter)).toBe(false);
       expect(commits.summaries[quarter]).toBeUndefined();
+    }
+
+    // 公告文案透传自 defaults.inProgress，构建期不生成内容
+    const archive = readSummaryArchive();
+    expect(commits.inProgressNotice).toEqual(archive.inProgressNotice);
+    if (commits.inProgressNotice) {
+      expect(commits.inProgressNotice.headline.length).toBeGreaterThan(0);
+      expect(commits.inProgressNotice.body.length).toBeGreaterThan(0);
     }
 
     expect(commits.changelog.length).toBeLessThanOrEqual(400);
@@ -406,5 +416,25 @@ describe('季度总结：只复用，不重复生成', () => {
     ]);
     // 存档里也不该有进行中季度的总结，否则会被误当成已总结
     expect(selectQuarterSummaries(changelog, {}, NOV, () => {})['26Q4']).toBeUndefined();
+  });
+
+  it('readSummaryArchive 把 defaults 与季度条目分开，公告文案走数据层', () => {
+    const archive = readSummaryArchive();
+
+    // 季度条目只认 26Q3 这类键，defaults 之类的配置绝不混进来
+    for (const key of Object.keys(archive.entries)) {
+      expect(key).toMatch(/^\d{2}Q[1-4]$/);
+    }
+    expect(archive.entries['defaults']).toBeUndefined();
+
+    // defaults.inProgress 是「进行中」公告的文案，原样透传
+    expect(archive.inProgressNotice).not.toBeNull();
+    expect(archive.inProgressNotice?.headline.length).toBeGreaterThan(0);
+    expect(archive.inProgressNotice?.body.length).toBeGreaterThan(0);
+
+    // 文案存在与否完全不影响补写判定：缺口只看季度条目
+    const gaps = quarterSummaryGaps(changelog, archive.entries, NOV);
+    expect(gaps.some((gap) => gap.quarter === '26Q4')).toBe(false);
+    expect(gaps.every((gap) => gap.quarter !== 'defaults')).toBe(true);
   });
 });

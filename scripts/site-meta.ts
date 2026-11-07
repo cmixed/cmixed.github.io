@@ -65,6 +65,23 @@ export interface QuarterSummaryStored {
   highlights: string[];
 }
 
+/**
+ * 「进行中」占位公告的文案（`defaults.inProgress`）。
+ * 内容住在 quarter-summaries.json，构建期只透传，**不生成、不兜底**。
+ */
+export interface QuarterNotice {
+  headline: string;
+  body: string;
+}
+
+/** quarter-summaries.json 解析结果：季度条目与默认文案分开，互不混淆。 */
+export interface SummaryArchive {
+  /** 只有 `26Q3` 这样的季度键；`defaults` 之类绝不混进来 */
+  entries: Record<string, QuarterSummaryStored>;
+  /** 进行中占位公告文案；文件里没写 defaults.inProgress 时为 null */
+  inProgressNotice: QuarterNotice | null;
+}
+
 /** 构建期从提交记录现算的统计，不写进存档文件，避免和 git 历史对不上。 */
 export interface QuarterStats {
   commits: number;
@@ -104,6 +121,11 @@ export interface CommitsMeta {
    * 但它**不进** quarterSummaryGaps 的缺口清单，不会触发补写提醒。
    */
   inProgress: string[];
+  /**
+   * 「进行中」公告的文案（透传自 quarter-summaries.json 的 defaults.inProgress）。
+   * 文案归数据、状态归构建，前端只渲染；为 null 时前端不出公告卡。
+   */
+  inProgressNotice: QuarterNotice | null;
 }
 
 const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?!?:\s+([\s\S]+)$/;
@@ -273,16 +295,33 @@ export function selectQuarterSummaries(
   return result;
 }
 
-function readSummaries(): Record<string, QuarterSummaryStored> {
+/**
+ * 读 quarter-summaries.json：`defaults` 归默认文案，其余只有形如 `26Q3`
+ * 的键才算季度条目 —— 两处分开，缺口判定 / 总结挑选永远看不到 defaults。
+ */
+export function readSummaryArchive(): SummaryArchive {
+  let raw: Record<string, unknown>;
   try {
-    return JSON.parse(readFileSync(SUMMARIES_PATH, 'utf-8')) as Record<
-      string,
-      QuarterSummaryStored
-    >;
+    raw = JSON.parse(readFileSync(SUMMARIES_PATH, 'utf-8')) as Record<string, unknown>;
   } catch {
-    /* 文件缺失 / 格式坏掉不阻断构建，只是没有总结 */
-    return {};
+    /* 文件缺失 / 格式坏掉不阻断构建，只是没有总结、也没有公告文案 */
+    return { entries: {}, inProgressNotice: null };
   }
+
+  const entries: Record<string, QuarterSummaryStored> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (key === 'defaults' || !/^\d{2}Q[1-4]$/.test(key)) continue;
+    entries[key] = value as QuarterSummaryStored;
+  }
+
+  const defaults = raw['defaults'] as { inProgress?: QuarterNotice } | undefined;
+  const notice = defaults?.inProgress;
+  const inProgressNotice =
+    notice && typeof notice.headline === 'string' && typeof notice.body === 'string'
+      ? { headline: notice.headline, body: notice.body }
+      : null;
+
+  return { entries, inProgressNotice };
 }
 
 /** `git@github.com:owner/repo.git` / `https://github.com/owner/repo.git` → 仓库主页 URL。 */
@@ -391,12 +430,14 @@ export async function buildAbout(): Promise<AboutMeta> {
 
 export function buildCommits(now: Date = new Date()): CommitsMeta {
   const { changelog, total } = readCommits();
+  const archive = readSummaryArchive();
   return {
     changelog,
     total,
     repo: readRepoUrl(),
-    summaries: selectQuarterSummaries(changelog, readSummaries(), now),
+    summaries: selectQuarterSummaries(changelog, archive.entries, now),
     inProgress: inProgressQuarters(changelog, now),
+    inProgressNotice: archive.inProgressNotice,
   };
 }
 

@@ -501,6 +501,14 @@ interface CommitsData {
   summaries: Record<string, QuarterSummaryView>;
   /** 还没过完的季度：页面上显示「进行中」占位公告，不触发补写提醒 */
   inProgress?: string[];
+  /** 「进行中」公告的文案，透传自 quarter-summaries.json 的 defaults.inProgress */
+  inProgressNotice?: QuarterNoticeView | null;
+}
+
+/** 「进行中」占位公告的文案（数据层 defaults.inProgress 透传过来）。 */
+interface QuarterNoticeView {
+  headline: string;
+  body: string;
 }
 
 type MetaKind = 'about' | 'changelog';
@@ -652,34 +660,25 @@ function quarterOf(date: string): string {
 }
 
 /**
- * 进行中季度的占位公告。
- *
- * 这是**界面模板**，不是季度总结，所以不写进 `quarter-summaries.json`：
- * 存档里只放「一个季度写一次、写完不重写」的总结，模板混进去会污染
- * 「这条季度总结到底写过没有」的判定，也就会干扰 CI 的补写提醒。
- */
-const IN_PROGRESS_NOTICE = {
-  headline: '本季度进行中',
-  body: '这段时间的提交还在累积。季度过完后，会在这里补一份总结；构建期会自动检查并提醒补写。',
-};
-
-/**
  * 季度总结卡片（已过完且写过总结）或「进行中」占位公告（还没过完）。
- * 数据来自构建期的 `site-commits.json`；每个季度段只调一次，日期分组里不重复插。
+ * 文案全部来自构建期的 `site-commits.json`：总结来自 quarter-summaries.json
+ * 的季度条目，公告来自其中的 defaults.inProgress —— 这里只做渲染，不内置文案。
+ * 每个季度段只调一次，日期分组里不重复插。
  */
 function quarterSummaryHtml(
   quarter: string,
   summary: QuarterSummaryView | undefined,
-  inProgress: string[] | undefined
+  meta: Pick<CommitsData, 'inProgress' | 'inProgressNotice'>
 ): string {
   if (!summary) {
-    if (!inProgress?.includes(quarter)) return '';
+    const notice = meta.inProgressNotice;
+    if (!meta.inProgress?.includes(quarter) || !notice) return '';
     return `<article class="changelog-summary is-in-progress">
       <div class="changelog-summary-head">
         <span class="changelog-summary-tag">季度进行中 · ${escapeHtml(quarter)}</span>
       </div>
-      <h3 class="changelog-summary-title">${escapeHtml(IN_PROGRESS_NOTICE.headline)}</h3>
-      <p>${escapeHtml(IN_PROGRESS_NOTICE.body)}</p>
+      <h3 class="changelog-summary-title">${escapeHtml(notice.headline)}</h3>
+      <p>${escapeHtml(notice.body)}</p>
     </article>`;
   }
   const { stats } = summary;
@@ -877,7 +876,7 @@ function renderChangelog(meta: CommitsData): void {
     return `<section class="changelog-quarter-group" id="q-${quarter}"><div class="changelog-quarter-title"><span class="changelog-quarter-chip">${quarter}</span></div>${quarterSummaryHtml(
       quarter,
       meta.summaries?.[quarter],
-      meta.inProgress
+      meta
     )}${items}</section>`;
   }).join('');
 
@@ -931,13 +930,14 @@ function sameMeta(kind: MetaKind, a: AboutData | CommitsData, b: AboutData | Com
   }
   const before = a as CommitsData;
   const after = b as CommitsData;
-  /* 总结的键与进行中的季度都要比：季度过完、新增一条总结但提交没变时，
-     后台刷新回来仍要重渲染，否则用户要等下次打开才看得到。 */
+  /* 总结的键、进行中的季度和公告文案都要比：季度过完、新增一条总结或改了
+     公告文案但提交没变时，后台刷新回来仍要重渲染，否则要等下次打开才看得到。 */
   const summaryKeys = (data: CommitsData): string =>
     Object.keys(data.summaries ?? {})
       .sort()
       .join('|');
-  const progressKeys = (data: CommitsData): string => (data.inProgress ?? []).join('|');
+  const progressKeys = (data: CommitsData): string =>
+    `${(data.inProgress ?? []).join('|')}␝${data.inProgressNotice?.headline ?? ''}␝${data.inProgressNotice?.body ?? ''}`;
   return (
     before.total === after.total &&
     before.repo === after.repo &&

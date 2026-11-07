@@ -1,4 +1,10 @@
 {
+  "defaults": {
+    "inProgress": {
+      "headline": "本季度进行中",
+      "body": "这段时间的提交还在累积。季度过完后，会在这里补一份总结；构建期会自动检查并提醒补写。"
+    }
+  },
   "26Q3": {
     "fingerprint": "405cdde32f84",
     "headline": "博客与资源小窝成型，构建链迁到 pnpm",
