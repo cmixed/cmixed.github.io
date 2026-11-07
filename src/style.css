@@ -889,30 +889,33 @@ html.fab-measuring section {
 
 .about-avatar {
     flex-shrink: 0;
-    /* 子元素只有图片，高度就是 168px；名字胶囊用绝对定位挂在图片下方，
-       不参与高度计算 —— 否则头像列会比右侧正文还高，把整张卡连同下面的技能段一起推长。 */
-    position: relative;
+    /* 头像与名牌上下接成一体：图片顶部圆角、名牌底部圆角、两侧直边贯通，
+       整块读起来是一张「带落款的卡片」。名牌因此必须参与文档流 ——
+       绝对定位会把它压到下面的技能分隔线上（之前那版就是）。 */
+    display: flex;
+    flex-direction: column;
 }
 
-/* 头像下的名字标识：只读、不可点。形状与站内只读标签同一套（6px 方片 = 信息），
-   不用 999px 胶囊 —— 那是「可点」的形状语言，一个纯标识挂上去会误导。 */
+/* 名牌：左右两条竖边从头像两侧垂下来，到底部连起来，形成半个圆角矩形。
+   上边框去掉，让图片自己的下边框当照片与名字之间的分隔线；
+   圆角与头像同值（14px），两者拼起来才是一条连续的轮廓。 */
 .about-name-tag {
-    position: absolute;
-    top: calc(100% + 0.15rem);
-    left: 50%;
-    transform: translateX(-50%);
-    display: inline-flex;
+    align-self: stretch;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.06rem 0.5rem;
+    height: 2.35rem;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    /* 14px：名牌整条 38px 高，13px 在里头会显得空；等宽字体 + 0.1em 字距，
+       和下面对齐的站名同一套写法 */
+    font-size: 0.875rem;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.1em;
     color: var(--mica-chip-text);
     background: var(--mica-chip);
     border: 1px solid var(--mica-chip-border);
-    border-radius: var(--chip-radius);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
     white-space: nowrap;
     user-select: none;
 }
@@ -922,7 +925,8 @@ html.fab-measuring section {
     display: block;
     width: 168px;
     height: 168px;
-    border-radius: 14px;
+    /* 底部直角：名牌从这条边接下去，两个圆角同时存在的话接缝两侧会露底 */
+    border-radius: 14px 14px 0 0;
     object-fit: cover;
     border: 1px solid var(--border);
     box-shadow: 0 4px 20px var(--shadow);
@@ -2101,16 +2105,14 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 窄屏是纵向堆叠：胶囊绝对定位会压到下面的正文，这里改回流内 */
+    /* 窄屏头像居中；名牌与图片必须无缝相接，这里不能写 gap */
     .about-avatar {
-        display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 0.45rem;
     }
 
     .about-name-tag {
-        position: static;
-        transform: none;
+        height: 2.1rem;
+        font-size: 0.78rem;
     }
 
     .about-facts {
@@ -4066,15 +4068,10 @@ html.modal-open .fx-layer { visibility: hidden; }
     width: 18px;
     height: 18px;
     display: block;
-    /* 三个图标都是闭合路径：默认只描边（镂空），悬停给一层淡填充 */
+    /* 只描边、不填色：这套图标是开放路径（房顶 + 三面墙、单独的箭头线），
+       填色会把它们糊成色块。镂空本身正是站内的图标语言。
+       「填充」交给按钮：hover 时底色与描边一起变亮，反馈更干净。 */
     fill: none;
-    transition: fill 0.2s ease;
-}
-
-.fab-btn:hover svg,
-.fab-btn:focus-visible svg {
-    fill: currentColor;
-    fill-opacity: 0.16;
 }
 
 .fab-btn:hover,

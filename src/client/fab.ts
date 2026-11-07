@@ -12,7 +12,8 @@
  *   /blog/x.html  → /blog/（博客主页）
  *   /nook/        → 站点主页
  *   /nook/x.html  → /nook/（资源小窝主页）
- * 也就是「目录页指向父目录，内容页指向所在目录」。
+ * 也就是「目录页指向父目录，内容页指向所在目录」。图标跟落点绑定：
+ * 指向站点主页用房子，指回博客 / 小窝用对应栏目的标记。
  *
  * 图标用内联 SVG 而不是字符：系统字体缺字时会把 U+2302（⌂）画成方框，
  * 不同平台的 emoji / 符号字形也各不相同。三颗图标同一套 1.7px 描边，
@@ -23,11 +24,15 @@
  */
 (() => {
   const ICONS = {
-    /* 三颗都用闭合路径：默认只描边（镂空），hover 时给一层淡填充 —— 填充态由
-       CSS 控制（.fab-btn:hover svg），这里只保证路径闭合、填充后仍然是个完整图形。 */
-    home: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="4.6"/><rect x="9.3" y="9.3" width="5.4" height="5.4" rx="1.5"/>',
-    up: '<path d="M12 4.9 5 13.2h4.2v5.9h5.6v-5.9H19z"/>',
-    down: '<path d="M12 19.1 19 10.8h-4.2V4.9H9.2v5.9H5z"/>',
+    /* 全部走站内同一套线形图标：24×24、1.7px 描边、圆头、currentColor，
+       与导航里的 RSS / 主题 / 搜索同源。三颗按钮不再各有各的画法。
+       blog / nook 就是把两个栏目的 favicon 挪进 24 格：尖括号、立方体，
+       所以「点它就回那个栏目」这件事，图标本身已经说清楚了。 */
+    home: '<path d="M3 11.2 12 4l9 7.2"/><path d="M5.6 9.8v9.4h12.8V9.8"/>',
+    blog: '<path d="M9.8 7.9 5.6 12l4.2 4.1"/><path d="M14.2 7.9 18.4 12l-4.2 4.1"/>',
+    nook: '<path d="M12 5.9 18.5 9.2v6.2L12 18.7 5.5 15.4V9.2Z"/><path d="M5.6 9.2 12 12.6l6.5-3.4M12 12.6v6.1"/>',
+    up: '<path d="M12 19V5.2"/><path d="m5.8 11.4 6.2-6.2 6.2 6.2"/>',
+    down: '<path d="M12 5v13.8"/><path d="m18.2 12.6-6.2 6.2-6.2-6.2"/>',
   } as const;
 
   type IconName = keyof typeof ICONS;
@@ -118,7 +123,15 @@
     return el;
   }
 
-  function upTarget(): { href: string; label: string } | null {
+  /**
+   * 第一颗按钮「回哪、画什么」。
+   *
+   * 图标跟落点一一对应，不按页面随意挑：
+   *   列表页 → 站点主页（房子图标）
+   *   文章页 → 所属栏目（博客的尖括号 / 小窝的立方体）
+   * 所以看到哪颗图标，就知道这一下会回到哪一层。
+   */
+  function upTarget(): { href: string; label: string; icon: IconName } | null {
     const path = location.pathname;
     const dir = new URL('.', location.href).pathname;
     // 根目录就是「主页」本身，再给一颗回主页的按钮只会自链接
@@ -126,10 +139,10 @@
 
     // 目录页（/blog/、/nook/、/blog/index.html）→ 父目录；内容页（/blog/x.html）→ 所在目录
     const isDirPage = path.endsWith('/') || path.endsWith('/index.html');
-    if (isDirPage) return { href: '../', label: '站点主页' };
-    if (dir === '/blog/') return { href: './', label: '博客主页' };
-    if (dir === '/nook/') return { href: './', label: '资源小窝主页' };
-    return { href: './', label: '上级页面' };
+    if (isDirPage) return { href: '../', label: '站点主页', icon: 'home' };
+    if (dir === '/blog/') return { href: './', label: '博客主页', icon: 'blog' };
+    if (dir === '/nook/') return { href: './', label: '资源小窝主页', icon: 'nook' };
+    return { href: './', label: '上级页面', icon: 'home' };
   }
 
   const group = document.createElement('div');
@@ -144,7 +157,7 @@
     link.href = up.href;
     link.title = up.label;
     link.setAttribute('aria-label', up.label);
-    link.innerHTML = svg('home');
+    link.innerHTML = svg(up.icon);
     group.appendChild(link);
   }
 
