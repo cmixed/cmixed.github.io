@@ -2656,6 +2656,9 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: none;
     flex-direction: column;
     min-width: 0;
+    /* 默认显示多少个标签胶囊（不是「全部」，全部固定在第一行）。
+       构建期分不清设备，由 list.js 按这个值截断。 */
+    --filters-visible: 12;
 }
 
 .list-filters-head {
@@ -2665,8 +2668,13 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     margin-bottom: 0.75rem;
 }
 
-.list-filters-close {
+.list-chip-all {
+    /* 桌面：标题在左、「全部」在右，两端对齐 */
     margin-left: auto;
+}
+
+.list-filters-close {
+    margin-left: 0.15rem;
 }
 
 .list-filters-title {
@@ -2709,6 +2717,8 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 
 .list-filters-panel .list-chip {
     /* 不要写 width: auto —— 那会盖掉 --chip-cols 的量化宽度，宽度退回内容自然值 */
+    /* 栏内标签比卡片标签大一档：左侧是导航性内容，13px 在这个宽度里读起来发灰 */
+    font-size: 0.875rem;
     justify-content: center;
     gap: 0.3rem;
     padding: var(--chip-pad-y) 0.55rem;
@@ -2840,6 +2850,10 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 @media (max-width: 1279px) {
+    .list-filters-panel {
+        --filters-visible: 8;
+    }
+
     /* 移动 / 平板不再用抽屉：标签区变成列表上方的一片，按视口宽度换行填充。
        抽屉要一层遮罩、一个关闭按钮、一套 Esc 与滚动锁定 —— 为 23 个标签付这些不值，
        而且抽屉盖住列表时看不到「筛完还剩几篇」。 */
@@ -2889,6 +2903,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
         display: none;
     }
 
+    /* 手机上只留 6 颗：横向一片里再多就成两屏了 */
+    .list-filters-panel {
+        --filters-visible: 6;
+    }
+
     /* 横排区没有「栏」这个概念了：「标签」小标题会跑到页面大标题前面，层级倒置，
        所以只留「全部」这一颗复位按钮 */
     .list-filters-head {
@@ -2898,6 +2917,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 
     .list-filters-title {
         display: none;
+    }
+
+    /* 横排时没有标题，全部不需要再往右顶 */
+    .list-chip-all {
+        margin-left: 0;
     }
 }
 
@@ -3331,6 +3355,12 @@ html::after {
     border-color: transparent;
     color: var(--primary-text);
     font-weight: 600;
+}
+
+/* 下划线只画在文字上：`.list-chip` 是 inline-flex，text-decoration 不会连续地穿过
+   里面的数字节点，整块加下划线会断成两段。 */
+.list-chip-all.active .list-chip-text,
+.list-chip.active .list-chip-text {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
@@ -3380,7 +3410,8 @@ html::after {
 .blog-preview-card-tags span[hidden],
 .nook-preview-card-tags span[hidden],
 .project-tech span[hidden],
-.tag-more[hidden] {
+.tag-more[hidden],
+.list-chip-more[hidden] {
     display: none;
 }
 
