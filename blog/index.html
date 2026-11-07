@@ -34,10 +34,10 @@
         .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; grid-auto-rows: 1fr; }
         .blog-page-card {
             /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
-            border: 1px solid var(--border); border-radius: 12px;
-            /* overflow 必须是 visible：浮窗绝对定位在卡片下方，hidden 会把它裁掉。
-               min-width: 0 必须有：标签行是 nowrap，grid 项默认 min-width:auto 会被
-               全部标签的总宽顶开，窄屏下整张卡撑破视口。 */
+            border: 1px solid var(--border); border-radius: var(--card-radius);
+            /* min-width: 0 必须有：标签行是 nowrap，grid 项默认 min-width:auto 会被
+               全部标签的总宽顶开，窄屏下整张卡撑破视口。
+               overflow 保持 visible：浮窗绝对定位在卡片下方，hidden 会把它裁掉。 */
             padding: 1.25rem; position: relative; overflow: visible; min-width: 0;
             transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
             text-decoration: none; color: inherit;
@@ -47,7 +47,8 @@
         }
         .blog-page-card::before {
             content: ''; position: absolute; inset: 0;
-            border-radius: inherit; pointer-events: none;
+            /* 比卡片圆角小 1px：色带在 padding box 里，弧半径要跟着缩才和边框内弧同心 */
+            border-radius: calc(var(--card-radius) - 1px); pointer-events: none;
             /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
                4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
             box-shadow: inset 0 4px 0 0 var(--card-top-band);
@@ -57,14 +58,18 @@
         .blog-page-card:hover::before,
         .blog-page-card:focus-visible::before { opacity: 1; }
         .blog-page-card-pin::before { opacity: 0.55; }
-        .blog-page-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--mica-elev-2); }
+        /* z-index：卡片各自 isolation: isolate 成独立层叠上下文，
+           不抬自己一层的话，浮窗会被同一行的后一张卡整块盖住 */
+        .blog-page-card:hover,
+        .blog-page-card:focus-visible { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--mica-elev-2); z-index: 20; }
         /* 卡片内部顺序与小窝列表一致：标题 → 摘要 → 标签 → 元信息。
-           之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间，
-           正文反而沉到卡片最底下，两页放在一起看是两种卡片。 */
+           标题只有一行：右上角让给置顶徽标，长度交给省略号（悬停时的浮窗会
+           把完整标题带出来）。标题吃掉剩余宽度，徽标跟在它后面。 */
+        .blog-page-card-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
         .blog-page-card-title {
-            font-weight: 700; font-size: 1.1rem; margin-bottom: 0.75rem;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-            overflow: hidden;
+            flex: 1 1 auto; min-width: 0;
+            font-weight: 700; font-size: 1.1rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         /* 摘要固定三行：卡片高度因此不随摘要长短起伏。
            被截掉的部分由浮窗补（只有真的截断时才出现，见 style.css「卡片浮窗」）。 */
@@ -80,7 +85,8 @@
            keep-all 禁止在中文词内部断行：否则行尾刚好塞满时会掉一个「片」到下一行；
            分隔点前的空格在构建时写成 \u00a0，所以「·」跟着前一段走，不会顶到行首。 */
         .blog-page-card-meta { font-size: 0.8rem; color: var(--text-muted); word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .blog-page-card-pin { border-color: var(--primary-dim); }
+        /* 置顶：左右下三边染 mint；上边由 style.css 的置顶 token 统一给（与 4px 色带同色） */
+        .blog-page-card-pin { border-right-color: var(--primary-dim); border-bottom-color: var(--primary-dim); border-left-color: var(--primary-dim); }
 
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }

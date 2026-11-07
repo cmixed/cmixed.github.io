@@ -1,9 +1,10 @@
 /**
- * 列表卡片的浮窗开关（博客 / 资源小窝共用）。
+ * 列表卡片的浮窗开关（博客 / 资源小窝，列表页与首页预览共用）。
  *
- * 卡片正文用 `-webkit-line-clamp: 3` 截断，**只有真的被截掉时才允许显示浮窗** ——
- * 否则每张卡悬停都弹一层，反而比截断本身更吵。判断方式就是量
- * `scrollHeight > clientHeight`：被 clamp 掉的内容仍算在 scrollHeight 里。
+ * 卡片标题只有一行、摘要用 `-webkit-line-clamp: 3` 截断，**只有真的被截掉时才允许显示浮窗** ——
+ * 否则每张卡悬停都弹一层，反而比截断本身更吵。两种截断的判据不同：
+ * 摘要被 clamp 后内容仍算在 scrollHeight 里（scrollHeight > clientHeight），
+ * 标题是 nowrap + ellipsis，横向溢出体现在 scrollWidth > clientWidth。
  *
  * 另外负责「下方放不下就翻到上方」：浮窗是 absolute 定位在卡片下方 0.5rem 处，
  * 窗口底部的卡片会把浮窗顶出视口，量一次 getBoundingClientRect 再挂 .popover-up。
@@ -14,6 +15,8 @@
   const CARD = '.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card';
   const BODY =
     '.blog-page-card-desc, .nook-card-desc, .blog-preview-card-desc, .nook-preview-card-desc';
+  const TITLE =
+    '.blog-page-card-title, .nook-card-title, .blog-preview-card-title, .nook-preview-card-title';
 
   /* 标签只占一行：能放几个放几个，剩下的隐藏，行尾补「+N」。
      容器是 nowrap，换行检测（offsetTop）在这里没意义，所以逐项累加宽度。
@@ -68,8 +71,12 @@
     clampTags();
     document.querySelectorAll<HTMLElement>(CARD).forEach((card) => {
       const body = card.querySelector<HTMLElement>(BODY);
-      if (!body) return;
-      card.classList.toggle('is-clamped', body.scrollHeight - body.clientHeight > 2);
+      const title = card.querySelector<HTMLElement>(TITLE);
+      const descCut = body ? body.scrollHeight - body.clientHeight > 2 : false;
+      /* 标题的省略号是 text-overflow 画的，没有「隐藏内容」可量，只能比宽度。
+         +1 容差：小数宽度在缩放 / 子像素排版下会自己差一点，差 1px 不算截断。 */
+      const titleCut = title ? title.scrollWidth - title.clientWidth > 1 : false;
+      card.classList.toggle('is-clamped', descCut || titleCut);
     });
   }
 

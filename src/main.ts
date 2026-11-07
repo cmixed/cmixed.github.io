@@ -310,20 +310,31 @@ async function loadBlogPreview(): Promise<void> {
     const preview = data.posts.slice(0, 6);
     const grid = document.getElementById('blogPreviewGrid') as HTMLElement;
     grid.innerHTML = preview
-      .map(
-        (p) => `
+      .map((p) => {
+        // 标签只占一行（放不下的由 card-popover.ts 收成 +N），浮窗里要的是完整一份
+        const tagsHtml = p.tags
+          .map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`)
+          .join('');
+        const pinMark = p.pinned ? pinBadge() : '';
+        return `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}">
-                <div class="blog-preview-card-title">${p.pinned ? pinBadge() : ''}${escapeHtml(p.title)}</div>
+                <div class="blog-preview-card-head">
+                    <div class="blog-preview-card-title">${escapeHtml(p.title)}</div>
+                    ${pinMark}
+                </div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
                     <div class="blog-preview-card-tags">
-                        ${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}<span class="tag-more" hidden></span>
+                        ${tagsHtml}<span class="tag-more" hidden></span>
                     </div>
                     <div class="blog-preview-card-meta">创建于 ${escapeHtml(p.date)} · 更新于 ${escapeHtml(p.updated)}</div>
                 </div>
+                <span class="card-popover" aria-hidden="true">
+                    <span class="card-popover-title">${pinMark}${escapeHtml(p.title)}</span>
+                </span>
             </a>
-        `
-      )
+        `;
+      })
       .join('');
   } catch {
     (document.getElementById('blogPreviewGrid') as HTMLElement).innerHTML = '';
@@ -355,19 +366,26 @@ async function loadNookPreview(): Promise<void> {
         const catIcon = categoryIcon(r.category);
         const catName = CATEGORY_NAMES[r.category] || r.category;
         const pinMark = r.pin ? pinBadge() : '';
+        const tagsHtml = r.tags
+          .map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`)
+          .join('');
         return `
             <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}">
                 <div class="nook-preview-card-header">
-                    <div class="nook-preview-card-title">${pinMark}${escapeHtml(r.title)}</div>
+                    <div class="nook-preview-card-title">${escapeHtml(r.title)}</div>
+                    ${pinMark}
                     <span class="nook-preview-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
                 </div>
                 <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>
                 <div class="nook-preview-card-footer">
                     <div class="nook-preview-card-tags">
-                        ${r.tags.map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}<span class="tag-more" hidden></span>
+                        ${tagsHtml}<span class="tag-more" hidden></span>
                     </div>
                     <div class="nook-preview-card-meta">${escapeHtml(r.size)} · ${escapeHtml(r.date)}</div>
                 </div>
+                <span class="card-popover" aria-hidden="true">
+                    <span class="card-popover-title">${pinMark}${escapeHtml(r.title)}</span>
+                </span>
             </a>
         `;
       })

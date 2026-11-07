@@ -29,6 +29,12 @@
     /* 卡片顶部高亮：内嵌的 4px accent 带 + 向下淡出的薄雾 */
     --card-top-band: rgba(95, 209, 181, 0.45);
     --card-top-glow: rgba(95, 209, 181, 0.12);
+    /* 置顶卡的顶边三角（边框色 / 1px 亮边 / 柔光带）：默认的「受光边」在浅色下是纯白，
+       压在 accent 带上会读成「色带上沿漏了一条白线」。置顶卡改用这三个同色 token，
+       上边线、亮边、柔光带就和 4px 色带连成同一条青线（暗色下只是把边染青，差别很小）。 */
+    --card-rim-pin: rgba(95, 209, 181, 0.42);
+    --card-edge-pin: rgba(95, 209, 181, 0.10);
+    --card-top-pin: rgba(95, 209, 181, 0.06);
     /* accent 作「前景」（文字/图标）时用这个：墨绿底上要用亮青才读得清 */
     --primary-text: #5fd8c0;
     /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青） --- */
@@ -36,6 +42,11 @@
     --bg-rgb: 12, 23, 20;
     --bg-card: #1c2a30; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
     --bg-secondary: #22343b; /* 抬升层的不透明版本 */
+    /* 代码块 / 行内代码的底色：独立 token，因为「不透明」不等于「和面板同亮」。
+       暗色下就是面板本身（--bg-card），浅色下面板已经很亮，再铺 --bg-card（#f2f8f9）
+       会比面板更白：块读成一张贴上去的白纸、行内代码读成荧光笔。浅色改用比面板
+       略深一档的冷调，方向反过来 —— 代码是「凹进去的一格」。 */
+    --code-surface: #1c2a30;
     /* 文字三档都取「底色与面板之间」的色相（≈180°），只差明度：
        这样正文/次级/弱化跟底色、面板都同族，却不会跟任何一层同亮 */
     --text: #e8eded;
@@ -94,6 +105,9 @@
     --mica-chip: rgba(95, 209, 181, 0.10);
     --mica-chip-border: rgba(150, 220, 205, 0.28);
     --mica-chip-text: #8fe6d5;
+    /* --- 卡片圆角：写成一个 token，是因为卡片的 ::before（顶部色带）要比它小 1px
+           才能和 1px 边框的内弧同心（见 .project-card::before 的说明）。 --- */
+    --card-radius: 12px;
     /* --- 小标签尺寸：只读标签 6px 圆角方片，可点胶囊 999px；共用内边距与字号 --- */
     --chip-radius: 6px;
     --chip-pad-y: 0.2rem;
@@ -177,12 +191,20 @@
     --primary-glow: rgba(15, 118, 110, 0.18);
     --card-top-band: rgba(15, 118, 110, 0.32);
     --card-top-glow: rgba(15, 118, 110, 0.08);
+    /* 置顶卡顶边：浅色默认的受光边是纯白（--mica-panel-rim 0.96），压在墨绿带上
+       就是一条刺眼的白缝。置顶卡把这三处换成本色，上边线与色带同色同深。 */
+    --card-rim-pin: rgba(15, 118, 110, 0.30);
+    --card-edge-pin: rgba(15, 118, 110, 0.16);
+    --card-top-pin: rgba(15, 118, 110, 0.04);
     --primary-text: #0b5f57;
     /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青，不是纯白） --- */
     --bg: #d0e2db;
     --bg-rgb: 208, 226, 219;
     --bg-card: #f2f8f9; /* 面板的不透明版本，供无 blur / 降低透明度时回落 */
     --bg-secondary: #e5eef1;
+    /* 代码底色：比面板（≈#eaf2f1）再深一档，且带一点冷调 —— 浅色下代码块是「凹格」，
+       不是「更白的纸」（见 :root 同名 token 的说明）。 */
+    --code-surface: #e4edee;
     /* 文字三档同样取「底色与面板之间」的色相（≈180°），只差明度 */
     --text: #162221;
     --text-dim: #3f5656;
@@ -199,7 +221,7 @@
        与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #f2f8f9（更青，hue≈195），
        色相差 ≈38°、不透明面板的亮度比 ≈1.20:1，面板封顶在 L*96（不是纯白，久看不累眼）。
        旧版浅色面板和底色明度几乎相同（1.00~1.03:1），只靠"更黄"来区分，所以既糊又土。 */
-    --mica-chrome: rgba(238, 244, 246, 0.92); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
+    --mica-chrome: rgba(230, 239, 241, 0.92); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
     /* 卡片比暗色再降一档：浅色面板本来就接近白，只有让底色的绿透进来，
        面板才会从「一张白卡」变成「一层薄荷玻璃膜」，这是浅色唯一看得出通透的办法。
        代价是分层变弱，所以面板色同步提亮到 #f2f8f9 补回来。 */
@@ -234,7 +256,7 @@
     --mica-panel-top-fade: 16px; /* 柔光带长度：浅色要靠它补出「光」的衰减 */
     --mica-panel-bevel: rgba(60, 110, 105, 0.06); /* 亮边下方的 1px 压线：让白边有「厚度」 */
     --mica-panel-edge: rgba(255, 255, 255, 0.90); /* 顶部 1px 亮边 */
-    --mica-panel-sheen: rgba(255, 255, 255, 0.55); /* 上半受光（导航沿用） */
+    --mica-panel-sheen: rgba(255, 255, 255, 0.34); /* 上半受光（导航沿用） */
     --mica-panel-spec: rgba(255, 255, 255, 0.80); /* 左上镜面光池 */
     --mica-panel-inner: rgba(88, 138, 138, 0.05); /* 内侧玻璃厚边（冷调，不是灰） */
     --mica-panel-edge-b: rgba(255, 255, 255, 0.75); /* 底边 1px 反光（浅色下靠它把「板」立起来） */
@@ -1119,7 +1141,7 @@ html.fab-measuring section {
 .project-card {
     background: var(--mica-surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--card-radius);
     padding: 1.5rem;
     position: relative;
     transition: background-color var(--transition-speed), border-color 0.3s, transform 0.3s, box-shadow 0.3s, --glare 0.28s ease;
@@ -1129,12 +1151,19 @@ html.fab-measuring section {
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    overflow: hidden;
+    /* 不再用 overflow: hidden 裁圆角：内容本来就在 padding box 里，没有要裁的东西，
+       而「圆角裁切 + 1px 边框」在非整数缩放下会在弧线上留下一条毛边（见 .site-modal 的说明）。
+       ::before 的顶部色带是 inset 阴影，自带圆角，不靠父级裁。 */
+    overflow: visible;
 }
 
+/* 圆角半径留成变量：::before 缩在 padding box 里（四边各进 1px 的边框），
+   它的弧半径必须跟着减 1px 才能和边框内弧同心 —— 直接 inherit 的话，
+   内弧比外弧「更平」，两个弧之间会露出一块卡片自己的白色顶边，
+   就是浅色下置顶卡顶部那两个白角。 */
 .project-card::before {
     content: ''; position: absolute; inset: 0;
-    border-radius: inherit; pointer-events: none;
+    border-radius: calc(var(--card-radius) - 1px); pointer-events: none;
     /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
        4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
     box-shadow: inset 0 4px 0 0 var(--card-top-band);
@@ -1231,10 +1260,11 @@ html.fab-measuring section {
 }
 
 .blog-preview-card {
+    --card-radius: 10px;
     min-width: 0;
     background: var(--mica-surface);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--card-radius);
     padding: 1.25rem 1.5rem;
     transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
     text-decoration: none;
@@ -1242,14 +1272,15 @@ html.fab-measuring section {
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;
+    /* 见 .project-card：圆角不再靠父级裁切；浮窗也要能溢出卡片下缘。 */
+    overflow: visible;
 }
 
 .blog-preview-card::before {
     content: ''; position: absolute; inset: 0;
-    border-radius: inherit; pointer-events: none;
+    border-radius: calc(var(--card-radius) - 1px); pointer-events: none;
     /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
-       4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+       4px accent 带 + 向下淡出的薄雾，沿圆角裁切，永远在边框内侧。 */
     box-shadow: inset 0 4px 0 0 var(--card-top-band);
     background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
     opacity: 0; transition: opacity 0.3s;
@@ -1264,13 +1295,29 @@ html.fab-measuring section {
     box-shadow: var(--mica-elev-2);
 }
 
+/* 悬停抬升时把卡片提到同排之上：卡片各自 isolation: isolate 成独立层叠上下文，
+   否则浮窗（z-index 30）会被后面那张卡整块盖住。 */
+.blog-preview-card:hover,
+.blog-preview-card:focus-visible { z-index: 20; }
 
 .blog-preview-card-pin { border-color: var(--primary-dim); }
 
+/* 标题 + 右上角置顶徽标：一行两块，标题吃掉剩余宽度并在末尾省略 */
+.blog-preview-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
 .blog-preview-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
     font-weight: 700;
     font-size: 1.05rem;
-    margin-bottom: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .blog-preview-card-footer {
@@ -1306,10 +1353,11 @@ html.fab-measuring section {
 }
 
 .nook-preview-card {
+    --card-radius: 10px;
     min-width: 0;
     background: var(--mica-surface);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--card-radius);
     padding: 1.25rem 1.5rem;
     transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
     text-decoration: none;
@@ -1317,14 +1365,14 @@ html.fab-measuring section {
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .nook-preview-card::before {
     content: ''; position: absolute; inset: 0;
-    border-radius: inherit; pointer-events: none;
+    border-radius: calc(var(--card-radius) - 1px); pointer-events: none;
     /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
-       4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+       4px accent 带 + 向下淡出的薄雾，沿圆角裁切，永远在边框内侧。 */
     box-shadow: inset 0 4px 0 0 var(--card-top-band);
     background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
     opacity: 0; transition: opacity 0.3s;
@@ -1337,26 +1385,33 @@ html.fab-measuring section {
     border-color: var(--primary);
     transform: translateY(-2px);
     box-shadow: var(--mica-elev-2);
+    z-index: 20;
 }
-
 
 .nook-preview-card-pin { border-color: var(--primary-dim); }
 
+/* 标题 → 置顶徽标 → 分类：右上角是一簇，不是一枚孤零零的角标 */
 .nook-preview-card-header {
     display: flex;
-    justify-content: space-between;
-    align-items: start;
+    align-items: center;
+    gap: 0.4rem;
     margin-bottom: 0.3rem;
 }
 
 .nook-preview-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
     font-weight: 700;
     font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nook-preview-card-category {
     display: inline-flex;
     align-items: center;
+    flex: 0 0 auto;
     gap: 0.3rem;
     font-size: 0.75rem;
     padding: 0.15rem 0.45rem;
@@ -1519,7 +1574,13 @@ footer {
     max-height: min(84vh, 760px);
     margin: auto;
     padding: 0;
-    overflow: hidden; /* 圆角裁切；滚动交给 .site-modal-body */
+    /* 圆角不靠父级 overflow: hidden 裁 —— 「1px 边框 + 圆角裁切」在非整数缩放
+       （浏览器缩放 / 系统 125% 缩放）下，弧线上会出现一条 1px 的毛边：半个像素
+       被裁掉、半个像素留在外面，看着就是边口缺了一块；点一下触发重绘又对上，
+       所以表现为「缩放时出现、点一下消失」。
+       改由子元素自己收圆角：正文区滚动容器自带 15px（16 - 1px 边框）下圆角，
+       头部本来就在面板内部、无背景，不裁也不会露。 */
+    overflow: visible; /* 圆角裁切交给 .site-modal-body */
     /* 颗粒伪元素用的是 z-index: -1，需要一个自己的层叠上下文（和卡片同理） */
     isolation: isolate;
     color: var(--text);
@@ -1659,6 +1720,10 @@ footer {
     overscroll-behavior: contain;
     padding: 1.25rem 1.35rem 1.5rem;
     font-size: 0.9rem;
+    /* 下缘的两个圆角由滚动区自己收（15px = 面板 16px 减去 1px 边框），
+       这样滚动条、最后一屏内容都跟着弧线裁，面板本体不需要再 overflow: hidden。 */
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
 }
 
 /* 正文区可聚焦（tabindex=0），键盘用户才能用 PgDn 滚它；
@@ -3535,6 +3600,27 @@ html::after {
     height: 0.9em;
 }
 
+/* 卡片右上角的置顶徽标：卡片标题现在只有一行，徽标从标题行里挪到标题右侧，
+   于是「标题 ……… [置顶] [分类]」在头部成一簇。
+   尺寸不再跟 em 走（跟到 1.05rem 的标题上只有 ~20px，和旁边 25px 的分类胶囊
+   差半头，读起来是「一个挂上去的角标」）：直接取小标签的整高，
+   两个方块共一条上下边线；间距统一交给父级 gap，徽标自己不再带右外边距。
+   --chip-font × 1.45 是小标签的行高，--chip-pad-y × 2 是上下内边距，+2px 是两条描边。 */
+:is(.blog-page-card-head, .nook-card-header, .blog-preview-card-head, .nook-preview-card-header) .pin-badge {
+    --pin-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px);
+    width: var(--pin-box);
+    height: var(--pin-box);
+    margin-right: 0;
+    border-radius: calc(var(--pin-box) * 0.3);
+    vertical-align: middle;
+}
+
+/* 徽标里的 pin 字形按方框走，不再吃标题的字号 */
+:is(.blog-page-card-head, .nook-card-header, .blog-preview-card-head, .nook-preview-card-header) .pin-badge svg {
+    width: 55%;
+    height: 55%;
+}
+
 .tech-tag,
 .project-status,
 .nook-preview-card-category,
@@ -3762,12 +3848,15 @@ html::after {
     white-space: nowrap;
 }
 
-/* ===== 卡片浮窗（博客 / 资源小窝共用）=====
-   只做一件事：把卡片里被 line-clamp 截掉的正文完整露出来。
+/* ===== 卡片浮窗（博客 / 资源小窝，列表页与首页预览共用）=====
+   只做一件事：把卡片里被截掉的正文 / 标题完整露出来。
    所以它必须「只在真的被截断时」出现 —— list.js 里的 card-popover 会逐个量
-   scrollHeight 与 clientHeight，截断了才给卡片加 .is-clamped，这里只认这个类。
+   摘要的 scrollHeight 与标题的 scrollWidth，任一被截断就给卡片加 .is-clamped，
+   这里只认这个类。
    内容与卡片同源（标题 / 摘要 / 标签），不额外加载数据。
-   材质走 --mica-chrome + 顶部柔光，和导航、悬浮框同一套面板语言。 */
+   材质走 --mica-chrome + 顶部柔光，和导航、悬浮框同一套面板语言。
+   首页的预览卡只放标题：那里的摘要不截断，唯一被藏起来的就是标题；
+   而且 section 带 content-visibility（隐含 paint 裁切），浮窗太高会被区块下缘切掉。 */
 .card-popover {
     position: absolute;
     left: 0;
@@ -3811,8 +3900,8 @@ html::after {
     margin: 0.6rem 0 0;
 }
 
-:is(.blog-page-card, .nook-card).is-clamped:hover .card-popover,
-:is(.blog-page-card, .nook-card).is-clamped:focus-visible .card-popover {
+:is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:hover .card-popover,
+:is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:focus-visible .card-popover {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -3820,14 +3909,14 @@ html::after {
 
 /* 触屏没有 hover：浮窗会盖住下一张卡，直接不给 */
 @media (hover: none) {
-    :is(.blog-page-card, .nook-card).is-clamped:hover .card-popover {
+    :is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:hover .card-popover {
         opacity: 0;
         visibility: hidden;
     }
 }
 
 /* 下方放不下时翻到卡片上方（list.js 按视口余量加 .popover-up） */
-:is(.blog-page-card, .nook-card).popover-up .card-popover {
+:is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).popover-up .card-popover {
     top: auto;
     bottom: calc(100% + 0.5rem);
 }
@@ -3890,7 +3979,7 @@ html::after {
 }
 
 .md-body pre {
-    background: var(--bg-card);
+    background: var(--code-surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1rem;
@@ -3908,7 +3997,7 @@ html::after {
 }
 
 .md-body :not(pre) > code {
-    background: var(--bg-card);
+    background: var(--code-surface);
     padding: 0.15rem 0.4rem;
     border-radius: 3px;
     font-size: 0.85em;
@@ -4146,6 +4235,22 @@ html::after {
         /* ⑥ 下缘厚度（暗色已置零） */
         linear-gradient(0deg, var(--mica-panel-shade), transparent 96px);
     box-shadow: var(--mica-elev-1);
+}
+
+/* 置顶卡：顶部的三处「受光」全部换成本色。
+   上面那条共享规则写的是 `border-top-color: var(--mica-panel-rim)`，只是在元素上读一次
+   变量，所以在卡片自己身上重定义三个 token 就够了，不必再和它比优先级。
+   浅色下原本是 1px 纯白（实测 #fefefe）+ 16px 白柔光压在墨绿色带上，
+   看起来就是「色带上沿漏一条白线」；换成同色后，上边线、亮边、柔光带、4px 色带
+   连成一条连续的青线，置顶状态只靠粗细和颜色深浅表达。 */
+.project-card-pin,
+.blog-page-card-pin,
+.nook-card-pin,
+.blog-preview-card-pin,
+.nook-preview-card-pin {
+    --mica-panel-rim: var(--card-rim-pin);
+    --mica-panel-edge: var(--card-edge-pin);
+    --mica-panel-top: var(--card-top-pin);
 }
 
 /* 卡片 hover = 真玻璃：只有指针下的小卡加 backdrop-filter。
