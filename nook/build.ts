@@ -168,7 +168,8 @@ function renderFilters(categories: NameCount[], total: number): string {
       )}</span></span><span class="list-chip-count">${count}</span></button>`;
     })
     .join('');
-  return allBtn + catBtns;
+  // 「全部」独占首行，分类从下一行开始（与博客列表同一套排布）
+  return `${allBtn}<span class="filters-break" aria-hidden="true"></span>${catBtns}`;
 }
 
 function renderResources(resources: ResourceData[]): string {
@@ -195,7 +196,7 @@ function renderResources(resources: ResourceData[]): string {
       if (r.size) metaParts.push(escapeXml(r.size));
       if (r.date) metaParts.push(escapeXml(r.date));
       const metaStr = metaParts.join(' · ');
-      const pinMark = r.pin ? '<span class="pin-badge">置顶</span>' : '';
+      const pinMark = r.pin ? pinBadge() : '';
       // 客户端搜索的匹配源：标题 + 摘要 + 分类 + 标签（仅元数据，不含正文）
       const searchKey = [r.title, r.description, r.category, catName, ...r.tags]
         .join(' ')

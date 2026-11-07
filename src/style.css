@@ -3237,6 +3237,13 @@ html::after {
 /* 长尾折叠：计数为 1 的标签由构建期打上 .is-tail、默认收起；
    展开状态是 filter-panel.ts 在 .list-filters 上加的 .expanded。
    不按固定条数折叠，是因为标签分布会随文章变化，按「计数为 1」分界不用回头调数字。 */
+/* 「全部」之后强制换行：让筛选栏的第一行只放「标题 + 全部」，其余胶囊从第二行起排。
+   flex-basis 100% + 高度 0，本身不占视觉位置。 */
+.filters-break {
+    flex: 0 0 100%;
+    height: 0;
+}
+
 .list-chip.is-tail {
     display: none;
 }

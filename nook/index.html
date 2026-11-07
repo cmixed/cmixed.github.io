@@ -44,7 +44,7 @@
             display: grid;
             gap: 1rem;
             grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-            grid-auto-rows: 1fr;
+            align-items: start;
         }
 
         .nook-card {
@@ -70,10 +70,12 @@
         .nook-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
 
         .nook-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; }
+        /* 与博客列表同一套：标题占满两行，高度只随摘要行数变化 */
         .nook-card-title {
             font-weight: 700; font-size: 1.1rem; color: var(--text);
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
             overflow: hidden;
+            min-height: 2.6em;
         }
         .nook-card-category {
             display: inline-flex; align-items: center; gap: 0.3rem;
@@ -84,8 +86,6 @@
             color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
             overflow: hidden;
-            /* 固定三行高：与博客列表同一套，摘要短的卡不再留洞 */
-            min-height: calc(3 * 1.6 * 0.85rem);
         }
         .nook-card-footer { margin-top: auto; }
         /* 只占一行：放不下的标签由 list.js 隐藏，行尾补一个「+N」。

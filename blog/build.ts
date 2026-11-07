@@ -579,19 +579,24 @@ ${sitemapUrls}
   // 计数为 1 的算长尾：默认收起，由「其他 N 个」展开 —— 23 个标签平铺时，
   // 真正高频的几项（C++ 4、大规模 2）要往下滑才看得到。
   const tailCount = tagStats.filter((t) => t.count === 1).length;
+  // 「全部」独占首行（与「标签」小标题并排），其余标签从第二行开始；
+  // 长尾标签排在「其他 N 个」之后，所以展开时它们出现在那条横线的**下方**。
+  const chipHtml = (name: string, count: number, tail: boolean): string =>
+    `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip${tail ? ' is-tail' : ''}" data-tag="${escapeXml(
+      name
+    )}" style="--chip-cols:${chipCols(name, 1)}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
+      name
+    )}</span></span><span class="list-chip-count">${count}</span></a>`;
+  const headTags = tagStats.filter((t) => t.count > 1);
+  const tailTags = tagStats.filter((t) => t.count === 1);
   const tagsHtml = [
     `<a href="./" class="list-chip active" data-tag="" style="--chip-cols:${chipCols('全部', 1)}"><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${posts.length}</span></a>`,
-    ...tagStats.map(
-      ({ name, count }) =>
-        `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip${count === 1 ? ' is-tail' : ''}" data-tag="${escapeXml(
-          name
-        )}" style="--chip-cols:${chipCols(name, 1)}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
-          name
-        )}</span></span><span class="list-chip-count">${count}</span></a>`
-    ),
+    '<span class="filters-break" aria-hidden="true"></span>',
+    ...headTags.map((t) => chipHtml(t.name, t.count, false)),
     tailCount > 0
       ? `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll">其他 ${tailCount} 个</button>`
       : '',
+    ...tailTags.map((t) => chipHtml(t.name, t.count, true)),
   ].join('');
   const postsHtml = posts
     .map((p) => {
