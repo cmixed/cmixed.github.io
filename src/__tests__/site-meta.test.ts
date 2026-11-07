@@ -177,44 +177,73 @@ describe('rewriteLinks', () => {
 });
 
 describe('renderAboutHtml', () => {
+  /** 目录只挑少数几节，测试样章里凑不齐，屏蔽「找不到章节」的告警 */
+  const render = (markdown: string, repo: string | null = null) =>
+    renderAboutHtml(markdown, repo, () => {});
+
   it('渲染标题与表格，并给表格套横向滚动容器', () => {
-    const html = renderAboutHtml('# 标题\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n', null);
+    const { html } = render('# 标题\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n');
     expect(html).toContain('<h1>标题</h1>');
     expect(html).toContain('<div class="table-wrapper"><table>');
     expect(html).toContain('</table></div>');
   });
 
   it('代码块保留语言类名（供等宽样式命中）', () => {
-    const html = renderAboutHtml('```bash\nvp build\n```\n', null);
+    const { html } = render('```bash\nvp build\n```\n');
     expect(html).toContain('<pre><code class="language-bash">');
   });
 
-  it('按 h1/h2 分节，供弹窗按节虚拟化', () => {
-    const html = renderAboutHtml('# 一\n\n开头\n\n## 二\n\n正文\n\n### 2.1\n\n细节\n', null);
+  it('按 h1/h2 分节并给每节稳定 id，供虚拟化与目录跳转', () => {
+    const { html } = render('# 一\n\n开头\n\n## 二\n\n正文\n\n### 2.1\n\n细节\n');
     const sections = html.match(/class="readme-sec"/g) ?? [];
     expect(sections).toHaveLength(2);
-    expect(html).toContain('<div class="readme-sec"><h1>一</h1>');
-    expect(html).toContain('<div class="readme-sec"><h2>二</h2>');
+    expect(html).toContain('<div class="readme-sec" id="about-sec-0"><h1>一</h1>');
+    expect(html).toContain('<div class="readme-sec" id="about-sec-1"><h2>二</h2>');
     // 分节不能吃掉标题和正文
     expect(html).toContain('<h3>2.1</h3>');
     expect(html).toContain('<p>细节</p>');
   });
 
   it('没有标题的内容也会包成一节，空输入得到空字符串', () => {
-    expect(renderAboutHtml('just text', null)).toContain(
-      '<div class="readme-sec"><p>just text</p>'
+    expect(render('just text').html).toContain(
+      '<div class="readme-sec" id="about-sec-0"><p>just text</p>'
     );
-    expect(renderAboutHtml('', null)).toBe('');
+    expect(render('').html).toBe('');
+  });
+
+  it('目录只收列在 ABOUT_NAV 里的节，id 指向该节、找不到的标题告警而不是硬塞', () => {
+    const warn = vi.fn();
+    const { html, nav } = renderAboutHtml(
+      '## 技术栈\n\n正文\n\n## 主要特性\n\n正文\n\n## 其他\n\n正文\n',
+      null,
+      warn
+    );
+    expect(nav).toEqual([
+      { id: 'about-sec-0', label: '技术栈' },
+      { id: 'about-sec-1', label: '主要特性' },
+    ]);
+    // 每个 id 都必须真的落在某个分节上，否则点了不动
+    for (const item of nav) expect(html).toContain(`id="${item.id}"`);
+    // 没在 README 里出现的标题不进目录，只提醒改 ABOUT_NAV
+    expect(nav.some((item) => item.label === '其他')).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(3);
+    expect(warn.mock.calls[0][0]).toContain('找不到对应章节');
   });
 });
 
 describe('buildAbout / buildCommits', () => {
   it('关于本站是分好节的 README，更新时间为空或 YYYY-MM-DD', async () => {
     const about = await buildAbout();
-    expect(Object.keys(about).sort()).toEqual(['html', 'updated']);
+    expect(Object.keys(about).sort()).toEqual(['html', 'nav', 'updated']);
     expect(about.html.length).toBeGreaterThan(0);
     expect(about.html).toContain('class="readme-sec"');
     if (about.updated !== null) expect(about.updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // 真实 README 的目录不能是空的，且每个锚点都真的存在
+    expect(about.nav.length).toBeGreaterThan(2);
+    for (const item of about.nav) {
+      expect(item.label.length).toBeGreaterThan(0);
+      expect(about.html).toContain(`id="${item.id}"`);
+    }
   });
 
   it('更新日志的条数与字段自洽', () => {

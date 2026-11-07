@@ -473,9 +473,17 @@ interface ChangelogEntry {
   subject: string;
 }
 
+/** 关于本站里的一条目录跳转（构建期从 README 的节标题挑出来）。 */
+interface AboutNavItem {
+  id: string;
+  label: string;
+}
+
 interface AboutData {
   html: string;
   updated: string | null;
+  /** 标题栏右侧的目录跳转；旧缓存里可能没有 */
+  nav?: AboutNavItem[];
 }
 
 interface QuarterStatsView {
@@ -596,7 +604,7 @@ function createMetaLoader<T>(
   };
 }
 
-const aboutMeta = createMetaLoader<AboutData>('site-about.json', 'about:v1');
+const aboutMeta = createMetaLoader<AboutData>('site-about.json', 'about:v2');
 const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v2');
 const META_LOAD: Record<MetaKind, () => Promise<AboutData | CommitsData>> = {
   about: () => aboutMeta.load(),
@@ -613,8 +621,13 @@ const metaClose = document.getElementById('siteModalClose') as HTMLButtonElement
 let changelogShown = CHANGELOG_STEP;
 /** 最近一次渲染用的完整数据：点一个还没渲染的季度时，要靠它把内容补齐 */
 let changelogData: CommitsData | null = null;
-/** 已写进标题栏的季度清单：不变就不重建按钮，避免点一下焦点就丢 */
-let quarterKey = '';
+/** 已写进标题栏的胶囊清单（弹窗类型 + 各项）：不变就不重建，避免点一下焦点就丢。
+    带上类型是必须的 —— 两个弹窗共用这块 DOM，只比清单本身的话，
+    切过去而清单恰好相同（或两个都为空）时会留着上一个弹窗的按钮。 */
+let actionsKey = '';
+
+/** 当前弹窗是哪一个：滚动同步要知道该亮季度标签还是目录跳转点。 */
+let metaKind: MetaKind = 'about';
 /** 打开前的 hash 位置：关闭时还回去，不至于把用户滚到别的锚点这件事弄丢 */
 let metaReturnHash = '';
 
@@ -732,7 +745,7 @@ function syncQuarterTabs(): void {
       else break;
     }
   }
-  metaActions.querySelectorAll<HTMLElement>('.changelog-quarter').forEach((chip) => {
+  metaActions.querySelectorAll<HTMLElement>('.meta-chip[data-quarter]').forEach((chip) => {
     chip.classList.toggle('active', chip.dataset.quarter === current);
   });
 }
@@ -753,7 +766,7 @@ function scrollToQuarter(quarter: string): void {
   const section = metaBody.querySelector<HTMLElement>(`#q-${quarter}`);
   if (!section) return;
 
-  metaBody.classList.add('changelog-measuring');
+  metaBody.classList.add('is-measuring');
   const measure = (): number =>
     metaBody.scrollTop +
     section.getBoundingClientRect().top -
@@ -771,9 +784,66 @@ function scrollToQuarter(quarter: string): void {
         metaBody.scrollTo({ top: corrected, behavior: 'auto' });
       }
     }
-    requestAnimationFrame(() => metaBody?.classList.remove('changelog-measuring'));
+    requestAnimationFrame(() => metaBody?.classList.remove('is-measuring'));
   });
   if (far) syncQuarterTabs();
+}
+
+/**
+ * 关于本站的目录高亮跟着滚动走（和季度标签同一套判定线）。
+ * 只在「有跳转点的节」里找当前节 —— 中间隔着没跳转点的短节时，
+ * 高亮停在最近越过判定线的那条跳转点上，不会全灭。
+ */
+function syncAboutTabs(): void {
+  if (!metaBody || !metaActions) return;
+  const sections = [...metaActions.querySelectorAll<HTMLElement>('.meta-chip[data-target]')]
+    .map((chip) => metaBody.querySelector<HTMLElement>(`#${chip.dataset.target ?? ''}`))
+    .filter((el): el is HTMLElement => el !== null);
+  if (sections.length === 0) return;
+  const line = metaBody.getBoundingClientRect().top + 24;
+  const atBottom = metaBody.scrollTop + metaBody.clientHeight >= metaBody.scrollHeight - 2;
+  let current = atBottom ? sections[sections.length - 1].id : sections[0].id;
+  if (!atBottom) {
+    for (const section of sections) {
+      if (section.getBoundingClientRect().top <= line) current = section.id;
+      else break;
+    }
+  }
+  metaActions.querySelectorAll<HTMLElement>('.meta-chip[data-target]').forEach((chip) => {
+    chip.classList.toggle('active', chip.dataset.target === current);
+  });
+}
+
+/**
+ * 跳到关于本站的某一节。
+ *
+ * 离屏的节在虚拟化下只有 550px 的估算高度，直接量会把目标夹在半路。
+ * 所以先临时展开全部节跑一次布局、撤掉虚拟化，再量第二次：
+ *   - 第一次只是让每节真的渲染一遍（同一帧内进出，浏览器不会绘制，看不到变化）；
+ *   - 展开后各节的 contain-intrinsic-size: auto 会记住自己的真实高度，
+ *     第二次量到的就是最终几何 —— 直接滚过去就准，不必滚动途中再校正。
+ * 顺序不能反：先量后撤（而不是等滚完再校正），否则每节 16px 的差会累积成
+ * 十几到几十像素的落点偏差（实测前三节分别差 16 / 32 / 48px）。
+ */
+function scrollToSection(id: string): void {
+  if (!metaBody) return;
+  const section = metaBody.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+  if (!section) return;
+
+  const measure = (): number =>
+    metaBody.scrollTop +
+    section.getBoundingClientRect().top -
+    metaBody.getBoundingClientRect().top -
+    8;
+
+  metaBody.classList.add('is-measuring');
+  measure();
+  metaBody.classList.remove('is-measuring');
+  const target = measure();
+
+  const far = Math.abs(target - metaBody.scrollTop) > metaBody.clientHeight * 1.5;
+  metaBody.scrollTo({ top: target, behavior: far ? 'auto' : 'smooth' });
+  if (far) syncAboutTabs();
 }
 
 /**
@@ -794,12 +864,21 @@ function ensureQuarter(quarter: string): void {
   renderChangelog(changelogData);
 }
 
-/* 季度按钮常驻在标题行，不随正文重渲染消失，所以事件只绑一次。
+/* 季度/目录按钮常驻在标题行，不随正文重渲染消失，所以事件只绑一次。
    绑在容器上做委托，重建按钮也不用重新绑。 */
 metaActions?.addEventListener('click', (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
-  const button = target.closest<HTMLElement>('.changelog-quarter');
+  const button = target.closest<HTMLElement>('.meta-chip');
+
+  /* 关于本站：按节跳转 */
+  const sectionId = button?.dataset.target;
+  if (sectionId) {
+    scrollToSection(sectionId);
+    return;
+  }
+
+  /* 更新日志：按季度跳转 */
   const quarter = button?.dataset.quarter;
   if (!quarter) return;
   ensureQuarter(quarter);
@@ -808,14 +887,16 @@ metaActions?.addEventListener('click', (event) => {
 });
 
 /* 滚动时同步高亮。只读 rect、rAF 合帧，滚动里不写样式也不触发重排 */
-let quarterFrame = 0;
+let scrollFrame = 0;
 metaBody?.addEventListener(
   'scroll',
   () => {
-    if (quarterFrame) return;
-    quarterFrame = requestAnimationFrame(() => {
-      quarterFrame = 0;
-      syncQuarterTabs();
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      /* 标题栏里的胶囊两个弹窗共用：同一时刻只有一种跳转点，按当前弹窗分流 */
+      if (metaKind === 'about') syncAboutTabs();
+      else syncQuarterTabs();
     });
   },
   { passive: true }
@@ -828,7 +909,7 @@ function renderChangelog(meta: CommitsData): void {
   if (entries.length === 0) {
     if (metaSub) metaSub.textContent = '';
     if (metaActions) metaActions.innerHTML = '';
-    quarterKey = '';
+    actionsKey = '';
     metaBody.innerHTML = '<p class="changelog-empty">没有可显示的提交记录。</p>';
     return;
   }
@@ -850,13 +931,14 @@ function renderChangelog(meta: CommitsData): void {
   /* 标题栏列的是**全部**季度（含还没渲染的）：先让人看到「日志能回到哪一年」，
      点一个没渲染的季度时再由 ensureQuarter 补内容。清单不变就不重建按钮。 */
   const allQuarters = Array.from(new Set(meta.changelog.map((entry) => quarterOf(entry.date))));
-  const key = allQuarters.join('|');
-  if (metaActions && key !== quarterKey) {
-    quarterKey = key;
+  const key = `changelog|${allQuarters.join('|')}`;
+  if (metaActions && key !== actionsKey) {
+    actionsKey = key;
+    metaActions.setAttribute('aria-label', '按季度跳转');
     metaActions.innerHTML = allQuarters
       .map(
         (quarter) =>
-          `<button type="button" class="changelog-quarter" data-quarter="${quarter}">${quarter}</button>`
+          `<button type="button" class="meta-chip" data-quarter="${quarter}">${quarter}</button>`
       )
       .join('');
   }
@@ -882,7 +964,8 @@ function renderChangelog(meta: CommitsData): void {
   }).join('');
 
   metaBody.innerHTML = groupsHtml;
-  syncQuarterTabs();
+  /* 同理延到下一帧：渲染发生在 showModal 之前，当场量高度只会量到 0 */
+  requestAnimationFrame(syncQuarterTabs);
 
   if (entries.length < meta.changelog.length) {
     const more = document.createElement('button');
@@ -900,26 +983,45 @@ function renderChangelog(meta: CommitsData): void {
 }
 
 function renderAbout(meta: AboutData): void {
-  if (!metaBody) return;
-  /* 「关于本站」没有季度跳转：清空标题栏右侧，那块空间自然收回去 */
-  if (metaActions) metaActions.innerHTML = '';
-  quarterKey = '';
+  const body = metaBody;
+  if (!body) return;
+
+  /* 标题栏右侧换成目录跳转点：和更新日志的季度标签同一套胶囊，
+     清单不变就不重建 —— 后台刷新回来重渲染时，点过的那颗不会丢焦点。 */
+  const nav = meta.nav ?? [];
+  const key = `about|${nav.map((item) => `${item.id}:${item.label}`).join('|')}`;
+  if (metaActions && key !== actionsKey) {
+    actionsKey = key;
+    metaActions.setAttribute('aria-label', '按章节跳转');
+    metaActions.innerHTML = nav
+      .map(
+        (item) =>
+          `<button type="button" class="meta-chip" data-target="${escapeHtml(
+            item.id
+          )}">${escapeHtml(item.label)}</button>`
+      )
+      .join('');
+  }
+
   if (metaSub) {
     metaSub.textContent = meta.updated ? `README.md · 更新于 ${meta.updated}` : 'README.md';
   }
   // 构建期渲染、只来自仓库自己的 README，可以直接当 HTML 插入
-  metaBody.innerHTML = meta.html;
-  metaBody.scrollTop = 0;
+  body.innerHTML = meta.html;
+  /* 高亮延到下一帧：此刻弹窗还没 showModal（openMeta 先渲染再开），
+     clientHeight / scrollHeight 都是 0，会被判成「已滚到底」而点亮最后一颗。
+     滚动位置也由 openMeta 在 showModal 之后复位（弹窗关着时设 scrollTop 无效）。 */
+  requestAnimationFrame(syncAboutTabs);
 }
 
 function renderMeta(kind: MetaKind, data: AboutData | CommitsData): void {
+  metaKind = kind;
   if (kind === 'about') {
     renderAbout(data as AboutData);
     return;
   }
   changelogShown = CHANGELOG_STEP;
   renderChangelog(data as CommitsData);
-  metaBody?.scrollTo(0, 0);
 }
 
 /** 两份内容是否相同：后台刷新回来时用它决定要不要重渲染（避免白闪一次）。 */
@@ -927,7 +1029,13 @@ function sameMeta(kind: MetaKind, a: AboutData | CommitsData, b: AboutData | Com
   if (kind === 'about') {
     const before = a as AboutData;
     const after = b as AboutData;
-    return before.html === after.html && before.updated === after.updated;
+    const navKey = (data: AboutData): string =>
+      (data.nav ?? []).map((item) => `${item.id}:${item.label}`).join('|');
+    return (
+      before.html === after.html &&
+      before.updated === after.updated &&
+      navKey(before) === navKey(after)
+    );
   }
   const before = a as CommitsData;
   const after = b as CommitsData;
@@ -959,9 +1067,15 @@ async function openMeta(kind: MetaKind): Promise<void> {
   const pending = !cached || stale ? META_LOAD[kind]() : null;
 
   if (metaTitle) metaTitle.textContent = META_TITLE[kind];
-  if (!cached && metaSub) metaSub.textContent = '';
-  if (cached) renderMeta(kind, cached);
-  else metaBody.innerHTML = '<p class="site-modal-loading">载入中…</p>';
+  if (!cached) {
+    /* 换弹窗时标题栏里的胶囊属于上一个弹窗，先清掉；渲染时会按新数据重建 */
+    if (metaSub) metaSub.textContent = '';
+    if (metaActions) metaActions.innerHTML = '';
+    actionsKey = '';
+    metaBody.innerHTML = '<p class="site-modal-loading">载入中…</p>';
+  } else {
+    renderMeta(kind, cached);
+  }
 
   const openedAt = performance.now();
 
@@ -971,6 +1085,9 @@ async function openMeta(kind: MetaKind): Promise<void> {
     metaDialog.showModal();
     lockScroll();
   }
+  /* 复位滚动要放在 showModal 之后：弹窗关着时是 display: none，
+     给它设 scrollTop 不生效，重新打开会停在上次读到的位置。 */
+  metaBody.scrollTop = 0;
   history.replaceState(null, '', ourHash);
 
   if (!pending) return;
