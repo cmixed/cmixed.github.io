@@ -624,7 +624,10 @@ ${sitemapUrls}
       const searchKey = [p.title, p.description, ...p.tags].join(' ').toLowerCase();
       return `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
-            <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
+            <div class="blog-page-card-head">
+                <div class="blog-page-card-title">${escapeXml(p.title)}</div>
+                ${pinMark}
+            </div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-footer">
                 <div class="blog-page-card-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`).join('')}<span class="tag-more" hidden></span></div>

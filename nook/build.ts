@@ -230,7 +230,8 @@ function renderResources(resources: ResourceData[]): string {
 
       return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}" data-date="${escapeXml(r.date)}" data-updated="${escapeXml(r.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="nook-card-header">
-                <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
+                <div class="nook-card-title">${escapeXml(r.title)}</div>
+                ${pinMark}
                 <span class="nook-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
