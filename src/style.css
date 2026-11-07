@@ -1689,6 +1689,14 @@ footer {
     margin-top: 2.5rem;
 }
 
+/* 点目录跳转前临时关掉分节虚拟化（.is-measuring 由 main.ts 加、两帧后撤）。
+   离屏的节只有 550px 的估算高度，不展开就算不准落点 —— 实测目标差过半屏，
+   一路滚过去内容一节节撑开，最后停在目标上方。量到真实高度后再滚，
+   contain-intrinsic-size 的 auto 会记住真实值，撤掉类也不会缩回去。 */
+.site-modal-body.is-measuring .readme-sec {
+    content-visibility: visible;
+}
+
 .site-modal-loading {
     color: var(--text-muted);
     font-size: 0.85rem;
@@ -1706,11 +1714,12 @@ html.modal-open {
 /* --- 更新日志：按日期分组，一行一条 --- */
 /* 80 条提交排出来约 3,900px，和 README 同一个问题：只排可见的那几天。
    一天的估算给 340px（实际 300~500），往下滚会逐天校正。 */
-/* ===== 更新日志：季度导航与分段标题 =====
-   日志跨年之后，「按日期一行行铺下去」就没有层级了。
-   季度标签挂在弹窗标题行右侧（.site-modal-actions），常驻在滚动区之外，不用 sticky；
-   每个季度段前面用「两侧横线夹一颗胶囊」标出 26Q4 / 26Q3 这类分界。 */
-.changelog-quarter {
+/* ===== 弹窗标题栏的跳转胶囊 =====
+   标题行右侧（.site-modal-actions）常驻在滚动区之外，不用 sticky。
+   两个弹窗共用同一颗胶囊：更新日志放季度（26Q4 / 26Q3…），
+   关于本站放目录（技术栈 / 主要特性…），只是 dataset 不同 —— 前者 data-quarter、
+   后者 data-target，点击与高亮按属性分流。 */
+.meta-chip {
     flex: 0 0 auto;
     padding: 0.18rem 0.7rem;
     font-family: var(--font-mono);
@@ -1725,12 +1734,19 @@ html.modal-open {
     transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
 
-.changelog-quarter:hover {
+/* 目录写的是中文标题：等宽栈对 CJK 只是回退，字宽和旁边的「关于本站」不协调，
+   所以这一种用正文字体，字号/字重/形状与季度胶囊保持一致 */
+.meta-chip[data-target] {
+    font-family: inherit;
+    letter-spacing: 0;
+}
+
+.meta-chip:hover {
     color: var(--primary-text);
     border-color: var(--primary);
 }
 
-.changelog-quarter.active {
+.meta-chip.active {
     color: var(--primary-text);
     background: var(--primary-dim);
     border-color: var(--primary);
@@ -1989,8 +2005,8 @@ a.changelog-item:hover {
         border-radius: 12px;
     }
 
-    /* 标题行在窄屏放不下三段（标题 / 季度 / 关闭）：
-       季度标签整条落到第二行，横跨整行并可横向滚动 */
+    /* 标题行在窄屏放不下三段（标题 / 跳转胶囊 / 关闭）：
+       胶囊整条落到第二行，横跨整行；再放不下才横向滚动 */
     .site-modal-head {
         flex-wrap: wrap;
         row-gap: 0.55rem;
@@ -2001,6 +2017,14 @@ a.changelog-item:hover {
         order: 3;
         flex: 1 1 100%;
         margin-left: 0;
+        gap: 0.3rem;
+    }
+
+    /* 关于本站有 5 颗中文胶囊，按桌面内边距整行差 10px 左右放不下，
+       滚动的最后一颗被切掉半颗，容易被当成渲染出错。收一档就全放下了
+       （季度胶囊只有 3 颗，收一点也不影响观感）。 */
+    .site-modal-actions .meta-chip {
+        padding: 0.16rem 0.55rem;
     }
 
     .site-modal-body {
@@ -3148,7 +3172,7 @@ button,
 .list-chip,
 .list-chip-more,
 .list-sort-btn,
-.changelog-quarter,
+.meta-chip,
 .changelog-more,
 .skill-chip,
 .tag-more,

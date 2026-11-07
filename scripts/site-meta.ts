@@ -49,11 +49,19 @@ export interface ChangelogEntry {
   subject: string;
 }
 
+/** 关于本站里的一条目录跳转：id 指向对应 `readme-sec`，label 是节标题。 */
+export interface AboutNav {
+  id: string;
+  label: string;
+}
+
 export interface AboutMeta {
   /** README 渲染后的 HTML（相对链接已改写成 GitHub 上的地址） */
   html: string;
   /** README 最后一次提交的日期（YYYY-MM-DD），非 git 环境为 null */
   updated: string | null;
+  /** 标题栏右侧的目录跳转（只挑重要的节，见 ABOUT_NAV） */
+  nav: AboutNav[];
 }
 
 /** 仓库里存着的总结：一个季度一条，写完就不再重写。 */
@@ -349,7 +357,15 @@ export function rewriteLinks(html: string, repoUrl: string | null): string {
 }
 
 /**
- * 按 h1/h2 把 README 切成一节一个 `<div class="readme-sec">`。
+ * 挑进标题栏跳转点的节标题（按 README 里的 `##` 标题原样写）。
+ * 只挑重要的几节 —— 全部 12 个放标题栏会挤成两行，跳转点反而不好找。
+ * 想换一批就改这个数组；写了不存在的标题，buildAbout 会 warn。
+ */
+const ABOUT_NAV: readonly string[] = ['技术栈', '主要特性', '设计说明', '项目结构', '内容维护'];
+
+/**
+ * 按 h1/h2 把 README 切成一节一个 `<div class="readme-sec">`，每节带稳定的
+ * `about-sec-N` id（跳转点用），并顺手取出节标题供目录挑选。
  *
  * 弹窗正文只有 ~700px 高，而整篇 README 排出来有 1.2 万像素：不切节的话，
  * 每次打开都要同步排完整篇（弱机实测 200ms+，主线程一卡，光标也跟着停）。
@@ -359,22 +375,40 @@ export function rewriteLinks(html: string, repoUrl: string | null): string {
  * 每一节都撑高一截。h1/h2 是 marked 生成的顶层块，字符串切分就够，
  * 不需要为构建期再引入一个 DOM 解析器。
  */
-function wrapSections(html: string): string {
-  return html
+function wrapSections(html: string): { html: string; sections: AboutNav[] } {
+  const sections: AboutNav[] = [];
+  const wrapped = html
     .split(/(?=<h[12][\s>])/i)
     .filter((part) => part.trim())
-    .map((part) => `<div class="readme-sec">${part}</div>`)
+    .map((part, index) => {
+      const id = `about-sec-${index}`;
+      const heading = /^<h[12][^>]*>([\s\S]*?)<\/h[12]>/i.exec(part)?.[1] ?? '';
+      const label = heading.replace(/<[^>]+>/g, '').trim();
+      if (label) sections.push({ id, label });
+      return `<div class="readme-sec" id="${id}">${part}</div>`;
+    })
     .join('');
+  return { html: wrapped, sections };
 }
 
-/** README → 悬浮框里的 HTML。表格套一层 `.table-wrapper`，窄屏才能横向滚动。 */
-export function renderAboutHtml(markdown: string, repoUrl: string | null): string {
+/** README → 悬浮框里的 HTML + 目录跳转。表格套一层 `.table-wrapper`，窄屏才能横向滚动。 */
+export function renderAboutHtml(
+  markdown: string,
+  repoUrl: string | null,
+  warn: (message: string) => void = console.warn
+): { html: string; nav: AboutNav[] } {
   let html = marked.parse(markdown, { async: false });
   html = rewriteLinks(html, repoUrl);
   html = html
     .replace(/<table>/g, '<div class="table-wrapper"><table>')
     .replace(/<\/table>/g, '</table></div>');
-  return wrapSections(html);
+  const { html: wrapped, sections } = wrapSections(html);
+  const nav = ABOUT_NAV.map((title) => {
+    const found = sections.find((section) => section.label === title);
+    if (!found) warn(`[about] 目录跳转点「${title}」在 README 里找不到对应章节`);
+    return found;
+  }).filter((item): item is AboutNav => item !== undefined);
+  return { html: wrapped, nav };
 }
 
 function git(args: string[]): string {
@@ -422,8 +456,10 @@ export function readCommits(): { changelog: ChangelogEntry[]; total: number } {
 
 export async function buildAbout(): Promise<AboutMeta> {
   const markdown = await readFile(README_PATH, 'utf-8');
+  const { html, nav } = renderAboutHtml(markdown, readRepoUrl());
   return {
-    html: renderAboutHtml(markdown, readRepoUrl()),
+    html,
+    nav,
     updated: getGitLastModified(README_PATH),
   };
 }
