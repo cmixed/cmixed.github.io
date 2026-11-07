@@ -32,6 +32,10 @@ jobs:
     runs-on: ubuntu-26.04
     env:
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+    # 只有这一步需要写 issue（季度总结提醒）；deploy 仍走顶层的 pages 权限
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@v5
         with:
@@ -43,6 +47,83 @@ jobs:
           run-install: |
             - args: ['--frozen-lockfile']
       - run: vp run build
+      # 季度总结：构建期已自动判断过（site-meta.ts 的 quarterSummaryGaps），
+      # 这里只是把结果接出来 —— 注解 + Step Summary + outputs，供下一步决定要不要提醒。
+      - name: 季度总结检查
+        id: quarter
+        run: pnpm run quarter-summary -- --ci
+      # 需要补写时开（或更新）一个固定标题的 issue；补写完自动关掉。
+      # 只是提醒，失败不阻塞部署。
+      - name: 提醒补写季度总结
+        if: steps.quarter.outputs.needs_attention == 'true'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '季度总结待补写';
+            const missing = '${{ steps.quarter.outputs.missing }}'.split(',').filter(Boolean);
+            const changed = '${{ steps.quarter.outputs.changed }}'.split(',').filter(Boolean);
+            const rows = [
+              ...missing.map((q) => `| ${q} | 待补写 |`),
+              ...changed.map((q) => `| ${q} | 指纹变化，请复核 |`),
+            ];
+            const body = [
+              '构建时自动检查发现，已完结季度的总结需要动笔：',
+              '',
+              '| 季度 | 状态 |',
+              '| --- | --- |',
+              ...rows,
+              '',
+              '补写入口：`pnpm quarter-summary`（打印素材与指纹），',
+              '手写一条后连同 `fingerprint` 一起提交 `src/data/quarter-summaries.json`。',
+              '构建期只读不生成，所以同一季度不会被重复总结。',
+              '',
+              `触发：${context.workflow} · ${context.sha.slice(0, 7)}`,
+            ].join('\n');
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 50,
+            });
+            const existing = issues.find((issue) => !issue.pull_request && issue.title === title);
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }
+      - name: 总结补齐后关闭提醒
+        if: steps.quarter.outputs.needs_attention == 'false'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '季度总结待补写';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 50,
+            });
+            for (const issue of issues.filter((i) => !i.pull_request && i.title === title)) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+            }
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
