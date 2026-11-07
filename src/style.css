@@ -2399,10 +2399,10 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: flex; align-items: center; gap: 1.5rem;
 }
 
-/* 主页 logo 里放一个真的 `←`，只是把它藏起来：宽度与子页 `cmixed ←` 天然一致，
-   不需要拿 em 去凑。改字号、换字体、换箭头字符都不会错位。 */
+/* 主页 logo 后面跟一个灰色 `→`：与子页的 `←` 同字符集、同宽度，切页时左组不会横移。
+   方向也把语义说清了 —— 主页的箭头朝外（去列表页），子页的箭头朝内（回主页）。 */
 .logo-arrow {
-    visibility: hidden;
+    color: var(--text-muted);
 }
 /* 子页 logo：与主页 .logo 同字号、同字重、同字体栈。必须用 (0,2,0) 选择器，
    否则会被「导航项」里的 .xxx-nav-title 或通用 a 规则压成小字。
