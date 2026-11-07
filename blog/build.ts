@@ -608,7 +608,7 @@ ${sitemapUrls}
       name
     )}</span></span><span class="list-chip-count">${count}</span></a>`;
   // 「全部」是复位动作，不算一个筛选项：放进标题行，用文字按钮而不是胶囊
-  const allChip = `<a href="./" class="list-chip list-chip-all active" data-tag=""><span class="list-chip-text">全部</span><span class="list-chip-count">${posts.length}</span></a>`;
+  const allChip = `<a href="./" class="list-chip list-chip-all active" data-tag=""><span class="list-chip-text">全部标签</span><span class="list-chip-count">${posts.length}</span></a>`;
   const tagsHtml = [
     ...tagStats.map((t) => chipHtml(t.name, t.count)),
     `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll" hidden></button>`,

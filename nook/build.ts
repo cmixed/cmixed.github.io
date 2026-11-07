@@ -177,7 +177,7 @@ function discoverResources(): ResourceData[] {
 
 // 「全部」放进标题行，用文字按钮而不是胶囊（它是复位动作，不是一个筛选项）
 function renderAllChip(total: number): string {
-  return `<button type="button" class="list-chip list-chip-all active" data-category=""><span class="list-chip-text">全部</span><span class="list-chip-count">${total}</span></button>`;
+  return `<button type="button" class="list-chip list-chip-all active" data-category=""><span class="list-chip-text">全部标签</span><span class="list-chip-count">${total}</span></button>`;
 }
 
 function renderFilters(categories: NameCount[]): string {

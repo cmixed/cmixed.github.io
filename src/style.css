@@ -26,6 +26,9 @@
     /* 主按钮 hover 的填充：只加深一档，不做实心跳变 */
     --primary-dim-hover: rgba(15, 118, 110, 0.30);
     --primary-glow: rgba(95, 209, 181, 0.26);
+    /* 卡片顶部高亮：内嵌的 4px accent 带 + 向下淡出的薄雾 */
+    --card-top-band: rgba(95, 209, 181, 0.45);
+    --card-top-glow: rgba(95, 209, 181, 0.12);
     /* accent 作「前景」（文字/图标）时用这个：墨绿底上要用亮青才读得清 */
     --primary-text: #5fd8c0;
     /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青） --- */
@@ -96,6 +99,8 @@
     --chip-pad-y: 0.2rem;
     --chip-pad-x: 0.5rem;
     --chip-font: 0.8125rem;
+    /* 筛选区两颗「整行动作」（全部标签 / 其他 N 个）共用一档字号 */
+    --filter-action-font: 0.9375rem;
     /* --- 可点控件（筛选胶囊 / 浅色按钮）的材质 ---
        只读标签有 --mica-chip 的填色顶着，胶囊原本是透明底 + --border 描边；
        实测那条边框相对页面底色只有 1.69:1（浅色 1.38:1），远低于控件边界该有的
@@ -170,6 +175,8 @@
     --primary-dim: rgba(15, 118, 110, 0.12);
     --primary-dim-hover: rgba(15, 118, 110, 0.22);
     --primary-glow: rgba(15, 118, 110, 0.18);
+    --card-top-band: rgba(15, 118, 110, 0.32);
+    --card-top-glow: rgba(15, 118, 110, 0.08);
     --primary-text: #0b5f57;
     /* --- 主题色 1 = 底色（更绿）；主题色 2 = 面板色（更青，不是纯白） --- */
     --bg: #d0e2db;
@@ -1118,17 +1125,17 @@ html.fab-measuring section {
 }
 
 .project-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--primary);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s;
+    content: ''; position: absolute; inset: 0;
+    border-radius: inherit; pointer-events: none;
+    /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
+       4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+    box-shadow: inset 0 4px 0 0 var(--card-top-band);
+    background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
+    opacity: 0; transition: opacity 0.3s;
 }
+.project-card:hover::before,
+.project-card:focus-visible::before { opacity: 1; }
+.project-card-pin::before { opacity: 0.55; }
 
 .project-card:hover {
     border-color: var(--primary);
@@ -1150,10 +1157,6 @@ html.fab-measuring section {
     box-shadow:
         0 0 0 2px var(--primary-glow),
         var(--mica-elev-2);
-}
-
-.project-card:hover::before {
-    transform: scaleX(1);
 }
 
 .project-header {
@@ -1235,10 +1238,17 @@ html.fab-measuring section {
 }
 
 .blog-preview-card::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 2px; background: var(--primary);
-    transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
+    content: ''; position: absolute; inset: 0;
+    border-radius: inherit; pointer-events: none;
+    /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
+       4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+    box-shadow: inset 0 4px 0 0 var(--card-top-band);
+    background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
+    opacity: 0; transition: opacity 0.3s;
 }
+.blog-preview-card:hover::before,
+.blog-preview-card:focus-visible::before { opacity: 1; }
+.blog-preview-card-pin::before { opacity: 0.55; }
 
 .blog-preview-card:hover {
     border-color: var(--primary);
@@ -1246,10 +1256,8 @@ html.fab-measuring section {
     box-shadow: var(--mica-elev-2);
 }
 
-.blog-preview-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
 
 .blog-preview-card-pin { border-color: var(--primary-dim); }
-.blog-preview-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
 
 .blog-preview-card-title {
     font-weight: 700;
@@ -1305,10 +1313,17 @@ html.fab-measuring section {
 }
 
 .nook-preview-card::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 2px; background: var(--primary);
-    transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
+    content: ''; position: absolute; inset: 0;
+    border-radius: inherit; pointer-events: none;
+    /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
+       4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+    box-shadow: inset 0 4px 0 0 var(--card-top-band);
+    background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
+    opacity: 0; transition: opacity 0.3s;
 }
+.nook-preview-card:hover::before,
+.nook-preview-card:focus-visible::before { opacity: 1; }
+.nook-preview-card-pin::before { opacity: 0.55; }
 
 .nook-preview-card:hover {
     border-color: var(--primary);
@@ -1316,10 +1331,8 @@ html.fab-measuring section {
     box-shadow: var(--mica-elev-2);
 }
 
-.nook-preview-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
 
 .nook-preview-card-pin { border-color: var(--primary-dim); }
-.nook-preview-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
 
 .nook-preview-card-header {
     display: flex;
@@ -1546,10 +1559,37 @@ footer {
     flex: none;
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
     gap: 1rem;
     padding: 1rem 1.25rem 0.85rem;
     border-bottom: 1px solid var(--border);
+}
+
+.site-modal-heading {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* 标题右侧的常驻操作区（目前的唯一住户是更新日志的季度跳转）。
+   它在正文滚动区之外，所以永远看得见，不需要 sticky。
+   内容为空时整块塌掉 —— 「关于本站」不占位置。 */
+.site-modal-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: center;
+    min-width: 0;
+    margin-left: auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.site-modal-actions::-webkit-scrollbar {
+    display: none;
+}
+
+.site-modal-actions:empty {
+    display: none;
 }
 
 .site-modal-title {
@@ -1659,26 +1699,9 @@ html.modal-open {
 /* 80 条提交排出来约 3,900px，和 README 同一个问题：只排可见的那几天。
    一天的估算给 340px（实际 300~500），往下滚会逐天校正。 */
 /* ===== 更新日志：季度导航与分段标题 =====
-   日志跨年之后，「按日期一行行铺下去」就没有层级了。顶部一条可横向滚动的季度标签，
-   sticky 在弹窗顶部；每个季度段前面用「两侧横线夹一颗胶囊」标出 26Q1 / 26Q2 这类分界。 */
-.changelog-quarters {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    margin: 0;
-    padding: 0.15rem 0 0.45rem;
-    background: var(--mica-chrome);
-    scrollbar-width: none;
-    overscroll-behavior-x: contain;
-}
-
-.changelog-quarters::-webkit-scrollbar {
-    display: none;
-}
-
+   日志跨年之后，「按日期一行行铺下去」就没有层级了。
+   季度标签挂在弹窗标题行右侧（.site-modal-actions），常驻在滚动区之外，不用 sticky；
+   每个季度段前面用「两侧横线夹一颗胶囊」标出 26Q4 / 26Q3 这类分界。 */
 .changelog-quarter {
     flex: 0 0 auto;
     padding: 0.18rem 0.7rem;
@@ -1709,8 +1732,13 @@ html.modal-open {
    padding: 0 是必须的 —— 全局 section 规则带 5rem 2rem 的内边距，
    不重置的话每段上下各多出 80px。 */
 .changelog-quarter-group {
+    /* content-visibility 必须关掉：全站 `section` 规则给它挂了 auto + 500px 占位，
+       离屏的季度整段会被压成 500px，跳转目标因此被夹在几百像素处。
+       季度只有几个，按天的 .changelog-day 才是真正需要虚拟化的那一层。 */
+    content-visibility: visible;
     padding: 0;
-    scroll-margin-top: 2.8rem;
+    /* 季度条现在在标题行里，不再压在滚动区顶部；留一点余量就够 */
+    scroll-margin-top: 0.5rem;
 }
 
 .changelog-quarter-title {
@@ -1745,10 +1773,10 @@ html.modal-open {
     margin-top: 0.75rem;
 }
 
-.changelog-day {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 340px;
-}
+/* 这里刻意不虚拟化：一天的条目就是几行纯文本，几百行一起排也就几十毫秒，
+   但 content-visibility 的占位高度会让「点季度跳过去」的落点一直算不准
+   （实测 26Q4 → 26Q2 只滚到 925px、展开后又差 500px）。
+   需要省的是打开时那一整篇 README，不是这份扁平列表。 */
 
 .changelog-day + .changelog-day {
     margin-top: 1.35rem;
@@ -1850,8 +1878,18 @@ a.changelog-item:hover {
         border-radius: 12px;
     }
 
+    /* 标题行在窄屏放不下三段（标题 / 季度 / 关闭）：
+       季度标签整条落到第二行，横跨整行并可横向滚动 */
     .site-modal-head {
+        flex-wrap: wrap;
+        row-gap: 0.55rem;
         padding: 0.85rem 1rem 0.7rem;
+    }
+
+    .site-modal-actions {
+        order: 3;
+        flex: 1 1 100%;
+        margin-left: 0;
     }
 
     .site-modal-body {
@@ -2751,26 +2789,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 .list-filters-head {
+    /* 整行只放一颗「全部标签 N」：居中，和下面「—— 其他 N 个 ——」成对 */
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.55rem;
     margin-bottom: 0.75rem;
-}
-
-.list-chip-all {
-    /* 桌面：标题在左、「全部」在右，两端对齐 */
-    margin-left: auto;
-}
-
-.list-filters-close {
-    margin-left: 0.15rem;
-}
-
-.list-filters-title {
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    color: var(--text-muted);
 }
 
 .list-filters-close {
@@ -2997,20 +3020,9 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
         --filters-visible: 6;
     }
 
-    /* 横排区没有「栏」这个概念了：「标签」小标题会跑到页面大标题前面，层级倒置，
-       所以只留「全部」这一颗复位按钮 */
+    /* 横排区没有「栏」这个概念了：复位按钮仍然居中，只把间距收一档 */
     .list-filters-head {
-        display: flex;
         margin-bottom: 0.6rem;
-    }
-
-    .list-filters-title {
-        display: none;
-    }
-
-    /* 横排时没有标题，全部不需要再往右顶 */
-    .list-chip-all {
-        margin-left: 0;
     }
 }
 
@@ -3423,23 +3435,36 @@ html::after {
    触屏要 44px 的点击高度 —— 线只有 1px，靠 min-height 撑出热区。 */
 /* 「全部」是复位动作，不是一个筛选项：不做成胶囊，用文字按钮和下面的胶囊区分开。
    仍然保留 .list-chip 类 —— 筛选脚本按它绑定状态，去掉就会丢掉「当前是否全选」的同步。 */
-.list-chip-all {
+.list-chip.list-chip-all {
+    /* 写成双类：`.list-filters-panel .list-chip`（0,2,0）会给栏内胶囊定 0.875rem，
+       单类选择器压不住，复位按钮必须用同一档特异性才能拿到 15px */
     width: auto;
     min-width: 0;
-    padding: 0.2rem 0.4rem;
+    min-height: 44px;
+    gap: 0.45rem;
+    padding: 0.25rem 0.7rem;
+    font-size: var(--filter-action-font);
+    font-weight: 600;
     background: none;
     border-color: transparent;
     border-radius: 4px;
-    color: var(--text-dim);
+    color: var(--text);
 }
 
-.list-chip-all:hover {
+/* 数字与文字拉开一档，不跟复位动作抢；和下面那条横线用同一套灰阶 */
+.list-chip-all .list-chip-count {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.list-chip.list-chip-all:hover {
     background: var(--chip-fill);
     border-color: transparent;
     color: var(--primary-text);
 }
 
-.list-chip-all.active {
+.list-chip.list-chip-all.active {
     background: none;
     border-color: transparent;
     color: var(--primary-text);
@@ -3463,9 +3488,10 @@ html::after {
     min-height: 44px;
     padding: 0;
     font-family: inherit;
-    font-size: var(--chip-font);
-    font-weight: 500;
-    color: var(--text-muted);
+    /* 与标题行的「全部标签 N」同字号、同字重、同 44px 热区：两颗是一组 */
+    font-size: var(--filter-action-font);
+    font-weight: 600;
+    color: var(--text-dim);
     background: transparent;
     border: 0;
     cursor: pointer;
