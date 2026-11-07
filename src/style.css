@@ -1853,6 +1853,28 @@ html.modal-open {
     color: var(--text-muted);
 }
 
+/* 「进行中」占位公告：虚线框 + 降一档的对比，让它明显比真正的总结卡轻。
+   它是界面模板，不是写好的总结 —— 混进 quarter-summaries.json 会污染
+   「总结到底写过没有」的判定，也就会影响 CI 的补写提醒。 */
+.md-body .changelog-summary.is-in-progress {
+    background: transparent;
+    border-style: dashed;
+    border-left: 3px dashed var(--border);
+}
+
+.md-body .changelog-summary.is-in-progress .changelog-summary-tag {
+    color: var(--text-muted);
+}
+
+.md-body .changelog-summary.is-in-progress .changelog-summary-title {
+    color: var(--text-dim);
+}
+
+.md-body .changelog-summary.is-in-progress p {
+    margin-bottom: 0;
+    color: var(--text-muted);
+}
+
 @media (max-width: 600px) {
     .md-body .changelog-summary-head {
         flex-wrap: wrap;

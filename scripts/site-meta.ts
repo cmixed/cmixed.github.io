@@ -99,6 +99,11 @@ export interface CommitsMeta {
   repo: string | null;
   /** 只包含「已过完且有总结」的季度；进行中的季度一定不在里面 */
   summaries: Record<string, QuarterSummary>;
+  /**
+   * 还没过完、因此不总结的季度。前端据此显示一块「进行中」的占位公告，
+   * 但它**不进** quarterSummaryGaps 的缺口清单，不会触发补写提醒。
+   */
+  inProgress: string[];
 }
 
 const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?!?:\s+([\s\S]+)$/;
@@ -186,6 +191,16 @@ function groupByQuarter(changelog: ChangelogEntry[]): Map<string, ChangelogEntry
     else groups.set(quarter, [entry]);
   }
   return groups;
+}
+
+/**
+ * 还没过完的季度：页面上给它们放一块「进行中」的占位公告，
+ * 但这些季度永远不进缺口清单，不会触发补写提醒。
+ */
+export function inProgressQuarters(changelog: ChangelogEntry[], now: Date = new Date()): string[] {
+  return Array.from(groupByQuarter(changelog).keys()).filter(
+    (quarter) => !isQuarterComplete(quarter, now)
+  );
 }
 
 /**
@@ -381,6 +396,7 @@ export function buildCommits(now: Date = new Date()): CommitsMeta {
     total,
     repo: readRepoUrl(),
     summaries: selectQuarterSummaries(changelog, readSummaries(), now),
+    inProgress: inProgressQuarters(changelog, now),
   };
 }
 
