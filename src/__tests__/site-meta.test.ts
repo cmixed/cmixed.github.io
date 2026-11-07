@@ -9,6 +9,7 @@ import {
   quarterFingerprint,
   quarterOf,
   quarterStats,
+  quarterSummaryGaps,
   renderAboutHtml,
   rewriteLinks,
   selectQuarterSummaries,
@@ -346,5 +347,36 @@ describe('季度总结：只复用，不重复生成', () => {
     expect(out['26Q3'].headline).toBe('26Q3 的一句话');
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toContain('人工复核');
+  });
+
+  it('缺口清单：进行中不算，缺总结与指纹变化分开标', () => {
+    // 三种存档状态：都写好了 / 一条都没有 / 只有 26Q3 的指纹过期
+    expect(quarterSummaryGaps(changelog, ALL, NOV)).toEqual([]);
+    expect(quarterSummaryGaps(changelog, {}, NOV).map((gap) => gap.quarter)).toEqual([
+      '26Q3',
+      '26Q2',
+    ]);
+    expect(quarterSummaryGaps(changelog, {}, NOV).every((gap) => gap.kind === 'missing')).toBe(
+      true
+    );
+
+    const changed = quarterSummaryGaps(
+      changelog,
+      { ...ALL, '26Q3': { ...saved('26Q3'), fingerprint: 'deadbeef' } },
+      NOV
+    );
+    expect(changed.map((gap) => gap.quarter)).toEqual(['26Q3']);
+    expect(changed[0]).toMatchObject({
+      kind: 'changed',
+      commits: 1,
+      storedFingerprint: 'deadbeef',
+      from: '2026-08-14',
+      to: '2026-08-14',
+    });
+
+    // 进行中的季度永远不进缺口清单，CI 不会为它提醒
+    expect(quarterSummaryGaps(changelog, {}, NOV).some((gap) => gap.quarter === '26Q4')).toBe(
+      false
+    );
   });
 });

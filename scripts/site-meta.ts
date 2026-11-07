@@ -78,6 +78,19 @@ export interface QuarterSummary extends QuarterSummaryStored {
   stats: QuarterStats;
 }
 
+/** 待补写 / 待复核的季度：CI 用它决定要不要提醒，人用它决定要不要动笔。 */
+export interface QuarterGap {
+  quarter: string;
+  /** missing = 还没写过总结；changed = 写过但提交指纹变了 */
+  kind: 'missing' | 'changed';
+  commits: number;
+  fingerprint: string;
+  /** kind 为 changed 时的存档指纹，便于对照是哪一段提交变了 */
+  storedFingerprint?: string;
+  from: string;
+  to: string;
+}
+
 export interface CommitsMeta {
   changelog: ChangelogEntry[];
   /** 仓库里的提交总数（可能大于 changelog.length） */
@@ -164,12 +177,55 @@ export function quarterStats(entries: ChangelogEntry[]): QuarterStats {
   };
 }
 
+function groupByQuarter(changelog: ChangelogEntry[]): Map<string, ChangelogEntry[]> {
+  const groups = new Map<string, ChangelogEntry[]>();
+  for (const entry of changelog) {
+    const quarter = quarterOf(entry.date);
+    const bucket = groups.get(quarter);
+    if (bucket) bucket.push(entry);
+    else groups.set(quarter, [entry]);
+  }
+  return groups;
+}
+
+/**
+ * 已完结季度里「该动笔却还没动笔」的清单。
+ *
+ * 构建期用它自动判断要不要提醒（脚本 / workflow 直接消费这份结构化结果），
+ * 但它**不生成**任何总结文本 —— 文本只在 `quarter-summaries.json` 里人写一次。
+ */
+export function quarterSummaryGaps(
+  changelog: ChangelogEntry[],
+  stored: Record<string, QuarterSummaryStored>,
+  now: Date = new Date()
+): QuarterGap[] {
+  const gaps: QuarterGap[] = [];
+  for (const [quarter, list] of groupByQuarter(changelog)) {
+    if (!isQuarterComplete(quarter, now)) continue;
+    const saved = stored[quarter];
+    const fingerprint = quarterFingerprint(list);
+    const stats = quarterStats(list);
+    const base = {
+      quarter,
+      commits: list.length,
+      fingerprint,
+      from: stats.from,
+      to: stats.to,
+    };
+    if (!saved) gaps.push({ ...base, kind: 'missing' });
+    else if (saved.fingerprint !== fingerprint) {
+      gaps.push({ ...base, kind: 'changed', storedFingerprint: saved.fingerprint });
+    }
+  }
+  return gaps;
+}
+
 /**
  * 挑出可以显示总结的季度。
  *
  * 「不重复总结」靠两件事保证：
  *   1. 构建期**从不生成**总结文本，只读 `quarter-summaries.json` 里已经写好的；
- *      缺总结只提醒补写，不会自动补一份（更不会每次构建重写一份）。
+ *      缺总结只提醒补写（见 quarterSummaryGaps），不会自动补一份。
  *   2. 输出按季度键控，每个季度最多一条，进行中的季度直接排除。
  * 指纹对不上时也仍然复用旧总结、只提醒人工复核 —— 不覆盖、不重写。
  */
@@ -179,31 +235,25 @@ export function selectQuarterSummaries(
   now: Date = new Date(),
   warn: (message: string) => void = console.warn
 ): Record<string, QuarterSummary> {
-  const groups = new Map<string, ChangelogEntry[]>();
-  for (const entry of changelog) {
-    const quarter = quarterOf(entry.date);
-    const bucket = groups.get(quarter);
-    if (bucket) bucket.push(entry);
-    else groups.set(quarter, [entry]);
-  }
-
   const result: Record<string, QuarterSummary> = {};
-  for (const [quarter, list] of groups) {
+  for (const [quarter, list] of groupByQuarter(changelog)) {
     if (!isQuarterComplete(quarter, now)) continue;
     const saved = stored[quarter];
-    const fingerprint = quarterFingerprint(list);
-    if (!saved) {
-      warn(
-        `[changelog] ${quarter} 已完结但还没有总结（${list.length} 条提交，指纹 ${fingerprint}）；请补写 src/data/quarter-summaries.json`
-      );
-      continue;
-    }
-    if (saved.fingerprint !== fingerprint) {
-      warn(
-        `[changelog] ${quarter} 的提交指纹变了（存档 ${saved.fingerprint} / 当前 ${fingerprint}）：仍复用已写好的总结，请人工复核`
-      );
-    }
+    // 没写的那几条交给 quarterSummaryGaps 统一提醒，这里不生成、不占位
+    if (!saved) continue;
     result[quarter] = { ...saved, stats: quarterStats(list) };
+  }
+
+  for (const gap of quarterSummaryGaps(changelog, stored, now)) {
+    if (gap.kind === 'missing') {
+      warn(
+        `[changelog] ${gap.quarter} 已完结但还没有总结（${gap.commits} 条提交，指纹 ${gap.fingerprint}）；请补写 src/data/quarter-summaries.json`
+      );
+    } else {
+      warn(
+        `[changelog] ${gap.quarter} 的提交指纹变了（存档 ${gap.storedFingerprint} / 当前 ${gap.fingerprint}）：仍复用已写好的总结，请人工复核`
+      );
+    }
   }
   return result;
 }
