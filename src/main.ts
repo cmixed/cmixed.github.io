@@ -580,9 +580,14 @@ const metaDialog = document.getElementById('siteModal') as HTMLDialogElement | n
 const metaTitle = document.getElementById('siteModalTitle') as HTMLElement | null;
 const metaSub = document.getElementById('siteModalSub') as HTMLElement | null;
 const metaBody = document.getElementById('siteModalBody') as HTMLElement | null;
+const metaActions = document.getElementById('siteModalActions') as HTMLElement | null;
 const metaClose = document.getElementById('siteModalClose') as HTMLButtonElement | null;
 
 let changelogShown = CHANGELOG_STEP;
+/** 最近一次渲染用的完整数据：点一个还没渲染的季度时，要靠它把内容补齐 */
+let changelogData: CommitsData | null = null;
+/** 已写进标题栏的季度清单：不变就不重建按钮，避免点一下焦点就丢 */
+let quarterKey = '';
 /** 打开前的 hash 位置：关闭时还回去，不至于把用户滚到别的锚点这件事弄丢 */
 let metaReturnHash = '';
 
@@ -641,11 +646,124 @@ function changelogItem(entry: ChangelogEntry, repo: string | null): string {
   )}" target="_blank" rel="noopener noreferrer">${inner}</a></li>`;
 }
 
+/**
+ * 让标题栏里的季度高亮跟着滚动走。
+ *
+ * 判定线取「正文顶部往下 24px」：某个季度段的上边缘越过这条线，它就是当前段。
+ * 只读 rect、不写样式，滚动里每帧最多跑一次（下面做了 rAF 合帧）。
+ */
+function syncQuarterTabs(): void {
+  if (!metaBody || !metaActions) return;
+  const groups = metaBody.querySelectorAll<HTMLElement>('.changelog-quarter-group');
+  if (groups.length === 0) return;
+  const line = metaBody.getBoundingClientRect().top + 24;
+  /* 滚到底时最后一个季度未必能顶到判定线（它内容可能很短、滚动条先到底），
+     这时直接把它算作当前段，否则点最后一个标签高亮会停在倒数第二个上。 */
+  const atBottom = metaBody.scrollTop + metaBody.clientHeight >= metaBody.scrollHeight - 2;
+  let current = atBottom ? groups[groups.length - 1].id.slice(2) : groups[0].id.slice(2);
+  if (!atBottom) {
+    for (const group of groups) {
+      if (group.getBoundingClientRect().top <= line) current = group.id.slice(2);
+      else break;
+    }
+  }
+  metaActions.querySelectorAll<HTMLElement>('.changelog-quarter').forEach((chip) => {
+    chip.classList.toggle('active', chip.dataset.quarter === current);
+  });
+}
+
+/**
+ * 跳到某个季度。
+ *
+ * 用 scrollTop 自己算目标位置，不用 scrollIntoView —— 后者会连带滚动祖先
+ * （页面本身也跟着动一下），落点也算不准。
+ * 按天虚拟化的段落（.changelog-day）在没进过视口时只有 340px 的估算高度：
+ * 直接算出来的目标会被夹在几百像素处，滚动途中内容一节节撑开，于是停在半路
+ * （实测 26Q4 → 26Q2 只滚到 925px，目标在 12700px）。量之前先临时展开全部段落，
+ * 量到真实高度再滚；两帧后撤掉类，虚拟化照旧，auto 已记住真实高度不会缩回去。
+ * 超过一屏半的距离用平滑滚动要好几秒，看着像没反应，直接瞬移。
+ */
+function scrollToQuarter(quarter: string): void {
+  if (!metaBody) return;
+  const section = metaBody.querySelector<HTMLElement>(`#q-${quarter}`);
+  if (!section) return;
+
+  metaBody.classList.add('changelog-measuring');
+  const measure = (): number =>
+    metaBody.scrollTop +
+    section.getBoundingClientRect().top -
+    metaBody.getBoundingClientRect().top -
+    8;
+  const target = measure();
+  const far = Math.abs(target - metaBody.scrollTop) > metaBody.clientHeight * 1.5;
+  metaBody.scrollTo({ top: target, behavior: far ? 'auto' : 'smooth' });
+
+  requestAnimationFrame(() => {
+    /* 展开后各段真实高度与估算值差几像素，落点再校一次（不循环） */
+    if (far) {
+      const corrected = measure();
+      if (Math.abs(corrected - metaBody.scrollTop) > 4) {
+        metaBody.scrollTo({ top: corrected, behavior: 'auto' });
+      }
+    }
+    requestAnimationFrame(() => metaBody?.classList.remove('changelog-measuring'));
+  });
+  if (far) syncQuarterTabs();
+}
+
+/**
+ * 目标季度还没渲染就先把内容补出来。
+ *
+ * 默认只渲染最近 CHANGELOG_STEP 条，更早的季度根本不在 DOM 里 ——
+ * 点标签时直接把剩余条目全部补出来。只补到「该季度第一条」是不够的：
+ * 最后一个季度往往只剩十几条，滚动条会先到底，标题没法推到顶部
+ * （实测目标 16.7k 被夹在 16.0k，季度标题停在视口下方 489px）。
+ * 这里全是纯文本行，359 条一起排也就几十毫秒，比维护增量加载划算。
+ */
+function ensureQuarter(quarter: string): void {
+  if (!metaBody || !changelogData) return;
+  if (metaBody.querySelector(`#q-${quarter}`)) return;
+  const exists = changelogData.changelog.some((entry) => quarterOf(entry.date) === quarter);
+  if (!exists) return;
+  changelogShown = changelogData.changelog.length;
+  renderChangelog(changelogData);
+}
+
+/* 季度按钮常驻在标题行，不随正文重渲染消失，所以事件只绑一次。
+   绑在容器上做委托，重建按钮也不用重新绑。 */
+metaActions?.addEventListener('click', (event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const button = target.closest<HTMLElement>('.changelog-quarter');
+  const quarter = button?.dataset.quarter;
+  if (!quarter) return;
+  ensureQuarter(quarter);
+  /* 补内容会重置滚动位置，等下一帧布局稳定再跳 */
+  requestAnimationFrame(() => scrollToQuarter(quarter));
+});
+
+/* 滚动时同步高亮。只读 rect、rAF 合帧，滚动里不写样式也不触发重排 */
+let quarterFrame = 0;
+metaBody?.addEventListener(
+  'scroll',
+  () => {
+    if (quarterFrame) return;
+    quarterFrame = requestAnimationFrame(() => {
+      quarterFrame = 0;
+      syncQuarterTabs();
+    });
+  },
+  { passive: true }
+);
+
 function renderChangelog(meta: CommitsData): void {
   if (!metaBody) return;
+  changelogData = meta;
   const entries = meta.changelog.slice(0, changelogShown);
   if (entries.length === 0) {
     if (metaSub) metaSub.textContent = '';
+    if (metaActions) metaActions.innerHTML = '';
+    quarterKey = '';
     metaBody.innerHTML = '<p class="changelog-empty">没有可显示的提交记录。</p>';
     return;
   }
@@ -664,15 +782,19 @@ function renderChangelog(meta: CommitsData): void {
     else byQuarter.set(quarter, [entry]);
   }
 
-  /* 导航列的是**全部**季度（含还没渲染的）：先让人看到「日志能回到哪一年」，
-     点一个没渲染的季度时再按需把内容补出来。 */
+  /* 标题栏列的是**全部**季度（含还没渲染的）：先让人看到「日志能回到哪一年」，
+     点一个没渲染的季度时再由 ensureQuarter 补内容。清单不变就不重建按钮。 */
   const allQuarters = Array.from(new Set(meta.changelog.map((entry) => quarterOf(entry.date))));
-  const quarterNav = allQuarters
-    .map(
-      (quarter, index) =>
-        `<button type="button" class="changelog-quarter${index === 0 ? ' active' : ''}" data-quarter="${quarter}">${quarter}</button>`
-    )
-    .join('');
+  const key = allQuarters.join('|');
+  if (metaActions && key !== quarterKey) {
+    quarterKey = key;
+    metaActions.innerHTML = allQuarters
+      .map(
+        (quarter) =>
+          `<button type="button" class="changelog-quarter" data-quarter="${quarter}">${quarter}</button>`
+      )
+      .join('');
+  }
 
   const groupsHtml = Array.from(byQuarter, ([quarter, list]) => {
     const days = new Map<string, ChangelogEntry[]>();
@@ -690,44 +812,9 @@ function renderChangelog(meta: CommitsData): void {
     return `<section class="changelog-quarter-group" id="q-${quarter}"><div class="changelog-quarter-title"><span class="changelog-quarter-chip">${quarter}</span></div>${items}</section>`;
   }).join('');
 
-  metaBody.innerHTML = `<div class="changelog-quarters" role="group" aria-label="按季度跳转">${quarterNav}</div>${groupsHtml}`;
+  metaBody.innerHTML = groupsHtml;
+  syncQuarterTabs();
 
-  /* 点季度标签滚到对应段；高亮跟着走，滚出视口时导航条是 sticky 的，随时能再点 */
-  const nav = metaBody.querySelector<HTMLElement>('.changelog-quarters');
-  nav?.addEventListener('click', (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const button = target.closest<HTMLElement>('.changelog-quarter');
-    const quarter = button?.dataset.quarter;
-    if (!button || !quarter) return;
-    const scrollToQuarter = (): void => {
-      metaBody
-        .querySelector<HTMLElement>(`#q-${quarter}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    if (!metaBody.querySelector(`#q-${quarter}`)) {
-      /* 这个季度还没渲染（在「展开更多」之后）：先把它补出来，重渲染后再滚 */
-      const index = meta.changelog.findIndex((entry) => quarterOf(entry.date) === quarter);
-      if (index >= 0) {
-        changelogShown = Math.max(changelogShown, index + 1);
-        renderChangelog(meta);
-        requestAnimationFrame(() => {
-          metaBody
-            .querySelector<HTMLElement>('.changelog-quarters')
-            ?.querySelector<HTMLElement>(`[data-quarter="${quarter}"]`)
-            ?.classList.add('active');
-          scrollToQuarter();
-        });
-        return;
-      }
-    }
-
-    scrollToQuarter();
-    nav.querySelectorAll('.changelog-quarter').forEach((chip) => {
-      chip.classList.toggle('active', chip === button);
-    });
-  });
   if (entries.length < meta.changelog.length) {
     const more = document.createElement('button');
     more.type = 'button';
@@ -745,6 +832,9 @@ function renderChangelog(meta: CommitsData): void {
 
 function renderAbout(meta: AboutData): void {
   if (!metaBody) return;
+  /* 「关于本站」没有季度跳转：清空标题栏右侧，那块空间自然收回去 */
+  if (metaActions) metaActions.innerHTML = '';
+  quarterKey = '';
   if (metaSub) {
     metaSub.textContent = meta.updated ? `README.md · 更新于 ${meta.updated}` : 'README.md';
   }

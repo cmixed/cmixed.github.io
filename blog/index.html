@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="../assets/icons/blog.svg">
     <link rel="apple-touch-icon" href="../assets/icons/blog-192x192.png">
     <link rel="alternate" type="application/rss+xml" title="cmixed 博客 RSS" href="feed.xml">
-    <meta property="og:title" content="技术博客 · cmixed">
+    <meta property="og:title" content="个人博客 · cmixed">
     <meta property="og:description" content="cmixed 的技术博客 - C++、Rust、系统编程、AI 应用">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cmixed.github.io/blog/">
@@ -17,9 +17,9 @@
     <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="cmixed 博客">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="技术博客 · cmixed">
+    <meta name="twitter:title" content="个人博客 · cmixed">
     <meta name="twitter:description" content="cmixed 的技术博客 - C++、Rust、系统编程、AI 应用">
-    <title>博客 · cmixed</title>
+    <title>个人博客 · cmixed</title>
     <link rel="stylesheet" href="style.css">
     <script src="../theme.js"></script>
     <script defer src="../ui.js"></script>
@@ -46,12 +46,18 @@
             display: flex; flex-direction: column;
         }
         .blog-page-card::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 2px; background: var(--primary);
-            transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
+            content: ''; position: absolute; inset: 0;
+            border-radius: inherit; pointer-events: none;
+            /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
+               4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+            box-shadow: inset 0 4px 0 0 var(--card-top-band);
+            background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
+            opacity: 0; transition: opacity 0.3s;
         }
+        .blog-page-card:hover::before,
+        .blog-page-card:focus-visible::before { opacity: 1; }
+        .blog-page-card-pin::before { opacity: 0.55; }
         .blog-page-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--mica-elev-2); }
-        .blog-page-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
         /* 卡片内部顺序与小窝列表一致：标题 → 摘要 → 标签 → 元信息。
            之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间，
            正文反而沉到卡片最底下，两页放在一起看是两种卡片。 */
@@ -75,7 +81,6 @@
            分隔点前的空格在构建时写成 \u00a0，所以「·」跟着前一段走，不会顶到行首。 */
         .blog-page-card-meta { font-size: 0.8rem; color: var(--text-muted); word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .blog-page-card-pin { border-color: var(--primary-dim); }
-        .blog-page-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
 
         @media (max-width: 768px) {
             .blog-page { padding: 2rem 1.25rem; }
@@ -192,7 +197,6 @@
 
             <aside class="list-filters-panel" id="filterPanel" aria-label="标签筛选">
                 <div class="list-filters-head">
-                    <span class="list-filters-title">标签</span>
                     {{allChip}}
                     <button type="button" class="list-filters-close" id="filterClose" aria-label="关闭筛选">&times;</button>
                 </div>

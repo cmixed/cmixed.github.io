@@ -59,15 +59,21 @@
         .nook-card.fade-in-item { opacity: 0; transform: translateY(12px); }
         .nook-card.fade-in-item.visible { opacity: 1; transform: translateY(0); }
         .nook-card::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 2px; background: var(--primary);
-            transform: scaleX(0); transform-origin: left; transition: transform 0.3s, height 0.3s;
+            content: ''; position: absolute; inset: 0;
+            border-radius: inherit; pointer-events: none;
+            /* 顶部高亮不再是一条独立的硬线：改成覆盖整张卡的内嵌光，
+               4px accent 带 + 向下淡出的薄雾，沿 12px 圆角裁切，永远在边框内侧。 */
+            box-shadow: inset 0 4px 0 0 var(--card-top-band);
+            background-image: linear-gradient(180deg, var(--card-top-glow), transparent 96px);
+            opacity: 0; transition: opacity 0.3s;
         }
+        .nook-card:hover::before,
+        .nook-card:focus-visible::before { opacity: 1; }
+        .nook-card-pin::before { opacity: 0.55; }
         .nook-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: var(--mica-elev-2); z-index: 20; }
         .nook-card:focus-visible { z-index: 20; }
         /* .visible 的权重比 :hover 高，会把上面的 hover 抬升顶掉（列表卡片悬停不动）；补一条更高权重的 */
         .nook-card.fade-in-item.visible:hover { transform: translateY(-4px); }
-        .nook-card:hover::before { transform: scaleX(1); height: 4px; opacity: 1; }
 
         .nook-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; }
         .nook-card-title {
@@ -109,7 +115,6 @@
         }
         .nook-download:hover { background: transparent; color: var(--primary-text); transform: translateY(-1px); }
         .nook-card-pin { border-color: var(--primary-dim); }
-        .nook-card-pin::before { transform: scaleX(1); height: 2px; opacity: 0.3; }
         .nook-btn-website { background: var(--mica-raised); color: var(--primary-text); border: 1px solid var(--primary); }
         .nook-btn-website:hover { background: var(--primary); color: #fff; }
 
@@ -233,7 +238,6 @@
 
             <aside class="list-filters-panel" id="filterPanel" aria-label="分类筛选">
                 <div class="list-filters-head">
-                    <span class="list-filters-title">分类</span>
                     {{allChip}}
                     <button type="button" class="list-filters-close" id="filterClose" aria-label="关闭筛选">&times;</button>
                 </div>
