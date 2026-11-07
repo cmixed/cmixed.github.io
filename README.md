@@ -173,6 +173,17 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 解决方式：`scripts/client-scripts.ts` 在 `buildStart` 阶段编译出全部产物、算 `sha256` 前 8 位，`transformIndexHtml` 把 `<script src="./ui.js">` 改写成 `./ui.js?v=<hash>`；博客与小窝的模板由各自的 `build.ts` 用同一套算法（读 `dist/<name>.js` 再算）补齐。改一次脚本 → hash 变 → URL 变 → 缓存自然失效。
 
+### 更新日志：按季度分段
+
+日志从「按日期一行行铺下去」改成两层结构：
+
+- **顶部一条季度标签**（`26Q4` / `26Q3` / `26Q2`），sticky 在弹窗顶部，超出宽度横向滚动（隐藏滚动条）。列的是**全部**季度，包括还没渲染的那些。
+- **每段前面一条横线，中间夹一颗胶囊**标出季度，与下面按日期分组的小标题形成两级。
+
+点标签跳到对应段；如果那个季度还没渲染（在「展开更多」之后），先把 `changelogShown` 撑到该季度末尾、重渲染，再滚动。落点用 `scroll-margin-top: 2.8rem` 避开 sticky 的导航条。
+
+两个坑都来自「用了语义标签，吃到了全局样式」：导航最初写成 `<nav>`，命中了全站导航的 `justify-content: space-between`，三个标签被撑成两端分布；分段写成 `<section>`，又吃到 `section { padding: 5rem 2rem }`，每段上下各多出 80px 空白。现在前者改成 `<div role="group">`，后者显式 `padding: 0`。
+
 ### 站点图标：矢量重写
 
 | 文件 | 用途 |
