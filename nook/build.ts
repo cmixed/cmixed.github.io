@@ -228,7 +228,7 @@ function renderResources(resources: ResourceData[]): string {
         .join(' ')
         .toLowerCase();
 
-      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-category="${escapeXml(r.category)}" data-date="${escapeXml(r.date)}" data-updated="${escapeXml(r.updated)}" data-search="${escapeXml(searchKey)}">
+      return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-card data-category="${escapeXml(r.category)}" data-date="${escapeXml(r.date)}" data-updated="${escapeXml(r.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="nook-card-header">
                 <div class="nook-card-title">${escapeXml(r.title)}</div>
                 ${pinMark}
@@ -243,9 +243,12 @@ function renderResources(resources: ResourceData[]): string {
                 </div>
             </div>
             <span class="card-popover" aria-hidden="true">
-                <span class="card-popover-title">${pinMark}${escapeXml(r.title)}</span>
-                <span class="card-popover-desc">${escapeXml(r.description)}</span>
-                <span class="nook-card-tags card-popover-tags">${tags}</span>
+                <span class="card-popover-body">
+                    <span class="card-popover-title">${escapeXml(r.title)}</span>
+                    <span class="card-popover-desc">${escapeXml(r.description)}</span>
+                    <span class="card-popover-tags">${tags}</span>
+                    <span class="card-popover-meta">${escapeXml(catName)}${metaStr ? ` · ${metaStr}` : ''}</span>
+                </span>
             </span>
         </a>`;
     })
