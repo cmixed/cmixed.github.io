@@ -1654,6 +1654,93 @@ html.modal-open {
 /* --- 更新日志：按日期分组，一行一条 --- */
 /* 80 条提交排出来约 3,900px，和 README 同一个问题：只排可见的那几天。
    一天的估算给 340px（实际 300~500），往下滚会逐天校正。 */
+/* ===== 更新日志：季度导航与分段标题 =====
+   日志跨年之后，「按日期一行行铺下去」就没有层级了。顶部一条可横向滚动的季度标签，
+   sticky 在弹窗顶部；每个季度段前面用「两侧横线夹一颗胶囊」标出 26Q1 / 26Q2 这类分界。 */
+.changelog-quarters {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    margin: 0;
+    padding: 0.15rem 0 0.45rem;
+    background: var(--mica-chrome);
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+}
+
+.changelog-quarters::-webkit-scrollbar {
+    display: none;
+}
+
+.changelog-quarter {
+    flex: 0 0 auto;
+    padding: 0.18rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-dim);
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.changelog-quarter:hover {
+    color: var(--primary-text);
+    border-color: var(--primary);
+}
+
+.changelog-quarter.active {
+    color: var(--primary-text);
+    background: var(--primary-dim);
+    border-color: var(--primary);
+}
+
+/* 跳转落点要避开 sticky 的导航条。
+   padding: 0 是必须的 —— 全局 section 规则带 5rem 2rem 的内边距，
+   不重置的话每段上下各多出 80px。 */
+.changelog-quarter-group {
+    padding: 0;
+    scroll-margin-top: 2.8rem;
+}
+
+.changelog-quarter-title {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 1.3rem 0 0.75rem;
+}
+
+.changelog-quarter-title::before,
+.changelog-quarter-title::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--border);
+}
+
+.changelog-quarter-chip {
+    flex: 0 0 auto;
+    padding: 0.1rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--primary-text);
+    background: var(--primary-dim);
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+}
+
+.changelog-quarter-group:first-of-type .changelog-quarter-title {
+    margin-top: 0.75rem;
+}
+
 .changelog-day {
     content-visibility: auto;
     contain-intrinsic-size: auto 340px;

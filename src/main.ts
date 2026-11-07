@@ -621,6 +621,12 @@ if (prefetchAllowed()) {
   prefetchMeta('changelog');
 }
 
+/** `2026-08-14` → `26Q3`：两位年份 + 季度。 */
+function quarterOf(date: string): string {
+  const [year = '', month = '1'] = date.split('-');
+  return `${year.slice(2)}Q${Math.floor((Number(month) - 1) / 3) + 1}`;
+}
+
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
   const inner = `<span class="changelog-hash">${escapeHtml(entry.hash)}</span>${
     entry.type
@@ -649,18 +655,79 @@ function renderChangelog(meta: CommitsData): void {
         ? `共 ${meta.total} 条提交 · 显示最近 ${entries.length} 条`
         : `共 ${meta.total} 条提交 · 全部显示`;
   }
-  const groups = new Map<string, ChangelogEntry[]>();
+  /* 先按季度分段，段内再按日期 —— 提交通常跨年，直接按日期铺开就是一长串没有层级的列表 */
+  const byQuarter = new Map<string, ChangelogEntry[]>();
   for (const entry of entries) {
-    const day = groups.get(entry.date);
-    if (day) day.push(entry);
-    else groups.set(entry.date, [entry]);
+    const quarter = quarterOf(entry.date);
+    const bucket = byQuarter.get(quarter);
+    if (bucket) bucket.push(entry);
+    else byQuarter.set(quarter, [entry]);
   }
-  metaBody.innerHTML = Array.from(groups, ([date, dayEntries]) => {
-    const items = dayEntries.map((entry) => changelogItem(entry, meta.repo)).join('');
-    return `<div class="changelog-day"><div class="changelog-date"><span>${escapeHtml(
-      date
-    )}</span></div><ul class="changelog-list">${items}</ul></div>`;
+
+  /* 导航列的是**全部**季度（含还没渲染的）：先让人看到「日志能回到哪一年」，
+     点一个没渲染的季度时再按需把内容补出来。 */
+  const allQuarters = Array.from(new Set(meta.changelog.map((entry) => quarterOf(entry.date))));
+  const quarterNav = allQuarters
+    .map(
+      (quarter, index) =>
+        `<button type="button" class="changelog-quarter${index === 0 ? ' active' : ''}" data-quarter="${quarter}">${quarter}</button>`
+    )
+    .join('');
+
+  const groupsHtml = Array.from(byQuarter, ([quarter, list]) => {
+    const days = new Map<string, ChangelogEntry[]>();
+    for (const entry of list) {
+      const day = days.get(entry.date);
+      if (day) day.push(entry);
+      else days.set(entry.date, [entry]);
+    }
+    const items = Array.from(days, ([date, dayEntries]) => {
+      const rows = dayEntries.map((entry) => changelogItem(entry, meta.repo)).join('');
+      return `<div class="changelog-day"><div class="changelog-date"><span>${escapeHtml(
+        date
+      )}</span></div><ul class="changelog-list">${rows}</ul></div>`;
+    }).join('');
+    return `<section class="changelog-quarter-group" id="q-${quarter}"><div class="changelog-quarter-title"><span class="changelog-quarter-chip">${quarter}</span></div>${items}</section>`;
   }).join('');
+
+  metaBody.innerHTML = `<div class="changelog-quarters" role="group" aria-label="按季度跳转">${quarterNav}</div>${groupsHtml}`;
+
+  /* 点季度标签滚到对应段；高亮跟着走，滚出视口时导航条是 sticky 的，随时能再点 */
+  const nav = metaBody.querySelector<HTMLElement>('.changelog-quarters');
+  nav?.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLElement>('.changelog-quarter');
+    const quarter = button?.dataset.quarter;
+    if (!button || !quarter) return;
+    const scrollToQuarter = (): void => {
+      metaBody
+        .querySelector<HTMLElement>(`#q-${quarter}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    if (!metaBody.querySelector(`#q-${quarter}`)) {
+      /* 这个季度还没渲染（在「展开更多」之后）：先把它补出来，重渲染后再滚 */
+      const index = meta.changelog.findIndex((entry) => quarterOf(entry.date) === quarter);
+      if (index >= 0) {
+        changelogShown = Math.max(changelogShown, index + 1);
+        renderChangelog(meta);
+        requestAnimationFrame(() => {
+          metaBody
+            .querySelector<HTMLElement>('.changelog-quarters')
+            ?.querySelector<HTMLElement>(`[data-quarter="${quarter}"]`)
+            ?.classList.add('active');
+          scrollToQuarter();
+        });
+        return;
+      }
+    }
+
+    scrollToQuarter();
+    nav.querySelectorAll('.changelog-quarter').forEach((chip) => {
+      chip.classList.toggle('active', chip === button);
+    });
+  });
   if (entries.length < meta.changelog.length) {
     const more = document.createElement('button');
     more.type = 'button';
