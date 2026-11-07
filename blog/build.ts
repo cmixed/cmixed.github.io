@@ -33,6 +33,26 @@ const execFileAsync = promisify(execFile);
 
 // --- Mermaid pre-rendering via mmdc → SVG → sharp → AVIF ---
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+/* 产物脚本是固定文件名，浏览器/CDN 按 URL 缓存 —— 改了内容、用户拿到的还是旧版。
+   这里读 dist 里已经写好的文件算一个短 hash，拼成 ?v=，与主页那边（vite 插件）
+   用的是同一套算法。 */
+function scriptVersion(name: string): string {
+  try {
+    const file = join(__dirname, '..', 'dist', `${name}.js`);
+    return createHash('sha256').update(readFileSync(file)).digest('hex').slice(0, 8);
+  } catch {
+    return '0';
+  }
+}
+
+function withScriptVersions(html: string): string {
+  return html.replace(
+    /(\.\.\/)(theme|cursor|ui|list)\.js/g,
+    (_m, prefix: string, n: string) => `${prefix}${n}.js?v=${scriptVersion(n)}`
+  );
+}
+
 const MERMAID_CACHE_DIR = join(__dirname, 'mermaid-cache');
 const MAX_WIDTH = 1200;
 const DPR = 2;
@@ -460,7 +480,7 @@ async function build(): Promise<void> {
   posts.splice(0, posts.length, ...pinned, ...rest);
 
   // Add prev/next and generate final HTML
-  const postTemplate = readFileSync(join(templatesDir, 'post.html'), 'utf-8');
+  const postTemplate = withScriptVersions(readFileSync(join(templatesDir, 'post.html'), 'utf-8'));
   for (let i = 0; i < posts.length; i++) {
     posts[i].prev =
       i < posts.length - 1 ? { slug: posts[i + 1].slug, title: posts[i + 1].title } : null;
@@ -572,7 +592,7 @@ ${sitemapUrls}
   writeFileSync(join(outDir, 'sitemap.xml'), sitemap);
 
   // Generate static blog list page
-  const indexTemplate = readFileSync(join(__dirname, 'index.html'), 'utf-8');
+  const indexTemplate = withScriptVersions(readFileSync(join(__dirname, 'index.html'), 'utf-8'));
   // 「全部」与筛选标签用同一套胶囊（.list-chip），和资源小窝的分类栏同构：
   // 首项是「全部」、默认激活，点它等于清掉筛选。
   // 每个标签带 `--chip-cols`，宽度落到 2em 的整数倍（见 src/lib/chip-width.ts）。

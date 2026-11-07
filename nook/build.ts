@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
+import { createHash } from 'crypto';
 import {
   countAndSortNames,
   parseFrontmatter as parseFrontmatterBase,
@@ -13,6 +14,26 @@ import { chipCols } from '../src/lib/chip-width';
 import { marked } from 'marked';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+/* 产物脚本是固定文件名，浏览器/CDN 按 URL 缓存 —— 改了内容、用户拿到的还是旧版。
+   这里读 dist 里已经写好的文件算一个短 hash，拼成 ?v=，与主页那边（vite 插件）
+   用的是同一套算法。 */
+function scriptVersion(name: string): string {
+  try {
+    const file = join(__dirname, '..', 'dist', `${name}.js`);
+    return createHash('sha256').update(readFileSync(file)).digest('hex').slice(0, 8);
+  } catch {
+    return '0';
+  }
+}
+
+function withScriptVersions(html: string): string {
+  return html.replace(
+    /(\.\.\/)(theme|cursor|ui|list)\.js/g,
+    (_m, prefix: string, n: string) => `${prefix}${n}.js?v=${scriptVersion(n)}`
+  );
+}
+
 const filesDir = join(__dirname, 'file');
 const outDir = join(__dirname, '..', 'dist', 'nook');
 
@@ -252,7 +273,7 @@ function renderDetailPage(r: ResourceData): string {
     ? `<p class="nook-detail-desc">${escapeXml(r.description)}</p>`
     : '';
 
-  const tpl = readFileSync(join(__dirname, 'template', 'detail.html'), 'utf-8');
+  const tpl = withScriptVersions(readFileSync(join(__dirname, 'template', 'detail.html'), 'utf-8'));
   const pinMark = r.pin ? pinBadge() : '';
   return replaceIcons(
     tpl
@@ -282,7 +303,7 @@ async function build(): Promise<void> {
   const filtersHtml = renderFilters(categoryStats);
   const resourcesHtml = renderResources(resources);
 
-  const template = readFileSync(join(__dirname, 'index.html'), 'utf-8');
+  const template = withScriptVersions(readFileSync(join(__dirname, 'index.html'), 'utf-8'));
   const html = replaceIcons(
     template
       .replace('{{allChip}}', allChip)

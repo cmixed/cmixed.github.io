@@ -17,6 +17,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { transform } from 'esbuild';
 import type { Plugin } from 'vite-plus';
 
@@ -72,9 +73,38 @@ function codeOf(name: BundleName): Promise<string> {
   return Promise.all(BUNDLES[name].map(compileSource)).then((parts) => parts.join('\n'));
 }
 
+/* 产物文件名是固定的（theme.js / ui.js …），浏览器和 CDN 会按 URL 缓存 ——
+   改了脚本、用户拿到的还是旧版。这里给每个产物算一个内容 hash，
+   在 HTML 里以 `?v=` 的形式拼上：文件名不变，缓存靠 query 失效。 */
+const versions = new Map<BundleName, string>();
+
+function digest(js: string): string {
+  return createHash('sha256').update(js).digest('hex').slice(0, 8);
+}
+
+async function prepareVersions(): Promise<void> {
+  for (const name of Object.keys(BUNDLES) as BundleName[]) {
+    versions.set(name, digest(await codeOf(name)));
+  }
+}
+
 export function clientScripts(): Plugin {
   return {
     name: 'cmixed:client-scripts',
+
+    async buildStart() {
+      await prepareVersions();
+    },
+
+    /* HTML 里的 <script src="./ui.js"> 改写成 ./ui.js?v=<hash>。
+       顺序很重要：buildStart 已经把 hash 算好，这里才读得到。 */
+    transformIndexHtml(html: string) {
+      return html.replace(
+        /(src="\.?\/?)(theme|cursor|ui|list)\.js"/g,
+        (_match, prefix: string, name: string) =>
+          `${prefix}${name}.js?v=${versions.get(name as BundleName) ?? '0'}"`
+      );
+    },
 
     // dev：/theme.js、/cursor.js、/ui.js、/list.js 现编译现发
     configureServer(server) {
@@ -95,7 +125,9 @@ export function clientScripts(): Plugin {
     // build：写进 dist/，文件名与 public/ 时代完全一致
     async generateBundle() {
       for (const name of Object.keys(BUNDLES) as BundleName[]) {
-        this.emitFile({ type: 'asset', fileName: `${name}.js`, source: await codeOf(name) });
+        const js = await codeOf(name);
+        versions.set(name, digest(js));
+        this.emitFile({ type: 'asset', fileName: `${name}.js`, source: js });
       }
     },
   };
