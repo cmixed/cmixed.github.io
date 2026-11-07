@@ -1781,6 +1781,85 @@ html.modal-open {
     margin-top: 0.75rem;
 }
 
+/* ===== 季度总结 =====
+   只给「已经过完」的季度显示，且每段一次（渲染时按季度键取，不在日期分组里循环）。
+   左侧一条 accent 竖线把它和下面的流水明细分开；颜色全走 token，深浅主题自适应。
+   前缀写 .md-body 是为了压过文件末尾 .md-body h3 / p / ul 的通用排版。 */
+.md-body .changelog-summary {
+    margin: 0.15rem 0 1.25rem;
+    padding: 0.75rem 0.95rem 0.8rem;
+    background: var(--mica-chip);
+    border: 1px solid var(--mica-chip-border);
+    border-left: 3px solid var(--primary);
+    border-radius: 10px;
+}
+
+.md-body .changelog-summary-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+}
+
+.md-body .changelog-summary-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--primary-text);
+    white-space: nowrap;
+}
+
+.md-body .changelog-summary-range {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.md-body .changelog-summary .changelog-summary-title {
+    margin: 0 0 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--text);
+}
+
+.md-body .changelog-summary p {
+    margin: 0 0 0.55rem;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text-dim);
+}
+
+.md-body .changelog-summary ul {
+    margin: 0 0 0.6rem;
+    padding-left: 1.1rem;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: var(--text-dim);
+}
+
+.md-body .changelog-summary li {
+    margin-bottom: 0.2rem;
+}
+
+.md-body .changelog-summary-stats {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+    .md-body .changelog-summary-head {
+        flex-wrap: wrap;
+        gap: 0.15rem;
+    }
+}
+
 /* 这里刻意不虚拟化：一天的条目就是几行纯文本，几百行一起排也就几十毫秒，
    但 content-visibility 的占位高度会让「点季度跳过去」的落点一直算不准
    （实测 26Q4 → 26Q2 只滚到 925px、展开后又差 500px）。

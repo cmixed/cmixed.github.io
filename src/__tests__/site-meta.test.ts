@@ -1,12 +1,19 @@
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it, vi } from 'vite-plus/test';
 import {
   buildAbout,
   buildCommits,
+  isQuarterComplete,
   normalizeRepoUrl,
   parseCommitLine,
   parseCommits,
+  quarterFingerprint,
+  quarterOf,
+  quarterStats,
   renderAboutHtml,
   rewriteLinks,
+  selectQuarterSummaries,
+  type ChangelogEntry,
+  type QuarterSummaryStored,
 } from '../../scripts/site-meta';
 
 const SEP = '\x1f';
@@ -209,7 +216,7 @@ describe('buildAbout / buildCommits', () => {
 
   it('更新日志的条数与字段自洽', () => {
     const commits = buildCommits();
-    expect(Object.keys(commits).sort()).toEqual(['changelog', 'repo', 'total']);
+    expect(Object.keys(commits).sort()).toEqual(['changelog', 'repo', 'summaries', 'total']);
 
     expect(commits.changelog.length).toBeLessThanOrEqual(400);
     expect(commits.total).toBeGreaterThanOrEqual(commits.changelog.length);
@@ -224,5 +231,120 @@ describe('buildAbout / buildCommits', () => {
     }
 
     if (commits.repo !== null) expect(commits.repo).toMatch(/^https:\/\/github\.com\//);
+
+    // 总结只给已过完的季度；stats 必须和该季度的提交对得上
+    for (const [quarter, summary] of Object.entries(commits.summaries)) {
+      expect(isQuarterComplete(quarter)).toBe(true);
+      expect(summary.stats.commits).toBeGreaterThan(0);
+      expect(summary.stats.days).toBeGreaterThan(0);
+      expect(summary.highlights.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('季度判定、指纹与统计', () => {
+  it('quarterOf 把日期映射到两位年份 + 季度', () => {
+    expect(quarterOf('2026-01-01')).toBe('26Q1');
+    expect(quarterOf('2026-09-30')).toBe('26Q3');
+    expect(quarterOf('2026-12-31')).toBe('26Q4');
+  });
+
+  it('只有结束月走完的季度才算过完，进行中的一律不总结', () => {
+    const nov = new Date('2026-11-07T00:00:00Z');
+    expect(isQuarterComplete('26Q4', nov)).toBe(false); // 12 月还没到
+    expect(isQuarterComplete('26Q3', nov)).toBe(true);
+    expect(isQuarterComplete('26Q2', nov)).toBe(true);
+    expect(isQuarterComplete('25Q4', nov)).toBe(true); // 跨年
+    expect(isQuarterComplete('26Q3', new Date('2026-09-30T00:00:00Z'))).toBe(false);
+    expect(isQuarterComplete('26Q3', new Date('2026-10-01T00:00:00Z'))).toBe(true);
+    expect(isQuarterComplete('nonsense', nov)).toBe(false);
+  });
+
+  it('同样的提交得到同样的指纹；内容变了指纹就变', () => {
+    const entries: ChangelogEntry[] = [
+      { hash: 'aaa1111', date: '2026-08-14', type: 'fix', scope: null, subject: 'a' },
+      { hash: 'bbb2222', date: '2026-08-13', type: 'feat', scope: null, subject: 'b' },
+    ];
+    expect(quarterFingerprint(entries)).toBe(quarterFingerprint(entries.slice()));
+    expect(quarterFingerprint(entries)).not.toBe(
+      quarterFingerprint([{ ...entries[0], subject: 'changed' }, entries[1]])
+    );
+  });
+
+  it('统计按完整季度算，不随前端渲染了多少条变化', () => {
+    const entries: ChangelogEntry[] = [
+      { hash: 'aaa1111', date: '2026-08-14', type: 'fix', scope: null, subject: 'a' },
+      { hash: 'bbb2222', date: '2026-08-14', type: 'fix', scope: null, subject: 'b' },
+      { hash: 'ccc3333', date: '2026-07-01', type: 'feat', scope: null, subject: 'c' },
+    ];
+    expect(quarterStats(entries)).toEqual({
+      commits: 3,
+      days: 2,
+      from: '2026-07-01',
+      to: '2026-08-14',
+      topTypes: [
+        { type: 'fix', count: 2 },
+        { type: 'feat', count: 1 },
+      ],
+    });
+  });
+});
+
+describe('季度总结：只复用，不重复生成', () => {
+  const NOV = new Date('2026-11-07T00:00:00Z');
+  const changelog: ChangelogEntry[] = [
+    { hash: 'aaa1111', date: '2026-11-07', type: 'feat', scope: null, subject: 'q4 work' },
+    { hash: 'bbb2222', date: '2026-08-14', type: 'fix', scope: null, subject: 'q3 work' },
+    { hash: 'ccc3333', date: '2026-05-01', type: 'feat', scope: null, subject: 'q2 work' },
+  ];
+
+  function saved(quarter: string): QuarterSummaryStored {
+    return {
+      fingerprint: quarterFingerprint(
+        changelog.filter((entry) => quarterOf(entry.date) === quarter)
+      ),
+      headline: `${quarter} 的一句话`,
+      body: '正文',
+      highlights: ['要点'],
+    };
+  }
+
+  const ALL = { '26Q4': saved('26Q4'), '26Q3': saved('26Q3'), '26Q2': saved('26Q2') };
+  const noWarn = () => {};
+
+  it('进行中的季度即使存了总结也不输出', () => {
+    expect(Object.keys(selectQuarterSummaries(changelog, ALL, NOV, noWarn)).sort()).toEqual([
+      '26Q2',
+      '26Q3',
+    ]);
+  });
+
+  it('已完结但没总结的季度只提醒补写，绝不自动生成', () => {
+    const warn = vi.fn();
+    expect(selectQuarterSummaries(changelog, {}, NOV, warn)).toEqual({});
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warn.mock.calls[0][0]).toContain('请补写');
+  });
+
+  it('已有总结原样复用，且重复调用结果完全一致', () => {
+    const first = selectQuarterSummaries(changelog, ALL, NOV, noWarn);
+    const second = selectQuarterSummaries(changelog, ALL, NOV, noWarn);
+    expect(second).toEqual(first);
+    expect(first['26Q3'].headline).toBe('26Q3 的一句话');
+    expect(first['26Q3'].stats.commits).toBe(1);
+    expect(first['26Q3'].stats.from).toBe('2026-08-14');
+  });
+
+  it('指纹变了仍复用已写好的总结，只提醒人工复核，不覆盖重写', () => {
+    const warn = vi.fn();
+    const out = selectQuarterSummaries(
+      changelog,
+      { ...ALL, '26Q3': { ...saved('26Q3'), fingerprint: 'deadbeef' } },
+      NOV,
+      warn
+    );
+    expect(out['26Q3'].headline).toBe('26Q3 的一句话');
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain('人工复核');
   });
 });

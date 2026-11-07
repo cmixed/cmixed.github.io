@@ -210,6 +210,24 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 2. 分段写成 `<section>`，吃到 `section { padding: 5rem 2rem }`（每段上下各多 80px）和 **`content-visibility: auto` + 500px 占位**。前者显式 `padding: 0`，后者必须 `content-visibility: visible`：离屏季度整段被压成 500px，跳转目标被夹在几百像素处。
 3. `.changelog-day` 原本也做了按天虚拟化（340px 估算高），落点会随内容逐节展开而漂移。这里刻意**不虚拟化**：一天的条目就是几行纯文本，真正需要省的是打开时那一整篇 README，不是这份扁平列表。
 
+### 季度总结：过完才写，写完不再重写
+
+更新日志的季度段里会插一张总结卡（标题、一段概述、要点、统计）。三条硬规则：
+
+- **没过完的季度不总结**。`isQuarterComplete()` 用 UTC 月份判断：Q3 结束于 9 月，要等 10 月才算过完；2026-11 时的 26Q4 仍是进行中，即使存档里有总结也不会输出。当前只有 26Q3（226 条）和 26Q2（18 条）有总结。
+- **不重复总结**。总结文本写在 `src/data/quarter-summaries.json`，一个季度一条、带 `fingerprint`（该季度全部 `hash + subject` 的 sha256 前 12 位）。构建期 `selectQuarterSummaries()` **只读不生成**：已有总结原样复用；已完结但缺总结的只 `console.warn` 提醒，绝不自动补一份；指纹变了也继续复用旧总结、只提醒人工复核。所以每次构建不会重新"总结"一遍。
+- **每段一张**。`renderChangelog()` 按季度键取一次，插在横线胶囊标题之后、按日期分组的明细之前；日期分组里不会再插。统计（条数 / 活跃日 / 首末日期 / 类型分布）从完整提交记录现算，不写进存档文件，免得和 git 历史对不上。
+
+新季度过完后补写一次：
+
+```bash
+pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素材
+```
+
+把输出的指纹和手写的一条总结写进 `src/data/quarter-summaries.json` 并提交即可。注意 `git log -n 400` 是上限：若仓库总提交超过 400，早期季度会被截断、指纹变化，届时要调大 `MAX_COMMITS`。
+
+**缓存**：弹窗数据走 localStorage 的 stale-while-revalidate。数据结构升级时要把 `createMetaLoader` 的 storeKey 升版（`commits:v1` → `v2`），否则老缓存里没有 `summaries`、首开看不到总结；`sameMeta()` 也因此把总结的键一起比较，保证「季度过完、新增总结但提交没变」时后台刷新仍会重渲染。
+
 ### 站点图标与浮动按钮
 
 三处 favicon 同一套画法：**透明底 + 纯黑线稿**（32×32 viewBox、`stroke="#111"`、`fill="none"`）。不要纯色填充，深色圆角底与青色描边都已去掉 —— 浏览器标签页上只看到简洁的黑色线条。
