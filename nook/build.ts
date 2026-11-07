@@ -172,7 +172,8 @@ function renderFilters(categories: NameCount[]): string {
       )}</span></span><span class="list-chip-count">${count}</span></button>`;
     })
     .join('');
-  return catBtns;
+  // 占位：分类少时 list.js 会自动隐藏它
+  return `${catBtns}<button type="button" class="list-chip-more" hidden></button>`;
 }
 
 function renderResources(resources: ResourceData[]): string {

@@ -138,17 +138,49 @@
       requestAnimationFrame(syncFade);
     });
 
-    /* 长尾折叠：计数为 1 的标签由构建期打上 .is-tail、默认收起。
-       展开状态放在 .list-filters 上（CSS 只认 .expanded），按钮文案互切。 */
+    /* 标签的显示条数由断点决定（--filters-visible：桌面 12、平板 8、手机 6）。
+       构建期不知道设备，所以这里按索引截断：超出的打 .is-tail 并移到「其他 N 个」
+       之后 —— 展开时它们因此出现在那条横线的下方，横线本身的位置不动。 */
     const moreBtn = panel.querySelector<HTMLButtonElement>('.list-chip-more');
-    const tailBox = panel.querySelector<HTMLElement>('.list-filters');
-    if (moreBtn && tailBox) {
-      const collapsedLabel = moreBtn.textContent ?? '展开';
-      moreBtn.addEventListener('click', () => {
-        const expanded = tailBox.classList.toggle('expanded');
-        moreBtn.setAttribute('aria-expanded', String(expanded));
-        moreBtn.textContent = expanded ? '收起' : collapsedLabel;
+    const filtersBox = panel.querySelector<HTMLElement>('.list-filters');
+    /* 顺序只取一次：反复 applyLimit 会重排 DOM，再 query 就拿到被打乱的顺序了 */
+    const allChips = filtersBox
+      ? Array.from(filtersBox.querySelectorAll<HTMLElement>('.list-chip'))
+      : [];
+
+    function applyLimit(): void {
+      if (!moreBtn || !filtersBox || allChips.length === 0) return;
+      const raw = getComputedStyle(panel).getPropertyValue('--filters-visible').trim();
+      const limit = Number.parseInt(raw, 10);
+      if (!Number.isFinite(limit)) return;
+
+      allChips.forEach((chip, index) => {
+        if (index >= limit) {
+          chip.classList.add('is-tail');
+          filtersBox.appendChild(chip);
+        } else {
+          chip.classList.remove('is-tail');
+          filtersBox.insertBefore(chip, moreBtn);
+        }
       });
+
+      const hidden = Math.max(0, allChips.length - limit);
+      moreBtn.hidden = hidden === 0;
+      moreBtn.textContent = `其他 ${hidden} 个`;
+      moreBtn.setAttribute('aria-expanded', 'false');
+      filtersBox.classList.remove('expanded');
+    }
+
+    if (moreBtn && filtersBox) {
+      moreBtn.addEventListener('click', () => {
+        const expanded = filtersBox.classList.toggle('expanded');
+        moreBtn.setAttribute('aria-expanded', String(expanded));
+        moreBtn.textContent = expanded
+          ? '收起'
+          : `其他 ${allChips.filter((chip) => chip.classList.contains('is-tail')).length} 个`;
+      });
+      applyLimit();
+      window.addEventListener('resize', applyLimit, { passive: true });
     }
 
     scrollEl.addEventListener('scroll', syncFade, { passive: true });

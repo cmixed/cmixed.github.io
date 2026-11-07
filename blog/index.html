@@ -30,8 +30,8 @@
            「列表页头部」「小标签」两节里，博客与资源小窝共用同一份。 */
 
         .blog-page { --list-max: 800px; max-width: var(--list-max); margin: 0 auto; padding: 3rem 2rem; }
-        /* align-items: start：卡片高度由摘要行数决定（1/2/3 行三种），不再被同行最高的那张拉平 */
-        .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; align-items: start; }
+        /* 同一页的卡片等高：高度由最高的那张决定，短摘要的卡用 min-height 补齐摘要区 */
+        .blog-page-list { display: grid; gap: 1.25rem; grid-template-columns: 1fr; grid-auto-rows: 1fr; }
         .blog-page-card {
             /* 底色与 6 层受光图由 style.css 统一给；这里不要写 background 简写 */
             border: 1px solid var(--border); border-radius: 12px;
@@ -55,20 +55,18 @@
         /* 卡片内部顺序与小窝列表一致：标题 → 摘要 → 标签 → 元信息。
            之前是标题 → 标签 → 元信息 → 摘要，标签夹在标题和正文之间，
            正文反而沉到卡片最底下，两页放在一起看是两种卡片。 */
-        /* 标题固定两行高：单行标题的卡下方会留一点空，但整页卡片的高度因此
-           只由摘要行数（1 / 2 / 3）决定，正好三种尺寸。 */
         .blog-page-card-title {
             font-weight: 700; font-size: 1.1rem; margin-bottom: 0.75rem;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
             overflow: hidden;
-            min-height: 2.6em;
         }
-        /* 摘要固定三行：卡片高度不再随摘要长短起伏，同一页的卡看起来才像一套。
+        /* 摘要固定三行：卡片高度因此不随摘要长短起伏。
            被截掉的部分由浮窗补（只有真的截断时才出现，见 style.css「卡片浮窗」）。 */
         .blog-page-card-desc {
             font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem;
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
             overflow: hidden;
+            min-height: calc(3 * 1.6 * 0.85rem);
         }
         .blog-page-card-footer { margin-top: auto; }
         .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: nowrap; overflow: hidden; margin-bottom: 1rem; min-width: 0; }

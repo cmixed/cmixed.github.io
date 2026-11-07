@@ -578,25 +578,20 @@ ${sitemapUrls}
   // 每个标签带 `--chip-cols`，宽度落到 2em 的整数倍（见 src/lib/chip-width.ts）。
   // 计数为 1 的算长尾：默认收起，由「其他 N 个」展开 —— 23 个标签平铺时，
   // 真正高频的几项（C++ 4、大规模 2）要往下滑才看得到。
-  const tailCount = tagStats.filter((t) => t.count === 1).length;
-  // 「全部」独占首行（与「标签」小标题并排），其余标签从第二行开始；
-  // 长尾标签排在「其他 N 个」之后，所以展开时它们出现在那条横线的**下方**。
-  const chipHtml = (name: string, count: number, tail: boolean): string =>
-    `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip${tail ? ' is-tail' : ''}" data-tag="${escapeXml(
+  // 标签按热度降序输出，末尾放一颗「其他 N 个」。显示几条由 list.js 按断点决定
+  // （--filters-visible：桌面 12、平板 8、手机 6）—— 构建期分不清设备，
+  // 硬编码成「只显示 count>1」会让桌面只剩三四个。
+  const chipHtml = (name: string, count: number): string =>
+    `<a href="./?tag=${encodeURIComponent(name)}" class="list-chip" data-tag="${escapeXml(
       name
     )}" style="--chip-cols:${chipCols(name, 1)}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
       name
     )}</span></span><span class="list-chip-count">${count}</span></a>`;
-  const headTags = tagStats.filter((t) => t.count > 1);
-  const tailTags = tagStats.filter((t) => t.count === 1);
   // 「全部」是复位动作，不算一个筛选项：放进标题行，用文字按钮而不是胶囊
   const allChip = `<a href="./" class="list-chip list-chip-all active" data-tag=""><span class="list-chip-text">全部</span><span class="list-chip-count">${posts.length}</span></a>`;
   const tagsHtml = [
-    ...headTags.map((t) => chipHtml(t.name, t.count, false)),
-    tailCount > 0
-      ? `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll">其他 ${tailCount} 个</button>`
-      : '',
-    ...tailTags.map((t) => chipHtml(t.name, t.count, true)),
+    ...tagStats.map((t) => chipHtml(t.name, t.count)),
+    `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll" hidden></button>`,
   ].join('');
   const postsHtml = posts
     .map((p) => {
