@@ -61,13 +61,20 @@
 </head>
 <body>
     <nav>
-        <div class="logo">cmixed</div>
+        <!-- 左组：站点标识 + 两个「本页内」的入口（不跳去列表页）。
+             logo 后面留出与子页箭头等宽的空位，三处导航的左组因此从同一条竖线起排。 -->
+        <div class="nav-left">
+            <div class="logo">cmixed<span class="logo-arrow-space" aria-hidden="true"></span></div>
+            <a href="#blog-preview" class="nav-title">个人博客</a>
+            <a href="#skills" class="nav-title">关于技能</a>
+        </div>
         <div class="nav-right">
+            <!-- 右组：四个「去别处」的入口。≤768px 收进汉堡菜单。 -->
             <ul class="nav-links">
-                <!-- 与列表页左组同一套：cmixed + 两个入口，只是主页上它们指向本页卡片区，
-                     不跳去列表页 —— 「去哪个列表」由列表页的 nav 负责。 -->
-                <li><a href="#blog-preview">个人博客</a></li>
-                <li><a href="#nook-preview">资源小窝</a></li>
+                <li><a href="#projects">项目</a></li>
+                <li><a href="blog/">博客</a></li>
+                <li><a href="nook/">资源</a></li>
+                <li><a href="#contact">联系</a></li>
             </ul>
             <button class="hamburger" id="hamburger" aria-label="菜单">
                 <span></span>
