@@ -131,8 +131,6 @@
        试过 0.96：4% 的透光在 2x 屏上仍能看出下面那张卡的粗体标题「印」上来（实测见 README），
        而浮窗上没有任何需要「透」的信息，干脆给实色，读起来才干净。 */
     --popover-surface: #1a2b30;
-    /* 筛选区两颗「整行动作」（全部标签 / 其他 N 个）共用一档字号 */
-    --filter-action-font: 0.9375rem;
     /* --- 可点控件（筛选胶囊 / 浅色按钮）的材质 ---
        只读标签有 --mica-chip 的填色顶着，胶囊原本是透明底 + --border 描边；
        实测那条边框相对页面底色只有 1.69:1（浅色 1.38:1），远低于控件边界该有的
@@ -3052,10 +3050,10 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 .list-filters-head {
-    /* 整行放一条统计说明（共 N 篇 · X 个标签）：文字左对齐，尾线自己拖到右端；
+    /* 整行放一条居中的统计说明（共 N 篇 · X 个标签），两侧各一段线；
        移动端面板横排时它也顺理成章成了这一片胶囊的抬头 */
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     margin-bottom: 0.75rem;
 }
@@ -3796,25 +3794,25 @@ html::after {
    统计原先挂在页头副标题前面，隔着半个屏幕去描述这一栏；搬上来之后数字和
    胶囊第一次挨在一起，页头也就只剩标语。
    它仍然是复位动作（空 data-*，筛选脚本按它同步「当前是否全选」），所以不能
-   退化成纯说明文字 —— 可点性靠反馈：hover 提色、尾线加深。
-   压线也不再合适：文字变长后两侧只剩两小截，既不像标题也不像分隔线。
-   改成左对齐 + 一条拖到右端的尾线，与底部「—— 其他 N 个 ——」上下分工 ——
-   上面说这一栏有多少东西，下面是还没露面的那几个。 */
+   退化成纯说明文字 —— 可点性靠反馈：hover 提色、两侧的线加深。
+   居中压线，和底部「—— 其他 N 个 ——」成对：两颗同字号（--chip-font）、
+   同 44px 热区、同一套灰阶，中间夹着整片胶囊区。 */
 .list-chip.list-chip-all {
     /* 写成双类：`.list-filters-panel .list-chip`（0,2,0）会给栏内胶囊定 0.875rem，
        单类选择器压不住，复位按钮必须用同一档特异性才能拿到自己的字号 */
     display: flex;
     flex: 1 1 auto;
     align-items: center;
+    justify-content: center;
     gap: 0.6rem;
     min-width: 0;
-    min-height: 36px;
+    min-height: 44px;
     padding: 0;
-    font-size: 0.8125rem;
+    font-size: var(--chip-font);
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.45;
     color: var(--text-muted);
-    /* 数字等宽：篇数从 8 变成 18 时这一行不会整体挪位 */
+    /* 数字等宽：篇数从 8 变成 18 时这一行不会整体挪位，两侧的线也不会跟着抖 */
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     background: none;
@@ -3823,7 +3821,9 @@ html::after {
     transition: color 0.2s;
 }
 
-/* 只留尾线：文字左对齐，线吃掉剩下的宽度（最窄留 1rem，免得被挤成一个点） */
+/* 两侧各一段线、文字压在中间（最窄留 1rem，免得被挤成一个点）。
+   和底部的「其他 N 个」用同一套画法，只是这里两侧对称、居中。 */
+.list-chip.list-chip-all::before,
 .list-chip.list-chip-all::after {
     content: '';
     flex: 1 1 auto;
@@ -3839,6 +3839,7 @@ html::after {
     color: var(--primary-text);
 }
 
+.list-chip.list-chip-all:hover::before,
 .list-chip.list-chip-all:hover::after {
     background: var(--chip-border);
 }
@@ -3868,9 +3869,10 @@ html::after {
     min-height: 44px;
     padding: 0;
     font-family: inherit;
-    /* 顶部那行已经退成 13px 的统计说明，这条动作线保持不变：
-       它是胶囊区之后唯一可点的一片，大半行都是线，压不过上面的胶囊 */
-    font-size: var(--filter-action-font);
+    /* 与胶囊里的标签字同号（--chip-font = 13px）：它夹在胶囊之间，比它们大一号
+       会显得像另一个层级的标题。与栏顶那行统计因此也是同一号字 —— 上下两颗
+       压线标题把整片胶囊夹住，主次靠位置和颜色，不靠字号。 */
+    font-size: var(--chip-font);
     font-weight: 400;
     color: var(--text-dim);
     background: transparent;
