@@ -13,8 +13,7 @@
  *   - `$GITHUB_STEP_SUMMARY`            → 运行页顶部的表格
  *   - `$GITHUB_OUTPUT`                  → `needs_attention` / `missing` / `changed` / `quarters`
  */
-import { appendFileSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { appendFileSync } from 'node:fs';
 import {
   isQuarterComplete,
   quarterFingerprint,
@@ -22,23 +21,17 @@ import {
   quarterStats,
   quarterSummaryGaps,
   readCommits,
+  readSummaryArchive,
   type ChangelogEntry,
   type QuarterGap,
-  type QuarterSummaryStored,
 } from './site-meta';
 
 const CI = process.argv.includes('--ci');
-const ROOT = join(import.meta.dirname, '..');
-const SUMMARIES_PATH = join(ROOT, 'src', 'data', 'quarter-summaries.json');
 
-let stored: Record<string, QuarterSummaryStored> = {};
-try {
-  stored = JSON.parse(readFileSync(SUMMARIES_PATH, 'utf-8')) as Record<
-    string,
-    QuarterSummaryStored
-  >;
-} catch {
-  console.log('（还没有 quarter-summaries.json，以下季度都需要补写）');
+/** 只要季度条目；defaults.inProgress 之类的默认文案不参与补写判定。 */
+const { entries: stored } = readSummaryArchive();
+if (Object.keys(stored).length === 0) {
+  console.log('（quarter-summaries.json 里还没有季度总结，以下已完结季度都需要补写）');
 }
 
 const { changelog } = readCommits();
