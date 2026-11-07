@@ -222,7 +222,7 @@ function renderProjects(): void {
             </div>
             <div class="project-desc">${escapeHtml(p.desc)}</div>
             <div class="project-tech">
-                ${p.tags.map((t) => `<span class="tech-tag" style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}
+                ${p.tags.map((t) => `<span class="tech-tag" style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}<span class="tag-more" hidden></span>
             </div>
         </a>
     `

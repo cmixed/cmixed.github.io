@@ -154,8 +154,12 @@ function discoverResources(): ResourceData[] {
   return results;
 }
 
-function renderFilters(categories: NameCount[], total: number): string {
-  const allBtn = `<button type="button" class="list-chip active" data-category="" style="--chip-cols:${chipCols('全部', 1)}"><span class="list-chip-label"><span class="list-chip-text">全部</span></span><span class="list-chip-count">${total}</span></button>`;
+// 「全部」放进标题行，用文字按钮而不是胶囊（它是复位动作，不是一个筛选项）
+function renderAllChip(total: number): string {
+  return `<button type="button" class="list-chip list-chip-all active" data-category=""><span class="list-chip-text">全部</span><span class="list-chip-count">${total}</span></button>`;
+}
+
+function renderFilters(categories: NameCount[]): string {
   const catBtns = categories
     .map(({ name, count }) => {
       const label = CATEGORY_NAMES[name] || name;
@@ -168,8 +172,7 @@ function renderFilters(categories: NameCount[], total: number): string {
       )}</span></span><span class="list-chip-count">${count}</span></button>`;
     })
     .join('');
-  // 「全部」独占首行，分类从下一行开始（与博客列表同一套排布）
-  return `${allBtn}<span class="filters-break" aria-hidden="true"></span>${catBtns}`;
+  return catBtns;
 }
 
 function renderResources(resources: ResourceData[]): string {
@@ -274,12 +277,16 @@ async function build(): Promise<void> {
   const categories = [...new Set(resources.map((r) => r.category))];
   const categoryStats = countAndSortNames(resources.map((r) => r.category));
 
-  const filtersHtml = renderFilters(categoryStats, resources.length);
+  const allChip = renderAllChip(resources.length);
+  const filtersHtml = renderFilters(categoryStats);
   const resourcesHtml = renderResources(resources);
 
   const template = readFileSync(join(__dirname, 'index.html'), 'utf-8');
   const html = replaceIcons(
-    template.replace('{{filters}}', filtersHtml).replace('{{resources}}', resourcesHtml)
+    template
+      .replace('{{allChip}}', allChip)
+      .replace('{{filters}}', filtersHtml)
+      .replace('{{resources}}', resourcesHtml)
   );
   writeFileSync(join(outDir, 'index.html'), html);
 
