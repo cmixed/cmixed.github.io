@@ -65,13 +65,15 @@
              logo 后面留出与子页箭头等宽的空位，三处导航的左组因此从同一条竖线起排。 -->
         <div class="nav-left">
             <div class="logo">cmixed<span class="logo-arrow-space" aria-hidden="true"></span></div>
-            <!-- 左组是「去别的页面」：与列表页的 cmixed ← / 两个入口同一层级 -->
+            <!-- 左组全是「去别的页面」的链接：与列表页的 cmixed ← + 两个入口完全同构。
+                 这里只有 cmixed 不可点（已经在主站了），所以后面留出箭头位置的空位。 -->
             <a href="blog/" class="nav-title">个人博客</a>
-            <a href="#about" class="nav-title">关于</a>
+            <a href="nook/" class="nav-title">资源小窝</a>
         </div>
         <div class="nav-right">
-            <!-- 右组是「在本页里走」，与「项目」「联系」同一类。≤768px 整体收进汉堡菜单。 -->
+            <!-- 右组全是「在本页里走」的锚点。≤768px 整体收进汉堡菜单。 -->
             <ul class="nav-links">
+                <li><a href="#about">关于</a></li>
                 <li><a href="#projects">项目</a></li>
                 <li><a href="#blog-preview">博客</a></li>
                 <li><a href="#nook-preview">资源</a></li>
