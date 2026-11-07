@@ -607,12 +607,13 @@ ${sitemapUrls}
     )}" style="--chip-cols:${chipCols(name, 1)}"><span class="list-chip-label"><span class="list-chip-text">${escapeXml(
       name
     )}</span></span><span class="list-chip-count">${count}</span></a>`;
-  // 「全部」是复位动作，不算一个筛选项：做成「—— 全部 ——」横线标题
-  // （和底部「其他 N 个」成对、同一套压线样式，只保留 .list-chip 类给筛选脚本绑状态）。
-  // 不带计数：复位动作旁边挂数字只会和胶囊区的计数抢戏。
-  const allChip = `<a href="./" class="list-chip list-chip-all active" data-tag=""><span class="list-chip-text">全部</span></a>`;
-  // 副标题前置统计：共多少篇 + 多少个标签（≤3 项），与标语之间用「·」间隔
-  const listStat = `<span class="list-sub-stat">共 ${posts.length} 篇 · ${tagStats.length} 个标签</span><span class="list-sub-sep" aria-hidden="true">·</span>`;
+  // 栏顶这一行既是面板的说明、也是「全部」复位动作：共 N 篇 · X 个标签。
+  // 统计原先挂在页头副标题前面，离它描述的这片标签隔着半个屏幕；搬上来之后
+  // 数字和胶囊第一次挨在一起，页头就只剩标语。
+  // 仍然保留 .list-chip / .list-chip-all 与空 data-tag —— 筛选脚本按它们绑定
+  // 「当前是否全选」，去掉就丢了复位入口与状态同步。
+  // aria-label 补一个动作说明：「共 8 篇 · 23 个标签」单看不像一个可点的链接。
+  const allChip = `<a href="./" class="list-chip list-chip-all active" data-tag="" aria-label="显示全部：共 ${posts.length} 篇 · ${tagStats.length} 个标签"><span class="list-chip-text">共 ${posts.length} 篇 · ${tagStats.length} 个标签</span></a>`;
   const tagsHtml = [
     ...tagStats.map((t) => chipHtml(t.name, t.count)),
     `<button type="button" class="list-chip-more" id="filterMore" aria-expanded="false" aria-controls="filterScroll" hidden></button>`,
@@ -652,7 +653,6 @@ ${sitemapUrls}
   const indexHtml = replaceIcons(
     indexTemplate
       .replace('{{allChip}}', allChip)
-      .replace('{{listStat}}', listStat)
       .replace('{{tags}}', tagsHtml)
       .replace('{{posts}}', postsHtml)
   );
