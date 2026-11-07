@@ -889,33 +889,37 @@ html.fab-measuring section {
 
 .about-avatar {
     flex-shrink: 0;
-    /* 头像 + 名字胶囊竖排：胶囊只在头像正下方多出约 34px，
-       正文区本来就比它高，卡片整体尺寸不变（窄屏也一样）。 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
+    /* 子元素只有图片，高度就是 168px；名字胶囊用绝对定位挂在图片下方，
+       不参与高度计算 —— 否则头像列会比右侧正文还高，把整张卡连同下面的技能段一起推长。 */
+    position: relative;
 }
 
-/* 头像下的名字标识：只读、不可点，材质走 --mica-chip，与卡片里的技能标签同族，
-   形状用 999px 胶囊（和筛选胶囊同一个「可点形状」语言，但这里靠 cursor 区分） */
+/* 头像下的名字标识：只读、不可点。形状与站内只读标签同一套（6px 方片 = 信息），
+   不用 999px 胶囊 —— 那是「可点」的形状语言，一个纯标识挂上去会误导。 */
 .about-name-tag {
+    position: absolute;
+    top: calc(100% + 0.15rem);
+    left: 50%;
+    transform: translateX(-50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.15rem 0.75rem;
-    font-size: var(--chip-font);
+    padding: 0.06rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--mica-chip-text);
     background: var(--mica-chip);
     border: 1px solid var(--mica-chip-border);
-    border-radius: 999px;
+    border-radius: var(--chip-radius);
+    white-space: nowrap;
     user-select: none;
 }
 
 .about-avatar img {
     /* 卡内元素统一用 14px 圆角，头像跟卡片同半径，视觉上才是「装进去的」而不是贴上去的 */
+    display: block;
     width: 168px;
     height: 168px;
     border-radius: 14px;
@@ -2004,6 +2008,19 @@ html.modal-open .page-scrollbar-thumb {
         align-items: center;
         text-align: center;
         gap: 1.25rem;
+    }
+
+    /* 窄屏是纵向堆叠：胶囊绝对定位会压到下面的正文，这里改回流内 */
+    .about-avatar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .about-name-tag {
+        position: static;
+        transform: none;
     }
 
     .about-facts {
