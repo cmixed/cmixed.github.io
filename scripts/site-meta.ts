@@ -18,6 +18,8 @@
  * CI 注意：git 历史要完整（部署 workflow 的 checkout 已经是 fetch-depth: 0）；
  * 拿不到 git（比如源码压缩包）时降级成「暂无记录」，不影响页面。 */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { marked } from 'marked';
@@ -26,6 +28,8 @@ import { getGitLastModified } from '../src/lib/build-utils';
 
 const ROOT = join(import.meta.dirname, '..');
 const README_PATH = join(ROOT, 'README.md');
+/** 季度总结是人工写好、提交进仓库的静态数据；构建期只读，绝不在这里生成。 */
+const SUMMARIES_PATH = join(ROOT, 'src', 'data', 'quarter-summaries.json');
 
 /** 产物文件名。首页按相对路径 fetch（生产 `./xxx.json`、开发 `/xxx.json`）。 */
 export const ABOUT_FILE = 'site-about.json';
@@ -52,12 +56,36 @@ export interface AboutMeta {
   updated: string | null;
 }
 
+/** 仓库里存着的总结：一个季度一条，写完就不再重写。 */
+export interface QuarterSummaryStored {
+  /** 写总结时该季度提交内容的指纹，用来判断要不要人工复核 */
+  fingerprint: string;
+  headline: string;
+  body: string;
+  highlights: string[];
+}
+
+/** 构建期从提交记录现算的统计，不写进存档文件，避免和 git 历史对不上。 */
+export interface QuarterStats {
+  commits: number;
+  days: number;
+  from: string;
+  to: string;
+  topTypes: Array<{ type: string; count: number }>;
+}
+
+export interface QuarterSummary extends QuarterSummaryStored {
+  stats: QuarterStats;
+}
+
 export interface CommitsMeta {
   changelog: ChangelogEntry[];
   /** 仓库里的提交总数（可能大于 changelog.length） */
   total: number;
   /** 仓库主页地址，用于把提交 hash 指回 GitHub；拿不到为 null */
   repo: string | null;
+  /** 只包含「已过完且有总结」的季度；进行中的季度一定不在里面 */
+  summaries: Record<string, QuarterSummary>;
 }
 
 const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?!?:\s+([\s\S]+)$/;
@@ -86,6 +114,110 @@ export function parseCommits(output: string): ChangelogEntry[] {
     .filter(Boolean)
     .map(parseCommitLine)
     .filter((entry): entry is ChangelogEntry => entry !== null);
+}
+
+/** `2026-08-14` → `26Q3`：两位年份 + 季度。 */
+export function quarterOf(date: string): string {
+  const [year = '', month = '1'] = date.split('-');
+  return `${year.slice(2)}Q${Math.floor((Number(month) - 1) / 3) + 1}`;
+}
+
+/**
+ * 季度是否**过完**：结束月所在的那个月走完才算。
+ * 2026-11 时 26Q4（结束于 12 月）仍是进行中，26Q3 及之前都已完结。
+ * 用 UTC 月份，避免构建机时区把季度边界前后挪一天。
+ */
+export function isQuarterComplete(quarter: string, now: Date = new Date()): boolean {
+  const match = /^(\d{2})Q([1-4])$/.exec(quarter);
+  if (!match) return false;
+  const year = 2000 + Number(match[1]);
+  const endMonth = Number(match[2]) * 3;
+  const currentYear = now.getUTCFullYear();
+  const currentMonth = now.getUTCMonth() + 1;
+  return currentYear > year || (currentYear === year && currentMonth > endMonth);
+}
+
+/** 该季度提交内容的指纹。提交没变 → 指纹不变 → 已写好的总结不必重写。 */
+export function quarterFingerprint(entries: ChangelogEntry[]): string {
+  return createHash('sha256')
+    .update(entries.map((entry) => `${entry.hash}\t${entry.subject}`).join('\n'))
+    .digest('hex')
+    .slice(0, 12);
+}
+
+/** 统计从完整提交记录现算（条目是 git 给的新 → 旧顺序）。 */
+export function quarterStats(entries: ChangelogEntry[]): QuarterStats {
+  const types = new Map<string, number>();
+  for (const entry of entries) {
+    const type = entry.type || 'other';
+    types.set(type, (types.get(type) || 0) + 1);
+  }
+  return {
+    commits: entries.length,
+    days: new Set(entries.map((entry) => entry.date)).size,
+    from: entries[entries.length - 1]?.date ?? '',
+    to: entries[0]?.date ?? '',
+    topTypes: Array.from(types)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([type, count]) => ({ type, count })),
+  };
+}
+
+/**
+ * 挑出可以显示总结的季度。
+ *
+ * 「不重复总结」靠两件事保证：
+ *   1. 构建期**从不生成**总结文本，只读 `quarter-summaries.json` 里已经写好的；
+ *      缺总结只提醒补写，不会自动补一份（更不会每次构建重写一份）。
+ *   2. 输出按季度键控，每个季度最多一条，进行中的季度直接排除。
+ * 指纹对不上时也仍然复用旧总结、只提醒人工复核 —— 不覆盖、不重写。
+ */
+export function selectQuarterSummaries(
+  changelog: ChangelogEntry[],
+  stored: Record<string, QuarterSummaryStored>,
+  now: Date = new Date(),
+  warn: (message: string) => void = console.warn
+): Record<string, QuarterSummary> {
+  const groups = new Map<string, ChangelogEntry[]>();
+  for (const entry of changelog) {
+    const quarter = quarterOf(entry.date);
+    const bucket = groups.get(quarter);
+    if (bucket) bucket.push(entry);
+    else groups.set(quarter, [entry]);
+  }
+
+  const result: Record<string, QuarterSummary> = {};
+  for (const [quarter, list] of groups) {
+    if (!isQuarterComplete(quarter, now)) continue;
+    const saved = stored[quarter];
+    const fingerprint = quarterFingerprint(list);
+    if (!saved) {
+      warn(
+        `[changelog] ${quarter} 已完结但还没有总结（${list.length} 条提交，指纹 ${fingerprint}）；请补写 src/data/quarter-summaries.json`
+      );
+      continue;
+    }
+    if (saved.fingerprint !== fingerprint) {
+      warn(
+        `[changelog] ${quarter} 的提交指纹变了（存档 ${saved.fingerprint} / 当前 ${fingerprint}）：仍复用已写好的总结，请人工复核`
+      );
+    }
+    result[quarter] = { ...saved, stats: quarterStats(list) };
+  }
+  return result;
+}
+
+function readSummaries(): Record<string, QuarterSummaryStored> {
+  try {
+    return JSON.parse(readFileSync(SUMMARIES_PATH, 'utf-8')) as Record<
+      string,
+      QuarterSummaryStored
+    >;
+  } catch {
+    /* 文件缺失 / 格式坏掉不阻断构建，只是没有总结 */
+    return {};
+  }
 }
 
 /** `git@github.com:owner/repo.git` / `https://github.com/owner/repo.git` → 仓库主页 URL。 */
@@ -166,7 +298,7 @@ export function readRepoUrl(): string | null {
   return null;
 }
 
-function readCommits(): { changelog: ChangelogEntry[]; total: number } {
+export function readCommits(): { changelog: ChangelogEntry[]; total: number } {
   try {
     const total = Number.parseInt(git(['rev-list', '--count', 'HEAD']).trim(), 10) || 0;
     const output = git([
@@ -192,9 +324,14 @@ export async function buildAbout(): Promise<AboutMeta> {
   };
 }
 
-export function buildCommits(): CommitsMeta {
+export function buildCommits(now: Date = new Date()): CommitsMeta {
   const { changelog, total } = readCommits();
-  return { changelog, total, repo: readRepoUrl() };
+  return {
+    changelog,
+    total,
+    repo: readRepoUrl(),
+    summaries: selectQuarterSummaries(changelog, readSummaries(), now),
+  };
 }
 
 export function siteMeta(): Plugin {

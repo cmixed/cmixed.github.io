@@ -478,10 +478,27 @@ interface AboutData {
   updated: string | null;
 }
 
+interface QuarterStatsView {
+  commits: number;
+  days: number;
+  from: string;
+  to: string;
+  topTypes: Array<{ type: string; count: number }>;
+}
+
+interface QuarterSummaryView {
+  headline: string;
+  body: string;
+  highlights: string[];
+  stats: QuarterStatsView;
+}
+
 interface CommitsData {
   changelog: ChangelogEntry[];
   total: number;
   repo: string | null;
+  /** 只有「已过完且写过总结」的季度；进行中的季度不在这里 */
+  summaries: Record<string, QuarterSummaryView>;
 }
 
 type MetaKind = 'about' | 'changelog';
@@ -570,7 +587,7 @@ function createMetaLoader<T>(
 }
 
 const aboutMeta = createMetaLoader<AboutData>('site-about.json', 'about:v1');
-const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v1');
+const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v2');
 const META_LOAD: Record<MetaKind, () => Promise<AboutData | CommitsData>> = {
   about: () => aboutMeta.load(),
   changelog: () => commitsMeta.load(),
@@ -630,6 +647,28 @@ if (prefetchAllowed()) {
 function quarterOf(date: string): string {
   const [year = '', month = '1'] = date.split('-');
   return `${year.slice(2)}Q${Math.floor((Number(month) - 1) / 3) + 1}`;
+}
+
+/**
+ * 季度总结卡片。数据来自构建期的 `site-commits.json`，
+ * 里面只有已过完且写过总结的季度，进行中的季度直接返回空串。
+ * 每个季度段只调一次，段落内按日期分组时不会再重复插。
+ */
+function quarterSummaryHtml(quarter: string, summary?: QuarterSummaryView): string {
+  if (!summary) return '';
+  const { stats } = summary;
+  const types = stats.topTypes.map((item) => `${escapeHtml(item.type)} ${item.count}`).join(' · ');
+  const points = summary.highlights.map((text) => `<li>${escapeHtml(text)}</li>`).join('');
+  return `<article class="changelog-summary">
+      <div class="changelog-summary-head">
+        <span class="changelog-summary-tag">季度总结 · ${escapeHtml(quarter)}</span>
+        <span class="changelog-summary-range">${escapeHtml(stats.from)} — ${escapeHtml(stats.to)}</span>
+      </div>
+      <h3 class="changelog-summary-title">${escapeHtml(summary.headline)}</h3>
+      <p>${escapeHtml(summary.body)}</p>
+      <ul class="changelog-summary-points">${points}</ul>
+      <div class="changelog-summary-stats">${stats.commits} 次提交 · ${stats.days} 个活跃日 · ${types}</div>
+    </article>`;
 }
 
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
@@ -809,7 +848,10 @@ function renderChangelog(meta: CommitsData): void {
         date
       )}</span></div><ul class="changelog-list">${rows}</ul></div>`;
     }).join('');
-    return `<section class="changelog-quarter-group" id="q-${quarter}"><div class="changelog-quarter-title"><span class="changelog-quarter-chip">${quarter}</span></div>${items}</section>`;
+    return `<section class="changelog-quarter-group" id="q-${quarter}"><div class="changelog-quarter-title"><span class="changelog-quarter-chip">${quarter}</span></div>${quarterSummaryHtml(
+      quarter,
+      meta.summaries?.[quarter]
+    )}${items}</section>`;
   }).join('');
 
   metaBody.innerHTML = groupsHtml;
@@ -862,11 +904,18 @@ function sameMeta(kind: MetaKind, a: AboutData | CommitsData, b: AboutData | Com
   }
   const before = a as CommitsData;
   const after = b as CommitsData;
+  /* 总结的键也要比：季度过完、新增一条总结但提交没变时，
+     后台刷新回来仍要重渲染，否则用户要等下次打开才看得到。 */
+  const summaryKeys = (data: CommitsData): string =>
+    Object.keys(data.summaries ?? {})
+      .sort()
+      .join('|');
   return (
     before.total === after.total &&
     before.repo === after.repo &&
     before.changelog.length === after.changelog.length &&
-    before.changelog.every((entry, i) => entry.hash === after.changelog[i]?.hash)
+    before.changelog.every((entry, i) => entry.hash === after.changelog[i]?.hash) &&
+    summaryKeys(before) === summaryKeys(after)
   );
 }
 
