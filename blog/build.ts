@@ -622,21 +622,29 @@ ${sitemapUrls}
       const pinMark = p.pinned ? pinBadge() : '';
       // 客户端搜索的匹配源：标题 + 摘要 + 标签（仅元数据，不含正文）
       const searchKey = [p.title, p.description, ...p.tags].join(' ').toLowerCase();
+      // 标签与元信息在卡片和浮窗里是同一份内容，抽出来写一次
+      const tagsHtml = p.tags
+        .map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`)
+        .join('');
+      const metaHtml = `阅读约 ${p.readTime}\u00a0分钟\u00a0· 创建于\u00a0${escapeXml(p.date)}\u00a0· 更新于\u00a0${escapeXml(p.updated)}\u00a0· ${p.wordCount}\u00a0字\u00a0· ${p.imageCount}\u00a0张图片`;
       return `
-        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
+        <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-card data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="blog-page-card-head">
                 <div class="blog-page-card-title">${escapeXml(p.title)}</div>
                 ${pinMark}
             </div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-footer">
-                <div class="blog-page-card-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`).join('')}<span class="tag-more" hidden></span></div>
-                <div class="blog-page-card-meta">阅读约 ${p.readTime}\u00a0分钟\u00a0· 创建于\u00a0${escapeXml(p.date)}\u00a0· 更新于\u00a0${escapeXml(p.updated)}\u00a0· ${p.wordCount}\u00a0字\u00a0· ${p.imageCount}\u00a0张图片</div>
+                <div class="blog-page-card-tags">${tagsHtml}<span class="tag-more" hidden></span></div>
+                <div class="blog-page-card-meta">${metaHtml}</div>
             </div>
             <span class="card-popover" aria-hidden="true">
-                <span class="card-popover-title">${pinMark}${escapeXml(p.title)}</span>
-                <span class="card-popover-desc">${escapeXml(p.description)}</span>
-                <span class="blog-page-card-tags card-popover-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`).join('')}</span>
+                <span class="card-popover-body">
+                    <span class="card-popover-title">${escapeXml(p.title)}</span>
+                    <span class="card-popover-desc">${escapeXml(p.description)}</span>
+                    <span class="card-popover-tags">${tagsHtml}</span>
+                    <span class="card-popover-meta">${metaHtml}</span>
+                </span>
             </span>
         </a>`;
     })

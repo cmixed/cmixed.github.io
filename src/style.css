@@ -124,6 +124,13 @@
     --card-foot-gap: 0.75rem; /* 正文与标签行之间（挂 footer 的 padding-top） */
     --card-tags-gap: 0.3rem; /* 标签之间 */
     --card-tags-gap-y: 0.5rem; /* 标签行与元信息之间 */
+    /* 浮窗的最大高度：超过就交给 .card-popover-body 自己滚（两个方向都可以）。
+       取视口的一半多一档，窄屏 / 横屏时跟着缩，不会把整块内容塞出屏幕。 */
+    --popover-max-h: min(56vh, 360px);
+    /* 浮窗底色单独一档，而且是不透明色：它压在别的卡片上，不能像导航那样透。
+       试过 0.96：4% 的透光在 2x 屏上仍能看出下面那张卡的粗体标题「印」上来（实测见 README），
+       而浮窗上没有任何需要「透」的信息，干脆给实色，读起来才干净。 */
+    --popover-surface: #1a2b30;
     /* 筛选区两颗「整行动作」（全部标签 / 其他 N 个）共用一档字号 */
     --filter-action-font: 0.9375rem;
     /* --- 可点控件（筛选胶囊 / 浅色按钮）的材质 ---
@@ -232,7 +239,12 @@
        与暗色同一条公式：底色 #d0e2db（更绿，hue≈157）+ 面板 #f2f8f9（更青，hue≈195），
        色相差 ≈38°、不透明面板的亮度比 ≈1.20:1，面板封顶在 L*96（不是纯白，久看不累眼）。
        旧版浅色面板和底色明度几乎相同（1.00~1.03:1），只靠"更黄"来区分，所以既糊又土。 */
-    --mica-chrome: rgba(230, 239, 241, 0.92); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
+    /* 导航 / 抽屉：从 0.92 降到 0.66 —— 0.92 时玻璃下面几乎什么都看不见，
+       读起来是一条不透明的浅色横带，和页面其他层脱开。降下来之后 blur 14px 才真的在起作用：
+       下面滚过的卡片、标题边缘会化成一层淡淡的青影，导航仍然读得清。
+       代价是文字可能压在深色内容上，所以顶部受光（--mica-panel-sheen）也跟着减弱。 */
+    --mica-chrome: rgba(231, 240, 242, 0.66); /* 导航 / 抽屉：面板色，比卡片更实（标题栏层） */
+    --popover-surface: #f3f9fa; /* 浮窗：压在卡片上，不能跟着导航一起透 */
     /* 卡片比暗色再降一档：浅色面板本来就接近白，只有让底色的绿透进来，
        面板才会从「一张白卡」变成「一层薄荷玻璃膜」，这是浅色唯一看得出通透的办法。
        代价是分层变弱，所以面板色同步提亮到 #f2f8f9 补回来。 */
@@ -267,7 +279,7 @@
     --mica-panel-top-fade: 16px; /* 柔光带长度：浅色要靠它补出「光」的衰减 */
     --mica-panel-bevel: rgba(60, 110, 105, 0.06); /* 亮边下方的 1px 压线：让白边有「厚度」 */
     --mica-panel-edge: rgba(255, 255, 255, 0.90); /* 顶部 1px 亮边 */
-    --mica-panel-sheen: rgba(255, 255, 255, 0.34); /* 上半受光（导航沿用） */
+    --mica-panel-sheen: rgba(255, 255, 255, 0.18); /* 上半受光（导航沿用）：0.34 会把这层玻璃又糊回不透明 */
     --mica-panel-spec: rgba(255, 255, 255, 0.80); /* 左上镜面光池 */
     --mica-panel-inner: rgba(88, 138, 138, 0.05); /* 内侧玻璃厚边（冷调，不是灰） */
     --mica-panel-edge-b: rgba(255, 255, 255, 0.75); /* 底边 1px 反光（浅色下靠它把「板」立起来） */
@@ -835,6 +847,16 @@ section {
 #projects { contain-intrinsic-size: auto 400px; }
 #contact { contain-intrinsic-size: auto 300px; }
 
+/* 三个有卡片的区块（项目 / 博客预览 / 资源预览）也不虚拟化：
+   content-visibility 隐含 paint 裁切，而卡片浮窗挂在卡片盒子外面、还会翻到卡片上方，
+   最后一行的浮窗会被区块下缘整块切掉（之前预览卡只放得下标题，就是被这一条限住的）。
+   这几块本身只有 4 / 6 / 8 张卡，省不了多少。 */
+#projects,
+#blog-preview,
+#nook-preview {
+    content-visibility: visible;
+}
+
 /* 「直达底部」量真实高度的那一瞬间（见 src/client/fab.ts）：
    虚拟化区块全部展开，scrollHeight 才包含真实高度；量完立刻移除，
    虚拟化照旧。只在这一帧生效，不影响平时的布局与渲染。 */
@@ -1189,6 +1211,9 @@ html.fab-measuring section {
     border-color: var(--primary);
     transform: translateY(-4px) scale(1.01);
     box-shadow: var(--mica-elev-2);
+    /* 抬一层：卡片各自 isolation: isolate，浮窗的 z-index 出不了这张卡的层叠上下文，
+       不把卡本身抬起来的话，浮窗会被同一行后面的卡片盖住。 */
+    z-index: 20;
 }
 
 /* 项目卡本身也是链接：键盘 Tab 到它、或从技能胶囊跳过来把焦点交给它时，
@@ -1196,6 +1221,7 @@ html.fab-measuring section {
 .project-card:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 3px;
+    z-index: 20;
 }
 
 /* 从技能胶囊跳过来时的一次性回执：只描边 + 抬升，不做位移，
@@ -1211,17 +1237,30 @@ html.fab-measuring section {
     display: flex;
     justify-content: space-between;
     align-items: start;
+    gap: 0.5rem;
     margin-bottom: 0.75rem;
 }
 
+/* 标题 + 副标题（项目名的中文翻译条）占满左半边，状态胶囊钉在右端。
+   min-width: 0 必须有：不然这一格按最长一行撑开，nowrap 的标题永远不出现省略号。 */
+.project-header > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* 五类卡片的标题都只有一行，超长交给省略号（完整标题在浮窗里） */
 .project-title {
     font-weight: 700;
     color: var(--text);
     font-size: 1.1rem;
     margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .project-status {
+    flex: 0 0 auto;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -1230,12 +1269,27 @@ html.fab-measuring section {
     color: var(--text-dim);
     font-size: 0.85rem;
     line-height: 1.6;
-    margin-bottom: 1.25rem;
 }
 
 .project-subtitle {
     font-size: 0.8rem;
     color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 五类卡片的正文统一成「最多三行 + 至少三行」：只 clamp 不固定高度，短摘要会留洞；
+   只固定高度不 clamp，长摘要会把卡撑高。两条一起，同一行的卡片等高，
+   标签行与元信息行也落在同一水平线上。被截掉的部分由 .card-popover 补。
+   （两个列表页的 .blog-page-card-desc / .nook-card-desc 在各自页面的内联样式里，
+   规则完全相同，只是不能跨文件共用一份选择器。） */
+:is(.blog-preview-card-desc, .nook-preview-card-desc, .project-desc) {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: calc(3 * 1.6 * 0.85rem);
 }
 
 .fade-in-item {
@@ -1251,14 +1305,16 @@ html.fab-measuring section {
 
 .project-tech {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--card-tags-gap);
     /* 与列表卡片同一套：只占一行，放不下的由 list.js 隐藏并补「+N」 */
     flex-wrap: nowrap;
     overflow: hidden;
     min-width: 0;
     /* 卡片是等高网格：描述长短不一，标签若跟着文字走就会各卡在各的高度上。
-       margin-top: auto 把它们压到卡片底部，一排卡片的标签块下缘就能对齐。 */
+       margin-top: auto 把它们压到卡片底部，一排卡片的标签块下缘就能对齐。
+       padding-top 与其余四类卡片的 footer 同源：内容刚好填满时也留出同一道间距。 */
     margin-top: auto;
+    padding-top: var(--card-foot-gap);
 }
 
 /* .tech-tag 的材质与尺寸统一在文件末尾的「小标签」规则里（只读 = 6px 圆角方片） */
@@ -2138,6 +2194,7 @@ html::-webkit-scrollbar {
    博客侧栏目录（.blog-toc）故意不在此列 —— 它用上下两道渐隐提示还有内容，
    加回滚动条会把那两个设计一起顶掉（见 blog/template/post.html 的 .blog-toc）。 */
 .site-modal-body,
+.card-popover-body,
 pre,
 .table-wrapper {
     scrollbar-width: thin; /* Firefox */
@@ -2145,6 +2202,7 @@ pre,
 }
 
 .site-modal-body::-webkit-scrollbar,
+.card-popover-body::-webkit-scrollbar,
 pre::-webkit-scrollbar,
 .table-wrapper::-webkit-scrollbar {
     width: var(--scrollbar-size);
@@ -2152,9 +2210,11 @@ pre::-webkit-scrollbar,
 }
 
 .site-modal-body::-webkit-scrollbar-track,
+.card-popover-body::-webkit-scrollbar-track,
 pre::-webkit-scrollbar-track,
 .table-wrapper::-webkit-scrollbar-track,
 .site-modal-body::-webkit-scrollbar-corner,
+.card-popover-body::-webkit-scrollbar-corner,
 pre::-webkit-scrollbar-corner,
 .table-wrapper::-webkit-scrollbar-corner {
     background: transparent;
@@ -2163,6 +2223,7 @@ pre::-webkit-scrollbar-corner,
 /* 内缩 2px（border + padding-box）：拇指不贴边，读起来是一条圆角玻璃条；
    直接铺满整条槽会变成一根粗方块，深色下尤其抢眼。 */
 .site-modal-body::-webkit-scrollbar-thumb,
+.card-popover-body::-webkit-scrollbar-thumb,
 pre::-webkit-scrollbar-thumb,
 .table-wrapper::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb);
@@ -2172,6 +2233,7 @@ pre::-webkit-scrollbar-thumb,
 }
 
 .site-modal-body::-webkit-scrollbar-thumb:hover,
+.card-popover-body::-webkit-scrollbar-thumb:hover,
 pre::-webkit-scrollbar-thumb:hover,
 .table-wrapper::-webkit-scrollbar-thumb:hover {
     background-color: var(--scrollbar-thumb-hover);
@@ -3639,6 +3701,7 @@ html::after {
 .nook-preview-card-tags span,
 .blog-page-card-tags span,
 .nook-card-tags span,
+.card-popover-tags span,
 .nook-card-category,
 .nook-detail-tags span,
 .nook-detail-category,
@@ -3859,26 +3922,33 @@ html::after {
     white-space: nowrap;
 }
 
-/* ===== 卡片浮窗（博客 / 资源小窝，列表页与首页预览共用）=====
-   只做一件事：把卡片里被截掉的正文 / 标题完整露出来。
-   所以它必须「只在真的被截断时」出现 —— list.js 里的 card-popover 会逐个量
-   摘要的 scrollHeight 与标题的 scrollWidth，任一被截断就给卡片加 .is-clamped，
-   这里只认这个类。
-   内容与卡片同源（标题 / 摘要 / 标签），不额外加载数据。
-   材质走 --mica-chrome + 顶部柔光，和导航、悬浮框同一套面板语言。
-   首页的预览卡只放标题：那里的摘要不截断，唯一被藏起来的就是标题；
-   而且 section 带 content-visibility（隐含 paint 裁切），浮窗太高会被区块下缘切掉。 */
+/* ===== 卡片浮窗（全站五类卡片共用一份）=====
+   只做一件事：把卡片里被省略的部分完整露出来。
+   所以它必须「只在真的被省略时」出现 —— list.js 里的 card-popover 逐个量标题的
+   scrollWidth、摘要的 scrollHeight、标签行有没有被收成「+N」，任一被省略就给卡片
+   加上 .is-clamped。省略状态挂在卡片自己身上（卡片的属性），浮窗只认这个类。
+   内容与卡片同源（标题 / 副标题 / 摘要 / 全部标签 / 元信息），不额外加载数据。
+
+   两条与「统一」直接相关的约束：
+   1. 高度封顶（--popover-max-h）。内容再多也不糊半屏，溢出交给 .card-popover-body
+      自己滚 —— overflow: auto 两个方向都开，长串撑宽了就横向滚。
+   2. 默认 pointer-events: none。浮窗压在下一张卡上，一直可交互的话鼠标就「穿」不过去，
+      想点下面那张得先绕开；只有内容真的超出高度（data-scrollable）才放开指针，
+      让滚轮能滚它 —— 也只有那时才用得上 ::before 那道 8px 的悬停桥。
+   材质是 --popover-surface 实色 + 顶部柔光：浮窗盖在别的卡片上，透明会读成「没盖住」，
+   所以它和导航（玻璃）刻意不是同一档，只有抬升阴影与外框和面板语言一致。 */
 .card-popover {
     position: absolute;
     left: 0;
     right: 0;
     top: calc(100% + 0.5rem);
     z-index: 30;
-    padding: 0.9rem 1rem;
+    /* 内边距交给 .card-popover-body：滚动条要贴面板边走，不能落在一圈 padding 里 */
+    padding: 0;
     border: 1px solid var(--border);
     border-top-color: var(--mica-panel-rim);
     border-radius: 10px;
-    background-color: var(--mica-chrome);
+    background-color: var(--popover-surface);
     background-image: linear-gradient(180deg, var(--mica-panel-top), transparent 24px);
     box-shadow: var(--mica-elev-2);
     opacity: 0;
@@ -3888,48 +3958,100 @@ html::after {
     pointer-events: none;
 }
 
+/* 卡片与浮窗之间那 8px 是空的：指针从卡片走向浮窗时会掉 hover。
+   这条桥把这段空白也算进浮窗的盒子里（只在浮窗可交互时才有意义）。 */
+.card-popover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -0.5rem;
+    height: 0.5rem;
+}
+
+.card-popover-body {
+    display: block;
+    max-height: var(--popover-max-h);
+    overflow: auto;
+    overscroll-behavior: contain;
+    /* 圆角跟着外框走，否则内容与滚动条会压到弧线上 */
+    border-radius: inherit;
+    padding: 0.9rem 1rem;
+}
+
 .card-popover-title {
     display: block;
     color: var(--text);
     font-weight: 700;
     font-size: 0.95rem;
     line-height: 1.4;
-    margin-bottom: 0.35rem;
+}
+
+/* 项目卡的「名称翻译条」：卡片里跟标题走，浮窗里也一样，只是不再单行省略 */
+.card-popover-sub {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
 }
 
 .card-popover-desc {
     display: block;
+    margin-top: 0.4rem;
     color: var(--text-dim);
     font-size: 0.82rem;
     line-height: 1.6;
+    /* 浮窗里不截断，长串（URL / 无空格标识符）就地折行，尽量只留纵向滚动 */
+    overflow-wrap: anywhere;
 }
 
-/* 浮窗里的标签沿用卡片那套只读标签，但不受卡片内 max-height 的裁剪 */
+/* 浮窗里的标签是「全部」，所以换行铺开，不再退化成卡片那一条 nowrap */
 .card-popover-tags {
-    max-height: none;
-    overflow: visible;
-    margin: 0.6rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--card-tags-gap);
+    margin-top: 0.6rem;
 }
 
-:is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:hover .card-popover,
-:is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:focus-visible .card-popover {
+.card-popover-meta {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+[data-card].is-clamped:hover .card-popover,
+[data-card].is-clamped:focus-visible .card-popover {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
+/* 内容溢出高度才把指针交出去（此时才需要滚动）；否则浮窗只是「一层看得到、点得穿」的预览 */
+[data-card].is-clamped:hover .card-popover[data-scrollable='true'],
+[data-card].is-clamped:focus-visible .card-popover[data-scrollable='true'] {
+    pointer-events: auto;
+}
+
 /* 触屏没有 hover：浮窗会盖住下一张卡，直接不给 */
 @media (hover: none) {
-    :is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:hover .card-popover {
+    [data-card].is-clamped:hover .card-popover {
         opacity: 0;
         visibility: hidden;
     }
 }
 
 /* 下方放不下时翻到卡片上方（list.js 按视口余量加 .popover-up） */
-:is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).popover-up .card-popover {
+[data-card].popover-up .card-popover {
     top: auto;
     bottom: calc(100% + 0.5rem);
+}
+
+[data-card].popover-up .card-popover::before {
+    top: auto;
+    bottom: -0.5rem;
 }
 
 /* ===== MARKDOWN 正文（唯一来源） =====
@@ -4306,6 +4428,7 @@ nav,
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     :root {
         --mica-chrome: var(--bg-card);
+        --popover-surface: var(--bg-card);
         --mica-surface: var(--bg-card);
         --mica-raised: var(--bg-secondary);
         --mica-chip: var(--bg-secondary);
@@ -4317,6 +4440,7 @@ nav,
 @media (prefers-reduced-transparency: reduce) {
     :root {
         --mica-chrome: var(--bg-card);
+        --popover-surface: var(--bg-card);
         --mica-surface: var(--bg-card);
         --mica-raised: var(--bg-secondary);
         --mica-chip: var(--bg-secondary);
@@ -4411,8 +4535,9 @@ html.modal-open .fx-layer { visibility: hidden; }
     align-items: center;
     justify-content: center;
     /* 与导航同一层材质：--mica-chrome 是「标题栏层」，比卡片的抬升层（--mica-raised）更实。
-       刻意不挂 backdrop-filter —— 导航那层本来就有 0.90 不透明，模糊在视觉上看不出来，
-       却会让这三颗常驻按钮在漂移层背后每帧重模糊一次。 */
+       导航降到 0.66 的透明度之后，光有颜色不够 —— 底下的卡片会直接印在按钮上，
+       三颗按钮看着比导航「硬」。所以右下角这一组补同一套玻璃模糊（见下方 .fab-group .fab-btn），
+       让它们和导航一起透、一起糊。 */
     background: var(--mica-chrome);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -4423,6 +4548,16 @@ html.modal-open .fx-layer { visibility: hidden; }
     -webkit-tap-highlight-color: transparent;
     transition: border-color var(--transition-speed), color var(--transition-speed),
         background var(--transition-speed), transform var(--transition-speed);
+}
+
+/* 只有右下角这组常驻按钮跟着导航做玻璃：文章页导航里那两颗 26px 的按钮本来就在
+   导航条内部（已有一层模糊），再叠一层只会多付一次重绘。
+   另加一层贴地阴影：导航是通栏，靠上下边缘就能立住；40px 的小方块在半透明之后
+   会和浅色页面糊在一起，需要一点投影才看得见是颗按钮。 */
+.fab-group .fab-btn {
+    -webkit-backdrop-filter: var(--mica-nav-glass);
+    backdrop-filter: var(--mica-nav-glass);
+    box-shadow: var(--mica-elev-1);
 }
 
 /* 图标是内联 SVG（ui.js 里），尺寸跟 40px 的方片成比例；

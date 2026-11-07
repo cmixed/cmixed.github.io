@@ -132,18 +132,17 @@ describe('标题被截断时触发浮窗', () => {
     expect(source).toContain('descCut || titleCut');
   });
 
-  it('四类卡片都在浮窗的选择器名单里', () => {
+  it('浮窗只认卡片自己的省略状态（不逐类列举卡片）', () => {
     const css = read('src/style.css');
     for (const card of [
       '.blog-page-card',
       '.nook-card',
       '.blog-preview-card',
       '.nook-preview-card',
+      '.project-card',
     ]) {
       expect(css, card).toContain(card);
     }
-    expect(css).toContain(
-      ':is(.blog-page-card, .nook-card, .blog-preview-card, .nook-preview-card).is-clamped:hover .card-popover'
-    );
+    expect(css).toContain('[data-card].is-clamped:hover .card-popover');
   });
 });

@@ -212,7 +212,7 @@ function renderProjects(): void {
   grid.innerHTML = (projects as Project[])
     .map(
       (p) => `
-        <a href="${escapeHtml(p.url)}" class="project-card" data-project="${escapeHtml(p.id)}" target="_blank" rel="noopener noreferrer">
+        <a href="${escapeHtml(p.url)}" class="project-card" data-card data-project="${escapeHtml(p.id)}" target="_blank" rel="noopener noreferrer">
             <div class="project-header">
                 <div>
                     <div class="project-title">${escapeHtml(p.title)}</div>
@@ -224,6 +224,14 @@ function renderProjects(): void {
             <div class="project-tech">
                 ${p.tags.map((t) => `<span class="tech-tag" style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}<span class="tag-more" hidden></span>
             </div>
+            <span class="card-popover" aria-hidden="true">
+                <span class="card-popover-body">
+                    <span class="card-popover-title">${escapeHtml(p.title)}</span>
+                    <span class="card-popover-sub">${escapeHtml(p.subtitle)}</span>
+                    <span class="card-popover-desc">${escapeHtml(p.desc)}</span>
+                    <span class="card-popover-tags">${p.tags.map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`).join('')}</span>
+                </span>
+            </span>
         </a>
     `
     )
@@ -317,7 +325,7 @@ async function loadBlogPreview(): Promise<void> {
           .join('');
         const pinMark = p.pinned ? pinBadge() : '';
         return `
-            <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}">
+            <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}" data-card>
                 <div class="blog-preview-card-head">
                     <div class="blog-preview-card-title">${escapeHtml(p.title)}</div>
                     ${pinMark}
@@ -330,7 +338,12 @@ async function loadBlogPreview(): Promise<void> {
                     <div class="blog-preview-card-meta">创建于 ${escapeHtml(p.date)} · 更新于 ${escapeHtml(p.updated)}</div>
                 </div>
                 <span class="card-popover" aria-hidden="true">
-                    <span class="card-popover-title">${pinMark}${escapeHtml(p.title)}</span>
+                    <span class="card-popover-body">
+                        <span class="card-popover-title">${escapeHtml(p.title)}</span>
+                        <span class="card-popover-desc">${escapeHtml(p.description)}</span>
+                        <span class="card-popover-tags">${tagsHtml}</span>
+                        <span class="card-popover-meta">创建于 ${escapeHtml(p.date)} · 更新于 ${escapeHtml(p.updated)}</span>
+                    </span>
                 </span>
             </a>
         `;
@@ -370,7 +383,7 @@ async function loadNookPreview(): Promise<void> {
           .map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`)
           .join('');
         return `
-            <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}">
+            <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}" data-card>
                 <div class="nook-preview-card-header">
                     <div class="nook-preview-card-title">${escapeHtml(r.title)}</div>
                     ${pinMark}
@@ -384,7 +397,12 @@ async function loadNookPreview(): Promise<void> {
                     <div class="nook-preview-card-meta">${escapeHtml(r.size)} · ${escapeHtml(r.date)}</div>
                 </div>
                 <span class="card-popover" aria-hidden="true">
-                    <span class="card-popover-title">${pinMark}${escapeHtml(r.title)}</span>
+                    <span class="card-popover-body">
+                        <span class="card-popover-title">${escapeHtml(r.title)}</span>
+                        <span class="card-popover-desc">${escapeHtml(r.description)}</span>
+                        <span class="card-popover-tags">${tagsHtml}</span>
+                        <span class="card-popover-meta">${escapeHtml(r.size)} · ${escapeHtml(r.date)}</span>
+                    </span>
                 </span>
             </a>
         `;
