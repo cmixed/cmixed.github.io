@@ -896,22 +896,23 @@ html.fab-measuring section {
 
 .about-avatar {
     flex-shrink: 0;
-    /* 头像与名牌上下接成一体：图片顶部圆角、名牌底部圆角、两侧直边贯通，
-       整块读起来是一张「带落款的卡片」。名牌因此必须参与文档流 ——
-       绝对定位会把它压到下面的技能分隔线上（之前那版就是）。 */
+    /* 头像和名牌是**两块**：图片四角照旧 14px，名牌自己单独圆角、单独收窄。
+       名牌仍在文档流里 —— 绝对定位会压到下面的技能分隔线上。 */
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
-/* 名牌：左右两条竖边从头像两侧垂下来，到底部连起来，形成半个圆角矩形。
-   上边框去掉，让图片自己的下边框当照片与名字之间的分隔线；
-   圆角与头像同值（14px），两者拼起来才是一条连续的轮廓。 */
 .about-name-tag {
-    align-self: stretch;
+    position: relative;
+    align-self: center;
+    /* 比头像窄一圈：不再左右顶到头像外沿，那两块「伸出来」的宽边最破坏观感 */
+    width: 76%;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 2.35rem;
+    height: 2.2rem;
+    margin-top: 0.55rem;
     font-family: var(--font-mono);
     /* 14px：名牌整条 38px 高，13px 在里头会显得空；等宽字体 + 0.1em 字距，
        和下面对齐的站名同一套写法 */
@@ -921,10 +922,31 @@ html.fab-measuring section {
     color: var(--mica-chip-text);
     background: var(--mica-chip);
     border: 1px solid var(--mica-chip-border);
-    border-top: 0;
-    border-radius: 0 0 14px 14px;
+    /* 自己的圆角，与图片的 14px 分开：两个形状，不是一个被切开的矩形 */
+    border-radius: 10px;
     white-space: nowrap;
     user-select: none;
+}
+
+/* 从图片下缘垂下两条短线接到底部的名牌：线往里收 1.1rem，
+   保留「往下延伸再连起来」的意思，又不再贴着头像两侧外扩 */
+.about-name-tag::before,
+.about-name-tag::after {
+    content: '';
+    position: absolute;
+    top: -0.55rem;
+    height: 0.55rem;
+    width: 1px;
+    /* 与胶囊描边同族：用 --border 会淡到看不见，等于没有这层连接 */
+    background: var(--chip-border);
+}
+
+.about-name-tag::before {
+    left: 1.1rem;
+}
+
+.about-name-tag::after {
+    right: 1.1rem;
 }
 
 .about-avatar img {
@@ -932,8 +954,8 @@ html.fab-measuring section {
     display: block;
     width: 168px;
     height: 168px;
-    /* 底部直角：名牌从这条边接下去，两个圆角同时存在的话接缝两侧会露底 */
-    border-radius: 14px 14px 0 0;
+    /* 四角照旧：名牌是下面另一块独立形状，不为接缝削掉图片圆角 */
+    border-radius: 14px;
     object-fit: cover;
     border: 1px solid var(--border);
     box-shadow: 0 4px 20px var(--shadow);
@@ -2143,12 +2165,9 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 窄屏是纵向堆叠：胶囊绝对定位会压到下面的正文，这里改回流内 */
-    /* 窄屏头像居中；名牌与图片必须无缝相接，这里不能写 gap */
-    .about-avatar {
-        align-items: center;
-    }
-
+    /* 窄屏头像居中；名牌仍靠自己的 margin 与短线相连，不能加 gap */
     .about-name-tag {
+        width: 80%;
         height: 2.1rem;
         font-size: 0.78rem;
     }
@@ -3026,7 +3045,53 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     }
 }
 
+/* ===== 交互控件的文字选中与焦点 =====
+   按钮 / 胶囊里的文字默认可选中：点击时若有几像素手部位移，就会选走半个标签
+   （实测点 26Q3 选成 "6Q"），文字中间留下一段选区和文本光标。
+   只覆盖控件本身 —— 正文、文章、代码、邮箱仍可自由选取复制。 */
+button,
+[role='button'],
+.list-chip,
+.list-chip-more,
+.list-sort-btn,
+.changelog-quarter,
+.changelog-more,
+.skill-chip,
+.tag-more,
+.pin-badge,
+.about-name-tag,
+.footer-link,
+.hamburger,
+.fab-btn,
+.section-more,
+.nav-title,
+.nav-links a,
+.blog-nav-title,
+.nook-nav-title,
+.nook-detail-nav-title,
+.btn,
+.social-link,
+.nook-download {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 键盘焦点统一给一圈 accent 焦点环。用 :focus-visible：鼠标点击不触发，
+   不会在点击之后留一个框；已有自定义焦点样式的组件（.btn / .fab-btn / 卡片）
+   特异性更高，仍走自己的规则。 */
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .list-sort {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 0.1rem;
@@ -3039,7 +3104,33 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     border-radius: 999px;
 }
 
+/* 选中态由背后这颗滑块承载：切换时滑过去，不再是「旧块淡出、新块淡入」。
+   位置 / 宽度由 list.js 量一次真实 rect 后写进 --thumb-x / --thumb-w；
+   transform 走合成层，width 只影响这颗绝对定位的小元素。 */
+.list-sort-thumb {
+    position: absolute;
+    top: 0.15rem;
+    bottom: 0.15rem;
+    left: 0;
+    width: var(--thumb-w, 0px);
+    box-sizing: border-box;
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+    background: var(--primary-dim);
+    transform: translateX(var(--thumb-x, 0px));
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.list-sort-thumb.is-ready {
+    opacity: 1;
+}
+
 .list-sort-btn {
+    position: relative;
+    z-index: 1;
     height: 100%;
     padding: 0 0.7rem;
     border: 1px solid transparent;
@@ -3060,11 +3151,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     color: var(--primary-text);
 }
 
-/* 选中段用淡填 + accent 描边（不是筛选胶囊的实心 accent）：
-   同一张页面上，「我筛了哪个标签」和「我按什么排序」不该长得一模一样。 */
+/* 底色 / 描边交给背后的滑块：按钮本身保持透明，切换时才不会有两块底色交叠。
+   文字色仍走 accent；不改字重，免得按钮宽度跟着跳。 */
 .list-sort-btn[aria-pressed='true'] {
-    background: var(--primary-dim);
-    border-color: var(--primary);
+    background: transparent;
+    border-color: transparent;
     color: var(--primary-text);
 }
 
