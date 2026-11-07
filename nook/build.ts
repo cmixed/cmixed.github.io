@@ -175,9 +175,10 @@ function discoverResources(): ResourceData[] {
   return results;
 }
 
-// 「全部」放进标题行，用文字按钮而不是胶囊（它是复位动作，不是一个筛选项）
-function renderAllChip(total: number): string {
-  return `<button type="button" class="list-chip list-chip-all active" data-category=""><span class="list-chip-text">全部标签</span><span class="list-chip-count">${total}</span></button>`;
+// 「全部」放进标题行，做成「—— 全部 ——」横线标题（和底部「其他 N 个」成对）。
+// 它是复位动作，不是一个筛选值；不带计数，保留 .list-chip 类给筛选脚本绑状态。
+function renderAllChip(): string {
+  return `<button type="button" class="list-chip list-chip-all active" data-category=""><span class="list-chip-text">全部</span></button>`;
 }
 
 function renderFilters(categories: NameCount[]): string {
@@ -299,7 +300,9 @@ async function build(): Promise<void> {
   const categories = [...new Set(resources.map((r) => r.category))];
   const categoryStats = countAndSortNames(resources.map((r) => r.category));
 
-  const allChip = renderAllChip(resources.length);
+  const allChip = renderAllChip();
+  // 副标题前置统计：共多少个资源 + 多少个分类（≤3 项），与标语之间用「·」间隔
+  const listStat = `<span class="list-sub-stat">共 ${resources.length} 个 · ${categories.length} 个分类</span><span class="list-sub-sep" aria-hidden="true">·</span>`;
   const filtersHtml = renderFilters(categoryStats);
   const resourcesHtml = renderResources(resources);
 
@@ -307,6 +310,7 @@ async function build(): Promise<void> {
   const html = replaceIcons(
     template
       .replace('{{allChip}}', allChip)
+      .replace('{{listStat}}', listStat)
       .replace('{{filters}}', filtersHtml)
       .replace('{{resources}}', resourcesHtml)
   );

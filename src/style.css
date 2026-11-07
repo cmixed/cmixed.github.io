@@ -2860,6 +2860,20 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     color: var(--text-dim);
 }
 
+/* 副标题前置的统计（共 N 篇 · X 个标签）：小一档、走灰阶，
+   让后面的主标语保持原来的对比度，不跟它抢 */
+.list-sub-stat {
+    font-size: 0.92em;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* 统计与主标语之间的「·」间隔 */
+.list-sub-sep {
+    margin: 0 0.55em;
+    color: var(--text-muted);
+}
+
 .list-filters {
     display: flex;
     flex-wrap: wrap;
@@ -2888,7 +2902,7 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 }
 
 .list-filters-head {
-    /* 整行只放一颗「全部标签 N」：居中，和下面「—— 其他 N 个 ——」成对 */
+    /* 整行只放一条「—— 全部 ——」横线标题：居中，和下面「—— 其他 N 个 ——」成对 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -3604,35 +3618,46 @@ html::after {
 /* 展开 / 收起不再做成胶囊：它是一次「展开更多」的动作，不是一个筛选值。
    整行一条细线、文字压在线上（两侧各留一段线），和胶囊区自然分开。
    触屏要 44px 的点击高度 —— 线只有 1px，靠 min-height 撑出热区。 */
-/* 「全部」是复位动作，不是一个筛选项：不做成胶囊，用文字按钮和下面的胶囊区分开。
+/* 「全部」是复位动作，不是一个筛选项：做成「—— 全部 ——」横线标题，
+   和底部「—— 其他 N 个 ——」同一套压线样式成对（粗体 vs 细体分主次）。
+   不带计数：复位动作旁边挂数字只会和胶囊区的计数抢戏。
    仍然保留 .list-chip 类 —— 筛选脚本按它绑定状态，去掉就会丢掉「当前是否全选」的同步。 */
 .list-chip.list-chip-all {
     /* 写成双类：`.list-filters-panel .list-chip`（0,2,0）会给栏内胶囊定 0.875rem，
        单类选择器压不住，复位按钮必须用同一档特异性才能拿到 15px */
-    width: auto;
-    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
     min-height: 44px;
-    gap: 0.45rem;
-    padding: 0.25rem 0.7rem;
+    padding: 0;
     font-size: var(--filter-action-font);
+    /* 上面「全部」固定粗体，底部「其他」细体 */
     font-weight: 600;
     background: none;
-    border-color: transparent;
-    border-radius: 4px;
+    border: 0;
+    border-radius: 0;
     color: var(--text);
 }
 
-/* 数字与文字拉开一档，不跟复位动作抢；和下面那条横线用同一套灰阶 */
-.list-chip-all .list-chip-count {
-    color: var(--text-muted);
-    font-size: 0.85em;
-    font-weight: 500;
+.list-chip.list-chip-all::before,
+.list-chip.list-chip-all::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--border);
+    transition: background 0.2s;
 }
 
 .list-chip.list-chip-all:hover {
-    background: var(--chip-fill);
+    background: none;
     border-color: transparent;
     color: var(--primary-text);
+}
+
+.list-chip.list-chip-all:hover::before,
+.list-chip.list-chip-all:hover::after {
+    background: var(--chip-border);
 }
 
 .list-chip.list-chip-all.active {
@@ -3659,9 +3684,10 @@ html::after {
     min-height: 44px;
     padding: 0;
     font-family: inherit;
-    /* 与标题行的「全部标签 N」同字号、同字重、同 44px 热区：两颗是一组 */
+    /* 与顶部「—— 全部 ——」同字号、同 44px 热区：两颗是一组横线标题；
+       字重细一档（细体），主次留给粗体的「全部」，粗体会压过胶囊区 */
     font-size: var(--filter-action-font);
-    font-weight: 600;
+    font-weight: 400;
     color: var(--text-dim);
     background: transparent;
     border: 0;
