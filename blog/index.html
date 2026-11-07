@@ -74,13 +74,15 @@
         /* 摘要固定三行：卡片高度因此不随摘要长短起伏。
            被截掉的部分由浮窗补（只有真的截断时才出现，见 style.css「卡片浮窗」）。 */
         .blog-page-card-desc {
-            font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem;
+            font-size: 0.85rem; color: var(--text-dim); line-height: 1.6;
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
             overflow: hidden;
             min-height: calc(3 * 1.6 * 0.85rem);
         }
-        .blog-page-card-footer { margin-top: auto; }
-        .blog-page-card-tags { display: flex; gap: 0.4rem; flex-wrap: nowrap; overflow: hidden; margin-bottom: 1rem; min-width: 0; }
+        /* 正文与标签行之间、标签与元信息之间的间距统一由 style.css 的 --card-* 令牌给，
+           这四类卡片（两列表页 + 两预览卡）因此是同一套纵向节奏。 */
+        .blog-page-card-footer { margin-top: auto; padding-top: var(--card-foot-gap); }
+        .blog-page-card-tags { display: flex; gap: var(--card-tags-gap); flex-wrap: nowrap; overflow: hidden; margin-bottom: var(--card-tags-gap-y); min-width: 0; }
         /* 这一行是长句（阅读 / 创建 / 更新 / 字数 / 图片），窄卡里会换行。
            keep-all 禁止在中文词内部断行：否则行尾刚好塞满时会掉一个「片」到下一行；
            分隔点前的空格在构建时写成 \u00a0，所以「·」跟着前一段走，不会顶到行首。 */

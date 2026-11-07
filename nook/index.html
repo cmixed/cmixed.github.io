@@ -91,16 +91,16 @@
             white-space: nowrap;
         }
         .nook-card-desc {
-            color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;
+            color: var(--text-dim); font-size: 0.85rem; line-height: 1.6;
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
             overflow: hidden;
             min-height: calc(3 * 1.6 * 0.85rem);
         }
-        .nook-card-footer { margin-top: auto; }
+        .nook-card-footer { margin-top: auto; padding-top: var(--card-foot-gap); }
         /* 只占一行：放不下的标签由 list.js 隐藏，行尾补一个「+N」。
            卡片高度因此不再随标签数量变化。 */
         .nook-card-tags {
-            display: flex; gap: 0.4rem; flex-wrap: nowrap; margin-bottom: 1rem;
+            display: flex; gap: var(--card-tags-gap); flex-wrap: nowrap; margin-bottom: var(--card-tags-gap-y);
             overflow: hidden; min-width: 0;
         }
         /* 元信息与按钮挤在一行：250px 的卡里字号各收一档，日期不许折行 */

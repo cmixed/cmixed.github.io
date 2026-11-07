@@ -110,9 +110,20 @@
     --card-radius: 12px;
     /* --- 小标签尺寸：只读标签 6px 圆角方片，可点胶囊 999px；共用内边距与字号 --- */
     --chip-radius: 6px;
-    --chip-pad-y: 0.2rem;
-    --chip-pad-x: 0.5rem;
+    /* 上下 2.4px / 左右 7.2px：13px 的标签字配上 3.2px 内边距时，方片整高 27px，
+       比旁边的元信息（19px）高出一头，读起来是一排「按钮」而不是一行信息。
+       收到 25.6px 后与标题、正文、元信息的行高节奏对得上，也顺手给卡片腾出 2px。 */
+    --chip-pad-y: 0.15rem;
+    --chip-pad-x: 0.45rem;
     --chip-font: 0.8125rem;
+    /* --- 卡片底部的纵向节奏：正文 →（foot）标签 → 元信息 ---
+       四类卡片（博客列表 / 资源小窝列表 / 两个首页预览卡）共用这一组值。
+       之前每条规则各自写 1rem / 0.6rem，同一个标签行在列表页上下各空 16px、
+       在预览卡只有 10px/6px，看着就是两种卡。统一后标签上方略松、下方略紧，
+       元信息贴着标签收尾，不再在卡片底边留一片空地。 --- */
+    --card-foot-gap: 0.75rem; /* 正文与标签行之间（挂 footer 的 padding-top） */
+    --card-tags-gap: 0.3rem; /* 标签之间 */
+    --card-tags-gap-y: 0.5rem; /* 标签行与元信息之间 */
     /* 筛选区两颗「整行动作」（全部标签 / 其他 N 个）共用一档字号 */
     --filter-action-font: 0.9375rem;
     /* --- 可点控件（筛选胶囊 / 浅色按钮）的材质 ---
@@ -1322,7 +1333,7 @@ html.fab-measuring section {
 
 .blog-preview-card-footer {
     margin-top: auto;
-    padding-top: 0.6rem;
+    padding-top: var(--card-foot-gap);
 }
 
 .blog-preview-card-meta {
@@ -1338,11 +1349,11 @@ html.fab-measuring section {
 
 .blog-preview-card-tags {
     display: flex;
-    gap: 0.4rem;
+    gap: var(--card-tags-gap);
     flex-wrap: nowrap;
     overflow: hidden;
     min-width: 0;
-    margin-bottom: 0.4rem;
+    margin-bottom: var(--card-tags-gap-y);
 }
 
 /* ===== NOOK PREVIEW ===== */
@@ -1428,7 +1439,7 @@ html.fab-measuring section {
 
 .nook-preview-card-footer {
     margin-top: auto;
-    padding-top: 0.6rem;
+    padding-top: var(--card-foot-gap);
 }
 
 .nook-preview-card-meta {
@@ -1444,11 +1455,11 @@ html.fab-measuring section {
 
 .nook-preview-card-tags {
     display: flex;
-    gap: 0.4rem;
+    gap: var(--card-tags-gap);
     flex-wrap: nowrap;
     overflow: hidden;
     min-width: 0;
-    margin-bottom: 0.4rem;
+    margin-bottom: var(--card-tags-gap-y);
 }
 
 @media (max-width: 768px) {
