@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vite-plus/test';
  *   1. 栏顶是统计文案，不再是「全部」；
  *   2. 复位语义没丢（空 data-* + .list-chip 类，脚本靠它们同步「是否全选」）；
  *   3. 页头副标题里不再有统计，旧的 .list-sub-stat / .list-sub-sep 也没了；
- *   4. 样式只留一条尾线，下划线只给真正的标签。
+ *   4. 栏顶居中压线、与底部「其他 N 个」同字号，下划线只给真正的标签。
  */
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (path: string): string => readFileSync(join(ROOT, path), 'utf-8');
@@ -55,18 +55,29 @@ describe('列表页栏顶：统计说明兼复位', () => {
     expect(nookBuild).not.toContain('listStat');
   });
 
-  it('栏顶只留一条尾线：文字左对齐、线吃掉剩余宽度', () => {
+  it('栏顶居中压线：文字居中、两侧各一段线，字号取 --chip-font', () => {
     const block = css.slice(
       css.indexOf('.list-chip.list-chip-all {'),
-      css.indexOf('.list-chip.list-chip-all::after')
+      css.indexOf('.list-chip.list-chip-all::before')
     );
-    expect(block).toContain('font-size: 0.8125rem');
+    expect(block).toContain('justify-content: center');
     expect(block).toContain('min-width: 0');
-    // 整行从「居中压线」改成左对齐 + 尾线，抬头要和胶囊的左缘对齐
-    expect(css).toContain('justify-content: flex-start');
-    // 压线要两侧各一段，文字变长后两侧只剩两小截 —— 现在只画 ::after
-    expect(css).not.toContain('.list-chip.list-chip-all::before');
+    // 字号不写死：栏顶这行和胶囊里的标签是同一号字（--chip-font = 13px）
+    expect(block).toContain('font-size: var(--chip-font)');
+    expect(css).toContain('.list-chip.list-chip-all::before');
     expect(css).toContain('.list-chip.list-chip-all::after');
+  });
+
+  it('底部「其他 N 个」与胶囊里的标签字同号', () => {
+    const block = css.slice(
+      css.indexOf('.list-chip-more {'),
+      css.indexOf('.list-chip-more::before')
+    );
+    expect(block).toContain('font-size: var(--chip-font)');
+    // 字小了，触屏 44px 的热区要靠 min-height 撑住
+    expect(block).toContain('min-height: 44px');
+    // 两颗压线标题都改读 --chip-font 之后，这档 15px 的字号没人用了
+    expect(css).not.toContain('--filter-action-font');
   });
 
   it('下划线只给真正的标签，不再画到栏顶那行统计上', () => {
