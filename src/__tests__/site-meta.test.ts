@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vite-plus/test';
 import {
   buildAbout,
   buildCommits,
+  inProgressQuarters,
   isQuarterComplete,
   normalizeRepoUrl,
   parseCommitLine,
@@ -217,7 +218,19 @@ describe('buildAbout / buildCommits', () => {
 
   it('更新日志的条数与字段自洽', () => {
     const commits = buildCommits();
-    expect(Object.keys(commits).sort()).toEqual(['changelog', 'repo', 'summaries', 'total']);
+    expect(Object.keys(commits).sort()).toEqual([
+      'changelog',
+      'inProgress',
+      'repo',
+      'summaries',
+      'total',
+    ]);
+
+    // 进行中的季度只出现在 inProgress，绝不能混进 summaries / 缺口清单
+    for (const quarter of commits.inProgress) {
+      expect(isQuarterComplete(quarter)).toBe(false);
+      expect(commits.summaries[quarter]).toBeUndefined();
+    }
 
     expect(commits.changelog.length).toBeLessThanOrEqual(400);
     expect(commits.total).toBeGreaterThanOrEqual(commits.changelog.length);
@@ -378,5 +391,20 @@ describe('季度总结：只复用，不重复生成', () => {
     expect(quarterSummaryGaps(changelog, {}, NOV).some((gap) => gap.quarter === '26Q4')).toBe(
       false
     );
+  });
+
+  it('inProgress 只列还没过完的季度，补写提醒的判定完全不受它影响', () => {
+    expect(inProgressQuarters(changelog, NOV)).toEqual(['26Q4']);
+    // 季度过完后自动从 inProgress 消失，改由缺口清单接手
+    expect(inProgressQuarters(changelog, new Date('2027-01-15T00:00:00Z'))).toEqual([]);
+
+    // 即使一条总结都没写，缺口也只有已完结的 Q3 / Q2：
+    // Q4 页面上是「进行中」模板公告，不算缺口，不会被提醒补写
+    expect(quarterSummaryGaps(changelog, {}, NOV).map((gap) => gap.quarter)).toEqual([
+      '26Q3',
+      '26Q2',
+    ]);
+    // 存档里也不该有进行中季度的总结，否则会被误当成已总结
+    expect(selectQuarterSummaries(changelog, {}, NOV, () => {})['26Q4']).toBeUndefined();
   });
 });
