@@ -896,75 +896,61 @@ html.fab-measuring section {
 
 .about-avatar {
     flex-shrink: 0;
-    /* 头像和名牌是**两块**：图片四角照旧 14px，名牌自己单独圆角、单独收窄。
-       名牌仍在文档流里 —— 绝对定位会压到下面的技能分隔线上。 */
+    /* 一个**大的圆角矩形**把「图片 + 下面多出的半块」整个包住：
+       图片四角保留自己的 14px；底部那半块由外框的 overflow: hidden + 20px 圆角
+       裁出一个只有下半部圆角的形状。两块共用同一条轮廓、同一层底色，
+       没有间隙、没有吊线 —— 是融合，不是挂牌子。 */
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 0.45rem 0.45rem 0;
+    background: var(--mica-chip);
+    border: 1px solid var(--mica-chip-border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px var(--shadow);
+    transition: border-color var(--transition-speed);
+}
+
+.about-avatar:hover {
+    border-color: var(--primary);
 }
 
 .about-name-tag {
-    position: relative;
-    align-self: center;
-    /* 比头像窄一圈：不再左右顶到头像外沿，那两块「伸出来」的宽边最破坏观感 */
-    width: 76%;
+    align-self: stretch;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* 负 margin 撑到外框左右边缘：这半块与外框同宽，既不外伸也不悬空。
+       底边贴着外框，圆角由外框裁出来，所以它天生是「半个圆角矩形」。 */
+    margin: 0.45rem -0.45rem 0;
     height: 2.2rem;
-    margin-top: 0.55rem;
     font-family: var(--font-mono);
-    /* 14px：名牌整条 38px 高，13px 在里头会显得空；等宽字体 + 0.1em 字距，
-       和下面对齐的站名同一套写法 */
     font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     color: var(--mica-chip-text);
-    background: var(--mica-chip);
-    border: 1px solid var(--mica-chip-border);
-    /* 自己的圆角，与图片的 14px 分开：两个形状，不是一个被切开的矩形 */
-    border-radius: 10px;
+    background: var(--primary-dim);
+    border: 0;
+    border-top: 1px solid var(--mica-chip-border);
+    border-radius: 0;
     white-space: nowrap;
     user-select: none;
 }
 
-/* 从图片下缘垂下两条短线接到底部的名牌：线往里收 1.1rem，
-   保留「往下延伸再连起来」的意思，又不再贴着头像两侧外扩 */
-.about-name-tag::before,
-.about-name-tag::after {
-    content: '';
-    position: absolute;
-    top: -0.55rem;
-    height: 0.55rem;
-    width: 1px;
-    /* 与胶囊描边同族：用 --border 会淡到看不见，等于没有这层连接 */
-    background: var(--chip-border);
-}
-
-.about-name-tag::before {
-    left: 1.1rem;
-}
-
-.about-name-tag::after {
-    right: 1.1rem;
-}
-
 .about-avatar img {
-    /* 卡内元素统一用 14px 圆角，头像跟卡片同半径，视觉上才是「装进去的」而不是贴上去的 */
     display: block;
     width: 168px;
     height: 168px;
-    /* 四角照旧：名牌是下面另一块独立形状，不为接缝削掉图片圆角 */
+    /* 图片自己的四角圆角，与外框分开：被包裹，而不是被削平 */
     border-radius: 14px;
     object-fit: cover;
     border: 1px solid var(--border);
-    box-shadow: 0 4px 20px var(--shadow);
-    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    transition: border-color var(--transition-speed);
 }
 
 .about-avatar img:hover {
     border-color: var(--primary);
-    box-shadow: 0 8px 30px var(--primary-glow);
 }
 
 .about-grid {
@@ -2165,9 +2151,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 窄屏是纵向堆叠：胶囊绝对定位会压到下面的正文，这里改回流内 */
-    /* 窄屏头像居中；名牌仍靠自己的 margin 与短线相连，不能加 gap */
+    /* 窄屏只收字号与高度；宽度由外框 stretch 决定，不写 width */
     .about-name-tag {
-        width: 80%;
         height: 2.1rem;
         font-size: 0.78rem;
     }

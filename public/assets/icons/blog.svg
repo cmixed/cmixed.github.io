@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="个人博客">
-  <rect width="32" height="32" rx="8" fill="#0c1714"/>
-  <path d="M13 10.5 7.5 16 13 21.5" fill="none" stroke="#5fd1b5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M19 10.5 24.5 16 19 21.5" fill="none" stroke="#5fd1b5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 透明底 + 纯黑线稿：不再铺深色圆角底，浏览器标签页上只看到线条 -->
+  <path d="M13 10.5 7.5 16 13 21.5" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19 10.5 24.5 16 19 21.5" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
