@@ -1,5 +1,13 @@
 # C++ API 设计（第2版）
 
+---
+title: C++ API 设计（第2版）
+date: 2026-10-06
+pinned: true
+tags: [C++, API设计, 软件工程, 读书笔记]
+description: 《API Design for C++》第2版系统读书笔记：从接口契约、实现隐藏与最小完整性出发，覆盖设计模式、C++ 特性、版本兼容、性能与并发、文档和测试，提炼可执行的 API 设计准则。
+---
+
 > API Design for C++ 2nd edition
 
 ## 第1章 概述 (1)
