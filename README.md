@@ -487,7 +487,7 @@ tags: [标签1, 标签2]
 | `vp run nook` | 仅构建资源小窝 |
 | `vp check` | 格式 + Lint + 类型检查 |
 | `vp check --fix` | 自动修复格式与 lint 问题 |
-| `vp run check:md` | 检查文章 Markdown（markdownlint，规则见 `.markdownlint-cli2.jsonc`） |
+| `vp run check:md` | 报告文章 Markdown 告警（markdownlint，规则见 `.markdownlint-cli2.jsonc`） |
 | `vp run check:md:fix` | 自动修复可修复的 Markdown 告警（补齐括号内空格等） |
 | `vp lint` | Oxlint 检查（`vp lint --fix` 自动修复） |
 | `vp fmt` | Oxfmt 格式化（`vp fmt --check` 只检查不写入） |
@@ -498,7 +498,7 @@ tags: [标签1, 标签2]
 
 > **`vp build` 只跑 Vite。** 博客页、小窝页、highlight.js 裁剪是 `package.json` 里 `build` 脚本的后继步骤，所以整站构建必须用 **`vp run build`**；直接敲 `vp build` 会得到一个没有文章页和小窝页的 `dist/`。
 
-> **Markdown 检查是构建的一部分。** `build` / `blog` / `nook` 都会先跑 `check:md --strict`，pre-commit 只检查暂存的文章，CI 再全量跑一遍；紧急发布可用 `SKIP_MD_CHECK=1` 跳过。
+> **文章 Markdown 由 `vp test` 守住。** `src/__tests__/markdown-articles.test.ts` 会用同一份配置检查博客、资源小窝与 README，pre-commit 和 CI 因此不需要额外的 Markdown 步骤；`check:md` 只负责人工报告与自动修复。构建脚本（`build` / `blog` / `nook`）仍会先跑一次 `check:md --strict` 做快速失败，紧急发布可用 `SKIP_MD_CHECK=1` 跳过。
 
 ## 工程约定
 
