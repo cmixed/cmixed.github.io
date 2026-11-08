@@ -2,9 +2,10 @@ import { defineConfig } from 'vite-plus';
 import { clientScripts } from './scripts/client-scripts';
 import { iconTokens } from './scripts/icon-tokens';
 import { siteMeta } from './scripts/site-meta';
+import { vitestVscodeCompat } from './scripts/vitest-vscode-compat';
 
 export default defineConfig({
-  plugins: [iconTokens(), clientScripts(), siteMeta()],
+  plugins: [iconTokens(), clientScripts(), siteMeta(), vitestVscodeCompat()],
   lint: {
     plugins: ['oxc', 'typescript', 'unicorn'],
     categories: {
