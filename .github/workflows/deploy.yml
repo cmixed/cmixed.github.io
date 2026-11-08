@@ -33,6 +33,8 @@ jobs:
             echo "$bad"
             exit 1
           fi
+      - name: Check markdown
+        run: pnpm -s check:md --strict
       - run: vp check
       - run: vp test
 

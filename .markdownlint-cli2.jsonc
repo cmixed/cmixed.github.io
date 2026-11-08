@@ -1,0 +1,30 @@
+// markdownlint-cli2 格式的配置：编辑器扩展与 scripts/check-markdown.ts 共用同一份。
+{
+  // 本站文章在 H1 标题之后放 YAML 元信息（构建脚本按这个顺序解析）。
+  // 标准 Markdown 会把「段落 + ---」当成 setext 标题，所以这里显式声明为 front matter：
+  // 可选的前置 H1 + --- 开头的元信息块，两者一起被忽略。
+  "frontMatter": "^(?:#[^\\n]*\\n+)?---\\s*\\n[\\s\\S]*?\\n---\\s*(?:\\r?\\n|$)",
+
+  "config": {
+    // 只启用常用规则，避免历史文章一次性爆出几十条无关告警
+    "default": false,
+    "MD001": true, // 标题层级只递增一级
+    "MD003": { "style": "atx" }, // 统一 ATX 标题
+    "MD022": true, // 标题前后留空行
+    "MD023": true, // 标题必须顶格
+    "MD024": { "siblings_only": true }, // 同级标题不重名
+    "MD026": true, // 标题末尾不带标点
+    "MD032": true, // 列表前后留空行
+    "MD034": true, // 禁止裸 URL
+    "MD040": true, // 代码块标注语言
+    "MD041": true, // 正文以一级标题开头
+    "MD047": true, // 文件以单个换行结尾
+    "MD056": true, // 表格列数一致
+    "MD058": true, // 表格前后留空行
+    "MD060": true, // 表格管道风格（any：对齐 / 紧凑 / 紧贴皆可，但每张表要自洽）
+  },
+
+  // 检查范围：参与构建的文章 + 仓库首页 README
+  "globs": ["blog/post/**/*.md", "nook/file/**/index.md", "README.md"],
+  "ignores": ["nook/file/_template/**"],
+}
