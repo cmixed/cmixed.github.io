@@ -25,6 +25,14 @@ jobs:
           cache: true
           run-install: |
             - args: ['--frozen-lockfile']
+      - name: Check line endings
+        run: |
+          bad=$(git ls-files --eol | grep -E 'i/(crlf|mixed)|w/(crlf|mixed)' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::CRLF line endings found in text files"
+            echo "$bad"
+            exit 1
+          fi
       - run: vp check
       - run: vp test
 

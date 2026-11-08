@@ -1,2 +1,10 @@
 #!/bin/sh
+
+bad=$(git ls-files --eol | grep -E 'i/(crlf|mixed)|w/(crlf|mixed)' || true)
+if [ -n "$bad" ]; then
+  echo "CRLF line endings detected; convert these files to LF before committing:"
+  echo "$bad"
+  exit 1
+fi
+
 vp check && vp test

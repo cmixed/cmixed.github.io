@@ -1,3 +1,4 @@
 {
-  "vitest.nodeExecArgs": ["--import", "./.vscode/vitest-localhost-ipv6.mjs"]
+  "vitest.nodeExecArgs": ["--import", "./.vscode/vitest-localhost-ipv6.mjs"],
+  "files.eol": "\n"
 }
