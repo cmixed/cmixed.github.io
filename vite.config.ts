@@ -140,6 +140,13 @@ export default defineConfig({
   },
   test: {
     include: ['src/__tests__/**/*.test.ts'],
+    // Markdown 不在模块图里，改文章时手动告诉 vitest 该重跑哪条用例
+    watchTriggerPatterns: [
+      {
+        pattern: /(?:^|\/)(?:README\.md|blog\/post\/.+\.md|nook\/file\/.+\/index\.md)$/,
+        testsToRun: () => 'src/__tests__/markdown-articles.test.ts',
+      },
+    ],
   },
   fmt: {
     semi: true,

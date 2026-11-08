@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applyFixes } from 'markdownlint';
@@ -13,10 +13,13 @@ import { lint } from 'markdownlint/promise';
  * VS Code 的 markdownlint 扩展读的也是同一份配置，所以编辑器提示与
  * 提交 / 构建时的结果一致。
  *
+ * 仓库内容是否合规由 `src/__tests__/markdown-articles.test.ts` 作为测试用例守住，
+ * 本脚本负责人工报告、`--fix` 与构建前快速失败。
+ *
  * 用法：
  *   tsx scripts/check-markdown.ts            全量检查，只报告
  *   tsx scripts/check-markdown.ts --strict   有告警时以非 0 退出
- *   tsx scripts/check-markdown.ts --staged   只检查暂存的 md（pre-commit）
+ *   tsx scripts/check-markdown.ts --staged   只检查暂存的 md
  *   tsx scripts/check-markdown.ts --fix      自动修复支持 fixInfo 的告警
  *
  * 设置环境变量 SKIP_MD_CHECK=1 可跳过（紧急发布用）。
@@ -123,6 +126,11 @@ export function selectFiles(files: readonly string[], config: MarkdownlintCli2Co
   );
 }
 
+/** 读取并解析仓库根目录的共享配置（编辑器扩展用的也是这一份）。 */
+export function loadConfig(path = configPath): MarkdownlintCli2Config {
+  return parseJsonc<MarkdownlintCli2Config>(readFileSync(path, 'utf8'));
+}
+
 /** 纯函数入口：便于单测，不碰文件系统。 */
 export async function lintStrings(
   strings: Record<string, string>,
@@ -135,36 +143,83 @@ export async function lintStrings(
   });
 }
 
-function listMarkdownFiles(staged: boolean): string[] {
-  const args = staged
-    ? ['diff', '--cached', '--name-only', '--diff-filter=ACM', '-z', '--', '*.md']
-    : ['ls-files', '-z', '*.md'];
-  const output = execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
-  return output.split('\0').filter(Boolean);
+/** git 不可用时的回退：按目录遍历，跳过依赖与构建产物。 */
+function listFromFileSystem(): string[] {
+  const ignored = new Set(['.git', 'node_modules', 'dist', 'coverage', 'blog/vendor']);
+  const files: string[] = [];
+  const walk = (directory: string): void => {
+    for (const entry of readdirSync(join(repoRoot, directory), { withFileTypes: true })) {
+      const path = directory ? `${directory}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        if (!ignored.has(entry.name)) walk(path);
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        files.push(path);
+      }
+    }
+  };
+  walk('');
+  return files;
 }
 
-function formatIssues(files: readonly string[], issues: readonly LintError[]): string {
-  const lines: string[] = [];
-  const byFile = new Map<string, LintError[]>();
-  for (const issue of issues) {
-    const name = (issue as LintError & { fileName?: string }).fileName || '';
-    const list = byFile.get(name) || [];
-    list.push(issue);
-    byFile.set(name, list);
+function listGitFiles(args: string[]): string[] | null {
+  try {
+    return execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' })
+      .split('\0')
+      .filter(Boolean);
+  } catch {
+    return null;
   }
+}
 
-  for (const file of files) {
-    const list = byFile.get(file);
-    if (!list?.length) continue;
+/**
+ * 列出待检查的 Markdown 文件。
+ *
+ * 全量模式同时包含已跟踪与未跟踪（但未被 `.gitignore` 忽略）的文件，
+ * 与 `blog/build.ts` / `nook/build.ts` 的目录扫描范围一致 —— 新写但还没
+ * `git add` 的文章也会被检查，不会等到 push 后才在 CI 里炸。
+ */
+export function listMarkdownFiles(staged: boolean): string[] {
+  if (staged) {
+    return (
+      listGitFiles(['diff', '--cached', '--name-only', '--diff-filter=ACM', '-z', '--', '*.md']) ??
+      listFromFileSystem()
+    );
+  }
+  return (
+    listGitFiles(['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '*.md']) ??
+    listFromFileSystem()
+  );
+}
+
+/** 读取配置并筛出需要检查的文件（已排序）。 */
+export function selectRepositoryFiles(config = loadConfig(), staged = false): string[] {
+  return (
+    selectFiles(listMarkdownFiles(staged), config)
+      // 工作区里已删除但还没暂存的文件不该让检查失败
+      .filter((file) => existsSync(join(repoRoot, file)))
+      .sort()
+  );
+}
+
+/** 把结果格式化成「文件 + 行:列 + 规则」的文本，CLI 与测试共用。 */
+export function formatIssues(results: Record<string, readonly LintError[]>): string {
+  const lines: string[] = [];
+  for (const file of Object.keys(results).sort()) {
+    const issues = results[file];
+    if (!issues.length) continue;
     lines.push('', file);
-    for (const issue of list) {
+    for (const issue of issues) {
       const column = issue.errorRange?.[0] ?? 1;
-      const rule = issue.ruleNames.join('/');
       const detail = issue.errorDetail ? `  ${issue.errorDetail}` : '';
-      lines.push(`  ${issue.lineNumber}:${column}  ${rule}${detail}`);
+      lines.push(`  ${issue.lineNumber}:${column}  ${issue.ruleNames.join('/')}${detail}`);
     }
   }
   return lines.join('\n');
+}
+
+/** 统计告警总数。 */
+export function countIssues(results: Record<string, readonly LintError[]>): number {
+  return Object.values(results).reduce((total, issues) => total + issues.length, 0);
 }
 
 async function main(): Promise<void> {
@@ -179,8 +234,8 @@ async function main(): Promise<void> {
   const staged = argv.includes('--staged');
   const fix = argv.includes('--fix');
 
-  const config = parseJsonc<MarkdownlintCli2Config>(readFileSync(configPath, 'utf8'));
-  const files = selectFiles(listMarkdownFiles(staged), config).sort();
+  const config = loadConfig();
+  const files = selectRepositoryFiles(config, staged);
 
   if (files.length === 0) {
     console.log(staged ? 'Markdown check: no staged markdown files.' : 'Markdown check: no files.');
@@ -190,46 +245,34 @@ async function main(): Promise<void> {
   const strings = Object.fromEntries(
     files.map((file) => [file, readFileSync(join(repoRoot, file), 'utf8')])
   );
-  const results = await lintStrings(strings, config);
-  let issues = Object.entries(results).flatMap(([file, list]) =>
-    list.map((issue) => ({ ...issue, fileName: file }))
-  );
-
+  let results = await lintStrings(strings, config);
   let fixed = 0;
+
   if (fix) {
     for (const file of files) {
-      const fileIssues = issues.filter(
-        (issue) => (issue as LintError & { fileName?: string }).fileName === file
-      );
-      if (!fileIssues.length) continue;
-      const original = strings[file];
-      const updated = applyFixes(original, fileIssues);
-      if (updated !== original) {
-        writeFileSync(join(repoRoot, file), updated);
-        fixed += fileIssues.filter((issue) => issue.fixInfo).length;
-        strings[file] = updated;
-      }
+      const fileIssues = results[file] ?? [];
+      const fixable = fileIssues.filter((issue) => issue.fixInfo);
+      if (fixable.length === 0) continue;
+      const updated = applyFixes(strings[file], fileIssues);
+      if (updated === strings[file]) continue;
+      writeFileSync(join(repoRoot, file), updated);
+      fixed += fixable.length;
+      strings[file] = updated;
     }
-    if (fixed > 0) {
-      const after = await lintStrings(strings, config);
-      issues = Object.entries(after).flatMap(([file, list]) =>
-        list.map((issue) => ({ ...issue, fileName: file }))
-      );
-    }
+    if (fixed > 0) results = await lintStrings(strings, config);
   }
 
-  if (issues.length === 0) {
+  const total = countIssues(results);
+  if (total === 0) {
     console.log(
       `Markdown check: OK (${files.length} files${fixed ? `, ${fixed} fixes applied` : ''}).`
     );
     return;
   }
 
-  const affected = new Set(
-    issues.map((issue) => (issue as LintError & { fileName?: string }).fileName as string)
-  );
-  console.log(`Markdown check: ${issues.length} issue(s) in ${affected.size} file(s).`);
-  console.log(formatIssues(files, issues));
+  const affected = files.filter((file) => results[file]?.length).length;
+  console.log(`Markdown check: ${total} issue(s) in ${affected} file(s).`);
+  console.log(formatIssues(results));
   console.log('');
 
   if (strict) process.exitCode = 1;

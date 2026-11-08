@@ -7,6 +7,4 @@ if [ -n "$bad" ]; then
   exit 1
 fi
 
-pnpm -s check:md --staged --strict
-
 vp check && vp test
