@@ -679,5 +679,8 @@ ${sitemapUrls}
 
 // Only run build when executed directly, not when imported
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  build().catch(console.error);
+  build().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }
