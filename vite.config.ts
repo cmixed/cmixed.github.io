@@ -148,6 +148,7 @@ export default defineConfig({
     trailingComma: 'es5',
     printWidth: 100,
     sortPackageJson: false,
+    endOfLine: 'lf',
     ignorePatterns: [
       'dist/**',
       'node_modules/**',
