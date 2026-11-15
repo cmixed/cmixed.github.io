@@ -35,13 +35,17 @@ const SUMMARIES_PATH = join(ROOT, 'src', 'data', 'quarter-summaries.json');
 export const ABOUT_FILE = 'site-about.json';
 export const COMMITS_FILE = 'site-commits.json';
 
-/** 最多带多少条提交。一次带全，前端「展开更多」只是在本地多渲染一段，不用再请求。 */
-const MAX_COMMITS = 400;
+/** 最多带多少条提交。一次带全，前端「展开更多」只是在本地多渲染一段，不用再请求。
+ *  400 已经吃到上限（当前 398 条）：再多两条提交，最早那几条就会被截掉，
+ *  26Q2 那类早期季度的指纹随之变化、CI 误报「总结待复核」。先放到 800。 */
+export const MAX_COMMITS = 800;
 
 export interface ChangelogEntry {
   hash: string;
   date: string;
-  /** 约定式提交的类型（feat / fix / …），非约定式提交为 null */
+  /** 类型标签（feat / fix / …）。非约定式提交会兜底：Revert 记成 revert，
+   *  能提出首词的用首词小写，其余记 other —— 构建出来的条目恒有类型，
+   *  界面上每一条都有胶囊，不会有的亮有的不亮。 */
   type: string | null;
   /** 括号里的范围（如 fix(ui) 的 ui），没有为 null */
   scope: string | null;
@@ -136,7 +140,74 @@ export interface CommitsMeta {
   inProgressNotice: QuarterNotice | null;
 }
 
-const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?!?:\s+([\s\S]+)$/;
+/* 约定式提交 `type(scope): subject`。冒号后的空格不再强制：历史上有一条
+   `feat:(blog) update blog`，少一个空格就整条丢了类型标签。用 \s* 不会误吃
+   普通句子 —— type 后面仍必须紧跟 `:` 或 `(scope)`。 */
+const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?!?:\s*([\s\S]+)$/;
+/** git 自动生成的还原提交：`Revert "原始标题"` */
+const REVERTED = /^Revert\s+"([\s\S]+)"$/;
+/** scope 写到了冒号后面：`feat:(blog) update blog` 拆完之后正文开头还挂着 `(blog)` */
+const MISPLACED_SCOPE = /^\(([^)]+)\)\s*([\s\S]+)$/;
+/** 非约定式提交的首词（通常是动词），提出来当类型标签；只认 ASCII 词，
+ *  中文标题没有「词」的边界，整条不拆。 */
+const LEADING_WORD = /^([A-Za-z][A-Za-z0-9._-]*)\s+([\s\S]+)$/;
+/** 兜底条目的正文若以普通英文词开头（My Homepage），按仓库惯例小写首字母。
+ *  只认 `^[A-Z][a-z]+` + 词尾：TOC（全大写缩写）、TypeScript（二次大写）不碰。 */
+const LOWER_FIRST = /^[A-Z][a-z]+(?=\s|$)/;
+
+interface SubjectParts {
+  type: string;
+  scope: string | null;
+  subject: string;
+}
+
+/**
+ * 把一条 git 标题统一成「类型 + 正文」，让更新日志每一条都长得一样：
+ *   约定式       fix(ui): make pills readable → fix / ui / make pills readable
+ *   冒号后没空格 feat:(blog) update blog      → feat / blog / update blog
+ *   还原提交     Revert "fix: foo"            → revert / foo
+ *   非约定式     Fix TOC arrow: …             → fix / TOC arrow: …
+ *   提不出首词   My Homepage / 中文标题       → other / 原标题
+ *
+ * 刻意**不**把正文首字母统一小写：Vite / TypeScript / TOC 这类专名与缩写
+ * 小写会变成 vite? typeScript? tOC?，反而更乱。需要小写的那些词
+ * （Fix / Replace / Optimize / …）恰好都是非约定式提交的首词，提成类型标签时
+ * 已经小写了；剩下的大写开头都是专名，保留才是对的。
+ */
+function parseSubject(raw: string): SubjectParts {
+  const revert = REVERTED.exec(raw);
+  if (revert) {
+    /* 引号里是被还原那条的完整标题：再拆一遍，只把类型记成 revert。
+       `Revert "fix(test): silence …"` → [revert/test] silence …，
+       既不把内层 "fix(test):" 重复留在正文里，也不丢 scope。 */
+    const inner = parseSubject(revert[1]);
+    return { type: 'revert', scope: inner.scope, subject: inner.subject };
+  }
+  const match = CONVENTIONAL.exec(raw);
+  if (match) {
+    let scope = match[2] ?? null;
+    let subject = match[3];
+    const misplaced = MISPLACED_SCOPE.exec(subject);
+    if (!scope && misplaced) {
+      scope = misplaced[1];
+      subject = misplaced[2];
+    }
+    return { type: match[1].toLowerCase(), scope, subject };
+  }
+  const leading = LEADING_WORD.exec(raw);
+  /* 首词至少 3 个字符：My Homepage 的 "My" 提成标签只剩 "Homepage"，
+     读起来比 [other] My Homepage 更怪。 */
+  if (leading && leading[1].length >= 3) {
+    return { type: leading[1].toLowerCase(), scope: null, subject: leading[2] };
+  }
+  /* 提不出首词（中文、短语）：类型兜底 other，正文只收一下首字母，
+     别让整列小写条目里冒出一条大写开头。 */
+  return {
+    type: 'other',
+    scope: null,
+    subject: LOWER_FIRST.test(raw) ? raw[0].toLowerCase() + raw.slice(1) : raw,
+  };
+}
 
 /** 解析 `git log --pretty=%h\x1f%cs\x1f%s` 的一行；格式不对返回 null。 */
 export function parseCommitLine(raw: string): ChangelogEntry | null {
@@ -144,14 +215,7 @@ export function parseCommitLine(raw: string): ChangelogEntry | null {
   const subject = rest.join('\x1f').trim();
   if (!/^[0-9a-f]{4,40}$/.test(hash || '') || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
   if (!subject) return null;
-  const match = CONVENTIONAL.exec(subject);
-  return {
-    hash,
-    date,
-    type: match ? match[1] : null,
-    scope: match ? (match[2] ?? null) : null,
-    subject: match ? match[3] : subject,
-  };
+  return { hash, date, ...parseSubject(subject) };
 }
 
 /** 把 `git log` 的整段输出拆成条目（保持 git 给的顺序，即新 → 旧）。 */

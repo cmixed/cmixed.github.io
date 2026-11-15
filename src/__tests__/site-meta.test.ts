@@ -4,6 +4,7 @@ import {
   buildCommits,
   inProgressQuarters,
   isQuarterComplete,
+  MAX_COMMITS,
   normalizeRepoUrl,
   parseCommitLine,
   parseCommits,
@@ -59,18 +60,57 @@ describe('parseCommitLine', () => {
     });
   });
 
-  it('非约定式提交保留原标题、type 为 null', () => {
+  it('非约定式英文提交：首词提成小写类型标签，正文里的专名 / 缩写不动', () => {
     expect(parseCommitLine(commit("Merge branch 'main'"))).toMatchObject({
-      type: null,
+      type: 'merge',
       scope: null,
-      subject: "Merge branch 'main'",
+      subject: "branch 'main'",
+    });
+    expect(parseCommitLine(commit('Fix TOC arrow: sync state on collapse'))).toMatchObject({
+      type: 'fix',
+      subject: 'TOC arrow: sync state on collapse',
     });
   });
 
-  it('标题里带冒号但不像约定式提交时，不改写正文', () => {
+  it('约定式提交的正文首字母不被强行小写（Vite / TypeScript / TOC 是专名）', () => {
+    expect(parseCommitLine(commit('refactor: Vite multi-file project structure'))).toMatchObject({
+      type: 'refactor',
+      subject: 'Vite multi-file project structure',
+    });
+  });
+
+  it('中文标题 / 太短的首词提不出类型，兜底 other 且不改写正文', () => {
     expect(parseCommitLine(commit('更新 README: 补充命令表'))).toMatchObject({
-      type: null,
+      type: 'other',
       subject: '更新 README: 补充命令表',
+    });
+    /* 短语只收首字母：整列小写开头里不留一条大写，但也不把它拆成 [my] Homepage */
+    expect(parseCommitLine(commit('My Homepage'))).toMatchObject({
+      type: 'other',
+      subject: 'my Homepage',
+    });
+  });
+
+  it('冒号后没空格也能拆出 type，并把写错位置的 scope 归位', () => {
+    expect(parseCommitLine(commit('feat:(blog) update blog'))).toMatchObject({
+      type: 'feat',
+      scope: 'blog',
+      subject: 'update blog',
+    });
+  });
+
+  it('Revert 剥掉引号与内层前缀，类型统一记 revert', () => {
+    expect(
+      parseCommitLine(commit('Revert "fix(test): silence Vitest deprecation warning"'))
+    ).toMatchObject({
+      type: 'revert',
+      scope: 'test',
+      subject: 'silence Vitest deprecation warning',
+    });
+    expect(parseCommitLine(commit('Revert "feat: add chest resource page"'))).toMatchObject({
+      type: 'revert',
+      scope: null,
+      subject: 'add chest resource page',
     });
   });
 
@@ -271,7 +311,7 @@ describe('buildAbout / buildCommits', () => {
       expect(commits.inProgressNotice.body.length).toBeGreaterThan(0);
     }
 
-    expect(commits.changelog.length).toBeLessThanOrEqual(400);
+    expect(commits.changelog.length).toBeLessThanOrEqual(MAX_COMMITS);
     expect(commits.total).toBeGreaterThanOrEqual(commits.changelog.length);
     if (commits.total > 0) expect(commits.changelog.length).toBeGreaterThan(0);
 
@@ -279,7 +319,12 @@ describe('buildAbout / buildCommits', () => {
       expect(entry.hash).toMatch(/^[0-9a-f]{4,40}$/);
       expect(entry.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(entry.subject.length).toBeGreaterThan(0);
-      if (entry.type !== null) expect(entry.type).toMatch(/^\w+$/);
+      /* 归一化之后每条都有类型标签：小写字母开头，允许连字符 / 点
+         （self-host 这类历史首词），界面上每一条都出胶囊。 */
+      expect(entry.type).toMatch(/^[a-z][a-z0-9._-]*$/);
+      /* 大写开头只剩 TOC / Vite / TypeScript 这类缩写与专名；
+         普通动词（Fix / Replace / Optimize…）已被提成类型标签，不许留在正文开头。 */
+      expect(entry.subject).not.toMatch(/^(Fix|Replace|Optimize|Update|Self-host|Revert|My)\b/);
       if (entry.scope !== null) expect(entry.scope.length).toBeGreaterThan(0);
     }
 

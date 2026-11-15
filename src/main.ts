@@ -641,7 +641,10 @@ function createMetaLoader<T>(
 }
 
 const aboutMeta = createMetaLoader<AboutData>('site-about.json', 'about:v2');
-const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v2');
+/* v2 → v3：更新日志做了标题归一化（type / subject 变了，hash 没变）。
+   旧缓存里还是未归一化的条目，只比 hash 的 sameMeta 会一直放过它，
+   换存储键才能让存量访客重新拉一次。 */
+const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v3');
 const META_LOAD: Record<MetaKind, () => Promise<AboutData | CommitsData>> = {
   about: () => aboutMeta.load(),
   changelog: () => commitsMeta.load(),
@@ -1087,7 +1090,14 @@ function sameMeta(kind: MetaKind, a: AboutData | CommitsData, b: AboutData | Com
     before.total === after.total &&
     before.repo === after.repo &&
     before.changelog.length === after.changelog.length &&
-    before.changelog.every((entry, i) => entry.hash === after.changelog[i]?.hash) &&
+    /* 不只比 hash：解析规则调整后 hash 不变、type / subject 变了，
+       后台刷新拿到的新数据也要触发重渲染，否则要等下一次换缓存键。 */
+    before.changelog.every(
+      (entry, i) =>
+        entry.hash === after.changelog[i]?.hash &&
+        entry.type === after.changelog[i]?.type &&
+        entry.subject === after.changelog[i]?.subject
+    ) &&
     summaryKeys(before) === summaryKeys(after) &&
     progressKeys(before) === progressKeys(after)
   );
