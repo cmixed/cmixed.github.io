@@ -41,6 +41,15 @@ describe('更新日志条目的布局与标签分工', () => {
     expect(subject).toBeLessThan(type);
   });
 
+  it('正文显式设中性色，编号比 muted 提一档，避免与 accent 标签撞色', () => {
+    // 整行是 <a>：.md-body a 的链接色会顺着继承染到正文，
+    // 不显式设色时正文与 type 标签是完全同一个 --primary-text（色差 1.00）
+    expect(rule('.changelog-subject')).toContain('color: var(--text)');
+    const hash = rule('.changelog-hash');
+    expect(hash).toContain('color: var(--text-dim)');
+    expect(hash).toContain('font-weight: 600');
+  });
+
   it('hash 是定宽编号块、type 是右对齐的分类标签，材质不同', () => {
     const hash = rule('.changelog-hash');
     expect(hash).toContain('min-width: 4.6rem');

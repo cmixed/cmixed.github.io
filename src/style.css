@@ -2116,7 +2116,10 @@ a.changelog-item:hover {
     border: 1px solid var(--border);
     border-radius: 4px;
     background: var(--mica-chip);
-    color: var(--text-muted);
+    /* 不用 --text-muted：那档灰在暗色底上偏淡，编号读起来像被擦掉一层。
+       提到 --text-dim 并把等宽数字加粗，编号才立得住，但仍比正文弱一档。 */
+    color: var(--text-dim);
+    font-weight: 600;
     font-family: var(--font-mono);
     font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
@@ -2126,15 +2129,20 @@ a.changelog-item:hover {
         color var(--transition-speed);
 }
 
-/* 整行可点时才给编号一点反馈，不把 hash 做成一颗抢戏的按钮 */
+/* 整行可点时才给编号一点反馈：边框亮 accent，数字提一档中性亮度，
+   不跟着染成青色，免得 hover 时又和行尾的分类标签撞色 */
 a.changelog-item:hover .changelog-hash {
     border-color: var(--primary);
-    color: var(--primary-text);
+    color: var(--text);
 }
 
 .changelog-subject {
     flex: 1;
     min-width: 0;
+    /* 必须显式设色：整行是链接，`.md-body a` 那条链接色规则会顺着继承
+       把正文染成和 type 标签完全一样的 accent 青（实测两者色差 1.00），
+       主次就没了。这里定成中性的主文本色，标签继续用 accent，两端才分得开。 */
+    color: var(--text);
     font-size: 0.85rem;
     line-height: 1.5;
     overflow-wrap: anywhere;
