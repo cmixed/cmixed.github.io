@@ -100,7 +100,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 ### 页脚：关于本站 / 更新日志
 
-两个悬浮框，内容**在构建期就定型**。`scripts/site-meta.ts` 是一个和 `client-scripts.ts` 同形式的 Vite 插件：`vp build` 时 emit 成 `dist/site-about.json` 与 `dist/site-commits.json`，`vp dev` 时用中间件现读现算 —— 所以改完 README 刷新就生效，`package.json` 里也不用为此多加一步构建。「关于本站」是 `README.md` 经 marked 渲染（**默认配置**，不套博客那套 mermaid / 代码块角标的 renderer；仓库内相对链接如 `LICENSE` 改写成 GitHub 上的对应地址，站外链接补 `target` / `rel`），「更新日志」取 `git log`（标题归一化出 `type` / `scope` 与正文，按日期分组，最多带 800 条）。
+两个悬浮框，内容**在构建期就定型**。`scripts/site-meta.ts` 是一个和 `client-scripts.ts` 同形式的 Vite 插件：`vp build` 时 emit 成 `dist/site-about.json` 与 `dist/site-commits.json`，`vp dev` 时用中间件现读现算 —— 所以改完 README 刷新就生效，`package.json` 里也不用为此多加一步构建。「关于本站」是 `README.md` 经 marked 渲染（**默认配置**，不套博客那套 mermaid / 代码块角标的 renderer；仓库内相对链接如 `LICENSE` 改写成 GitHub 上的对应地址，站外链接补 `target` / `rel`），「更新日志」取 `git log`（按 `AGENTS.md` 的约定式规则严格解析出 `type` / `scope` 与正文，不合规标题直接让构建失败；按日期分组，最多带 800 条）。
 
 **为什么拆成两个文件**：合成一份时是 68.8KB（gzip 22.7KB），首开要等整包走完才渲染，其中一半多是「关于本站」根本用不到的提交记录（约 280 条）。现在按入口拆开（README 的 HTML 约 47KB / gzip 19KB，提交记录约 36KB / gzip 8.7KB），各自只取需要的那份。
 
@@ -116,9 +116,9 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 
 框体是原生 `<dialog>` + `showModal()`：ESC 关闭、焦点陷阱、`::backdrop`、关闭后焦点回到页脚按钮，全是浏览器给的，没有手写焦点管理。材质同样没另写一份 —— `.site-modal` 直接进了文件末尾那条共享面板选择器，底色、受光边、颗粒、贴地阴影自动继承；新增的只有尺寸、圆角、`::backdrop`（`rgba(var(--bg-rgb), .55)` + 6px 模糊：暗色压一层底色、浅色铺一层薄纱，都不用纯黑）和进场的淡入位移（`prefers-reduced-motion` 下不做）。**圆角不靠父级 `overflow: hidden`**：原来是 `border: 1px` + `border-radius: 16px` + `overflow: hidden` 三件凑一起，非整数缩放（浏览器缩放、系统 125%）下弧线会掉一条 1px 毛边 —— 半个像素被裁掉、半个留在外面，看着就是边口缺了一块，点一下触发重绘又对上，于是表现成「缩放时出现、点一下消失」。现在面板自己不裁：正文滚动区用 `border-bottom-*-radius: 15px`（16 减 1px 边框）收下圆角，滚动条和最后一屏内容都跟着弧线走；头部在面板内部、没有底色，不裁也不会露。直达链接是 `#about-site` / `#changelog`（`replaceState`；关闭时把打开前的 hash 还回去 —— 页脚在主页，这个位置本来就属于锚点导航）。更新日志每行是「类型标签 + 标题」靠左、hash 方片**固定右对齐**贴住行尾（`margin-left: auto`，标题只在中段折行，长短都不挤动 hash 的位置），标签复用只读小标签那套材质（`.changelog-hash` / `.changelog-type` 直接挂在共享选择器上，不新增材质）；超过 80 条给一个「展开更多」，数据已经在本地，不再请求。窄屏（≤600px）保持同一布局：标题在中段折行，hash 仍贴右缘，不再换行摊开。
 
-**每一行的首词都是类型标签，正文一律小写开头**（`scripts/site-meta.ts` 的 `parseSubject()`）。历史上 14 条提交不是约定式（`Fix TOC arrow: …`、`Revert "fix(test): …"`、`My Homepage`…），既没有类型胶囊，又大写开头，混在一列里很扎眼。归一化四级兜底：约定式直接拆 → `Revert "…"` 记成 `revert` 并剥掉引号里的内层前缀（scope 透传） → 非约定式英文把首词小写后提成类型（`Fix` → `fix`、`Self-host` → `self-host`） → 中文 / 短语兜底 `other`。冒号后少个空格的 `feat:(blog) update blog` 也能拆开，并把写错位置的 scope 归位。**刻意不把正文首字母一律小写**：剩下的大写开头只有 `TOC`（全大写缩写）、`Vite` / `TypeScript`（专名），强改会变成 `tOC` / `typeScript`；需要小写的那些动词恰好都是非约定式提交的首词，提成标签时已经处理掉了。短语 `My Homepage` 只收首字母成 `my Homepage`，不拆成半截标签。
+**更新日志每一行都来自一条合规的约定式提交**。2026-11-15 用 `git filter-branch --msg-filter` 重写了全部 401 条历史中的 23 条不合规标题（只改 message，tree / 作者 / 日期 / parent 结构不变；备份在 `~/self-web-backup-20261115.bundle`），所以展示层**没有任何归一化**：`COMMIT_TITLE` 严格解析 `type(scope): description`，`parseCommitLine()` 遇到不合规标题直接抛错，`vp build` / `vp dev` 一并失败。规则写在根目录 `AGENTS.md` —— 后续 AI 与人工提交都按它执行，不要再加兜底、白名单或覆盖表。专名与缩写按英文语法保留原拼写（`TOC` / `Vite` / `TypeScript` / `VS Code`），正则不判定 description 的大小写。
 
-缓存跟着换了键：归一化只改 `type` / `subject`，hash 不变，而 `sameMeta()` 原先只比 hash —— 存量访客的 `commits:v2` 缓存会被一直判成「没变」，所以升到 `commits:v3` 强制重拉一次；`sameMeta()` 从此也把每行的 `type` / `subject` 纳入比较，以后再调解析规则不必再升版本。
+重写后所有 hash 变化：季度总结指纹已重算写回存档，前端缓存键升到 `commits:v4`（旧缓存里每一行都指向不存在的提交，不换键会先渲染一帧旧数据），`sameMeta()` 仍逐行比 `hash + type + subject`。站内 commit 链接由新 hash 生成、自动有效；站外旧链接失效。
 
 ### 首页入口与区块标题
 
@@ -261,7 +261,7 @@ README 有好几节、弹窗只有一屏高，找「内容维护」得滚半天�
 pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素材
 ```
 
-把输出的指纹和手写的一条总结写进 `src/data/quarter-summaries.json` 并提交即可。注意 `git log -n 800` 是上限：仓库总提交超过 800 时早期季度会被截断、指纹变化，届时要再调大 `MAX_COMMITS`（从 400 提到 800 是因为归一化时已经 398 条，再多两条就会截断 26Q2）。**标题归一化这类全站改写会让所有已完结季度的指纹同时变化**：`fingerprint` 取的是 `hash + subject`，subject 变了就算变化；复核确认总结文本仍成立后，把 `pnpm quarter-summary` 输出的新指纹写回存档即可，总结内容不必重写。
+把输出的指纹和手写的一条总结写进 `src/data/quarter-summaries.json` 并提交即可。注意 `git log -n 800` 是上限：仓库总提交超过 800 时早期季度会被截断、指纹变化，届时要再调大 `MAX_COMMITS`（从 400 提到 800 是因为当时已有 398 条，再多两条就会截断 26Q2）。**重写 git 历史这类全站变更会让所有已完结季度的指纹同时变化**：`fingerprint` 取的是 `hash + subject`，两者任一变了就算变化；复核确认总结文本仍成立后，把 `pnpm quarter-summary` 输出的新指纹写回存档即可，总结内容不必重写。
 
 **缓存**：弹窗数据走 localStorage 的 stale-while-revalidate。数据结构升级时要把 `createMetaLoader` 的 storeKey 升版（`commits:v1` → `v2`），否则老缓存里没有 `summaries`、首开看不到总结；`sameMeta()` 也因此把总结的键一起比较，保证「季度过完、新增总结但提交没变」时后台刷新仍会重渲染。
 
