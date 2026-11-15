@@ -2054,10 +2054,16 @@ html.modal-open {
     background: var(--border);
 }
 
-.changelog-list {
+/* `.md-body ul` 的通用缩进（1.5rem，见文件末尾）优先级更高，会把整块更新日志
+   推到右侧、和日期行错开一大截；双类选择器压回去，顺带清掉 li 的通用下边距。 */
+.md-body .changelog-list {
     list-style: none;
     margin: 0;
     padding: 0;
+}
+
+.md-body .changelog-list > li {
+    margin-bottom: 0;
 }
 
 .changelog-item {
@@ -2078,15 +2084,40 @@ a.changelog-item:hover {
     color: var(--text);
 }
 
+/* 两颗小标签的定位不同，不该共用一份材质：
+   类型是「这一行是什么」，要能一眼扫到；hash 只是「指向哪次提交」的技术元信息，
+   挂同一个圆角描边胶囊会把主次抹平，还会让人误以为两颗都是可点筛选值。 */
+.changelog-type {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.16rem 0.5rem;
+    border: 1px solid var(--primary);
+    border-radius: 5px;
+    background: var(--primary-dim);
+    color: var(--primary-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
 .changelog-hash {
     flex: none;
     /* 固定右对齐：主题长短只影响中段，hash 始终贴住行尾 */
     margin-left: auto;
     font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.changelog-type {
-    flex: none;
+/* hash 只有在整行可点时才显出「这是个链接」 */
+a.changelog-item:hover .changelog-hash {
+    color: var(--primary-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .changelog-subject {
@@ -2162,8 +2193,29 @@ a.changelog-item:hover {
         font-size: 0.875rem;
     }
 
-    /* 窄屏条目不再换行摊开：仍是「类型 + 主题」靠左、hash 固定右对齐一行，
-       主题在中段自己折行（min-width: 0 已允许收缩），hash 永远贴右缘 */
+    /* 窄屏改成「元数据一行、标题独占下一行」：
+       单行三段在 390px 下把正文挤到 130px，一条标题要折三四行，而且正文起点
+       随 type 标签的宽度左右漂移。换行后标题吃满整行、左缘与 type 对齐，
+       hash 靠 margin-left:auto 贴在元数据行右端，视觉上也不再和 type 抢位置。 */
+    .changelog-item {
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 0.5rem;
+        row-gap: 0.3rem;
+    }
+
+    .changelog-type {
+        order: 1;
+    }
+
+    .changelog-hash {
+        order: 2;
+    }
+
+    .changelog-subject {
+        order: 3;
+        flex: 1 1 100%;
+    }
 }
 
 /* ===== SCROLLBAR ===== */
@@ -3712,10 +3764,8 @@ html::after {
     min-width: calc(var(--chip-cols, 1) * 1em);
 }
 
-/* 定长标签不参与量化：hash 是 7 位十六进制、语言角标是 2–4 个字母，
-   套 2em 阶梯会把内容挤出去。 */
-.changelog-hash,
-.changelog-type,
+/* 定长标签不参与量化：语言角标是 2–4 个字母，套 2em 阶梯会把内容挤出去。
+   更新日志的 type / hash 已各自拆出独立规则（见上方），不再共享这份材质。 */
 .code-block-lang {
     background: var(--mica-chip);
     color: var(--mica-chip-text);
