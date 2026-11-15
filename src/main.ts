@@ -504,7 +504,8 @@ if ('ResizeObserver' in window) {
 interface ChangelogEntry {
   hash: string;
   date: string;
-  type: string | null;
+  /** 恒来自 AGENTS.md 的固定词表，构建期硬校验 */
+  type: string;
   scope: string | null;
   subject: string;
 }
@@ -641,10 +642,9 @@ function createMetaLoader<T>(
 }
 
 const aboutMeta = createMetaLoader<AboutData>('site-about.json', 'about:v2');
-/* v2 → v3：更新日志做了标题归一化（type / subject 变了，hash 没变）。
-   旧缓存里还是未归一化的条目，只比 hash 的 sameMeta 会一直放过它，
-   换存储键才能让存量访客重新拉一次。 */
-const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v3');
+/* v3 → v4：2026-11-15 重写了全部 401 条历史的 hash，旧缓存里的每一行都指向
+   不存在的提交。换存储键，避免存量访客先渲染一帧旧数据再被后台刷新替换。 */
+const commitsMeta = createMetaLoader<CommitsData>('site-commits.json', 'commits:v4');
 const META_LOAD: Record<MetaKind, () => Promise<AboutData | CommitsData>> = {
   about: () => aboutMeta.load(),
   changelog: () => commitsMeta.load(),
@@ -749,14 +749,10 @@ function quarterSummaryHtml(
 }
 
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
-  /* 类型 + 主题靠左，hash 固定右对齐贴住行尾（.changelog-hash 的 margin-left: auto） */
-  const inner = `${
-    entry.type
-      ? `<span class="changelog-type">${escapeHtml(
-          entry.scope ? `${entry.type}/${entry.scope}` : entry.type
-        )}</span>`
-      : ''
-  }<span class="changelog-subject">${escapeHtml(entry.subject)}</span><span class="changelog-hash">${escapeHtml(entry.hash)}</span>`;
+  /* 类型 + 主题靠左，hash 固定右对齐贴住行尾（.changelog-hash 的 margin-left: auto）。
+     每条都有类型胶囊：构建期已按 AGENTS.md 硬校验，不需要展示层兜底。 */
+  const typeLabel = entry.scope ? `${entry.type}/${entry.scope}` : entry.type;
+  const inner = `<span class="changelog-type">${escapeHtml(typeLabel)}</span><span class="changelog-subject">${escapeHtml(entry.subject)}</span><span class="changelog-hash">${escapeHtml(entry.hash)}</span>`;
   if (!repo) return `<li><div class="changelog-item">${inner}</div></li>`;
   return `<li><a class="changelog-item" href="${escapeHtml(
     `${repo}/commit/${entry.hash}`

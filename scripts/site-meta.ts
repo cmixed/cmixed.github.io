@@ -43,10 +43,8 @@ export const MAX_COMMITS = 800;
 export interface ChangelogEntry {
   hash: string;
   date: string;
-  /** 类型标签（feat / fix / …）。非约定式提交会兜底：Revert 记成 revert，
-   *  能提出首词的用首词小写，其余记 other —— 构建出来的条目恒有类型，
-   *  界面上每一条都有胶囊，不会有的亮有的不亮。 */
-  type: string | null;
+  /** 约定式提交的类型，恒来自 AGENTS.md 的固定词表（构建期硬校验） */
+  type: string;
   /** 括号里的范围（如 fix(ui) 的 ui），没有为 null */
   scope: string | null;
   /** 去掉 `type(scope): ` 前缀后的正文 */
@@ -140,82 +138,32 @@ export interface CommitsMeta {
   inProgressNotice: QuarterNotice | null;
 }
 
-/* 约定式提交 `type(scope): subject`。冒号后的空格不再强制：历史上有一条
-   `feat:(blog) update blog`，少一个空格就整条丢了类型标签。用 \s* 不会误吃
-   普通句子 —— type 后面仍必须紧跟 `:` 或 `(scope)`。 */
-const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?!?:\s*([\s\S]+)$/;
-/** git 自动生成的还原提交：`Revert "原始标题"` */
-const REVERTED = /^Revert\s+"([\s\S]+)"$/;
-/** scope 写到了冒号后面：`feat:(blog) update blog` 拆完之后正文开头还挂着 `(blog)` */
-const MISPLACED_SCOPE = /^\(([^)]+)\)\s*([\s\S]+)$/;
-/** 非约定式提交的首词（通常是动词），提出来当类型标签；只认 ASCII 词，
- *  中文标题没有「词」的边界，整条不拆。 */
-const LEADING_WORD = /^([A-Za-z][A-Za-z0-9._-]*)\s+([\s\S]+)$/;
-/** 兜底条目的正文若以普通英文词开头（My Homepage），按仓库惯例小写首字母。
- *  只认 `^[A-Z][a-z]+` + 词尾：TOC（全大写缩写）、TypeScript（二次大写）不碰。 */
-const LOWER_FIRST = /^[A-Z][a-z]+(?=\s|$)/;
-
-interface SubjectParts {
-  type: string;
-  scope: string | null;
-  subject: string;
-}
-
 /**
- * 把一条 git 标题统一成「类型 + 正文」，让更新日志每一条都长得一样：
- *   约定式       fix(ui): make pills readable → fix / ui / make pills readable
- *   冒号后没空格 feat:(blog) update blog      → feat / blog / update blog
- *   还原提交     Revert "fix: foo"            → revert / foo
- *   非约定式     Fix TOC arrow: …             → fix / TOC arrow: …
- *   提不出首词   My Homepage / 中文标题       → other / 原标题
+ * 约定式提交标题。规则写在根目录 `AGENTS.md`，构建期按这一条正则硬校验：
+ * type 来自固定 11 类词表、scope 小写、`: ` 后必须有空格、description 非空。
  *
- * 刻意**不**把正文首字母统一小写：Vite / TypeScript / TOC 这类专名与缩写
- * 小写会变成 vite? typeScript? tOC?，反而更乱。需要小写的那些词
- * （Fix / Replace / Optimize / …）恰好都是非约定式提交的首词，提成类型标签时
- * 已经小写了；剩下的大写开头都是专名，保留才是对的。
+ * description 的大小写**不机器判定**：TOC / Vite / TypeScript / VS Code 按英文
+ * 语法该大写就大写，不需要白名单 —— 白名单正是这次重写历史要删掉的东西。
  */
-function parseSubject(raw: string): SubjectParts {
-  const revert = REVERTED.exec(raw);
-  if (revert) {
-    /* 引号里是被还原那条的完整标题：再拆一遍，只把类型记成 revert。
-       `Revert "fix(test): silence …"` → [revert/test] silence …，
-       既不把内层 "fix(test):" 重复留在正文里，也不丢 scope。 */
-    const inner = parseSubject(revert[1]);
-    return { type: 'revert', scope: inner.scope, subject: inner.subject };
-  }
-  const match = CONVENTIONAL.exec(raw);
-  if (match) {
-    let scope = match[2] ?? null;
-    let subject = match[3];
-    const misplaced = MISPLACED_SCOPE.exec(subject);
-    if (!scope && misplaced) {
-      scope = misplaced[1];
-      subject = misplaced[2];
-    }
-    return { type: match[1].toLowerCase(), scope, subject };
-  }
-  const leading = LEADING_WORD.exec(raw);
-  /* 首词至少 3 个字符：My Homepage 的 "My" 提成标签只剩 "Homepage"，
-     读起来比 [other] My Homepage 更怪。 */
-  if (leading && leading[1].length >= 3) {
-    return { type: leading[1].toLowerCase(), scope: null, subject: leading[2] };
-  }
-  /* 提不出首词（中文、短语）：类型兜底 other，正文只收一下首字母，
-     别让整列小写条目里冒出一条大写开头。 */
-  return {
-    type: 'other',
-    scope: null,
-    subject: LOWER_FIRST.test(raw) ? raw[0].toLowerCase() + raw.slice(1) : raw,
-  };
-}
+export const COMMIT_TITLE =
+  /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(([a-z0-9._/-]+)\))?!?: (.+)$/;
 
-/** 解析 `git log --pretty=%h\x1f%cs\x1f%s` 的一行；格式不对返回 null。 */
+/** 解析 `git log --pretty=%h\x1f%cs\x1f%s` 的一行。
+ *  行本身格式不对返回 null；标题不符合约定式规范直接抛错 —— 历史已于
+ *  2026-11-15 全量重写，再出现不合规说明有人没按 AGENTS.md 提交。 */
 export function parseCommitLine(raw: string): ChangelogEntry | null {
   const [hash, date, ...rest] = raw.split('\x1f');
-  const subject = rest.join('\x1f').trim();
+  const title = rest.join('\x1f').trim();
   if (!/^[0-9a-f]{4,40}$/.test(hash || '') || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
-  if (!subject) return null;
-  return { hash, date, ...parseSubject(subject) };
+  if (!title) return null;
+  const match = COMMIT_TITLE.exec(title);
+  if (!match) {
+    throw new Error(
+      `提交标题不符合约定式提交规范（${hash}）：${title}\n` +
+        '格式：<type>[(<scope>)][!]: <description>，type 见 AGENTS.md'
+    );
+  }
+  return { hash, date, type: match[1], scope: match[2] ?? null, subject: match[3] };
 }
 
 /** 把 `git log` 的整段输出拆成条目（保持 git 给的顺序，即新 → 旧）。 */
@@ -261,8 +209,7 @@ export function quarterFingerprint(entries: ChangelogEntry[]): string {
 export function quarterStats(entries: ChangelogEntry[]): QuarterStats {
   const types = new Map<string, number>();
   for (const entry of entries) {
-    const type = entry.type || 'other';
-    types.set(type, (types.get(type) || 0) + 1);
+    types.set(entry.type, (types.get(entry.type) || 0) + 1);
   }
   return {
     commits: entries.length,
@@ -501,9 +448,11 @@ export function readRepoUrl(): string | null {
 }
 
 export function readCommits(): { changelog: ChangelogEntry[]; total: number } {
+  let output: string;
+  let total: number;
   try {
-    const total = Number.parseInt(git(['rev-list', '--count', 'HEAD']).trim(), 10) || 0;
-    const output = git([
+    total = Number.parseInt(git(['rev-list', '--count', 'HEAD']).trim(), 10) || 0;
+    output = git([
       '-c',
       'core.quotePath=false',
       'log',
@@ -512,10 +461,11 @@ export function readCommits(): { changelog: ChangelogEntry[]; total: number } {
       '--date=short',
       '--pretty=format:%h\x1f%cs\x1f%s',
     ]);
-    return { changelog: parseCommits(output), total };
   } catch {
-    return { changelog: [], total: 0 };
+    return { changelog: [], total: 0 }; // 非 git 环境：没有历史就不渲染更新日志
   }
+  /* 解析必须在 catch 外面：标题不合规要让构建失败，不能被「非 git 环境」的兜底吞掉 */
+  return { changelog: parseCommits(output), total };
 }
 
 export async function buildAbout(): Promise<AboutMeta> {

@@ -60,58 +60,40 @@ describe('parseCommitLine', () => {
     });
   });
 
-  it('非约定式英文提交：首词提成小写类型标签，正文里的专名 / 缩写不动', () => {
-    expect(parseCommitLine(commit("Merge branch 'main'"))).toMatchObject({
-      type: 'merge',
-      scope: null,
-      subject: "branch 'main'",
+  it('专名与缩写按英文语法保留大写，不做任何大小写归一化', () => {
+    expect(parseCommitLine(commit('refactor: Vite multi-file project structure'))).toMatchObject({
+      type: 'refactor',
+      subject: 'Vite multi-file project structure',
     });
-    expect(parseCommitLine(commit('Fix TOC arrow: sync state on collapse'))).toMatchObject({
+    expect(parseCommitLine(commit('fix: TOC arrow: sync state on collapse'))).toMatchObject({
       type: 'fix',
       subject: 'TOC arrow: sync state on collapse',
     });
   });
 
-  it('约定式提交的正文首字母不被强行小写（Vite / TypeScript / TOC 是专名）', () => {
-    expect(parseCommitLine(commit('refactor: Vite multi-file project structure'))).toMatchObject({
-      type: 'refactor',
-      subject: 'Vite multi-file project structure',
-    });
+  it('不合规标题直接抛错并指向 AGENTS.md（构建期硬校验）', () => {
+    const invalid = [
+      "Merge branch 'main'",
+      '更新 README: 补充命令表',
+      'My Homepage',
+      'feat:(blog) update blog',
+      'Revert "fix(test): silence Vitest"',
+      'fear: add new blog post',
+      'chorn: update markdown',
+      'fix:x',
+      'feat(UI): wide pills',
+    ];
+    for (const title of invalid) {
+      expect(() => parseCommitLine(commit(title)), title).toThrow(/约定式提交规范/);
+    }
   });
 
-  it('中文标题 / 太短的首词提不出类型，兜底 other 且不改写正文', () => {
-    expect(parseCommitLine(commit('更新 README: 补充命令表'))).toMatchObject({
-      type: 'other',
-      subject: '更新 README: 补充命令表',
-    });
-    /* 短语只收首字母：整列小写开头里不留一条大写，但也不把它拆成 [my] Homepage */
-    expect(parseCommitLine(commit('My Homepage'))).toMatchObject({
-      type: 'other',
-      subject: 'my Homepage',
-    });
-  });
-
-  it('冒号后没空格也能拆出 type，并把写错位置的 scope 归位', () => {
-    expect(parseCommitLine(commit('feat:(blog) update blog'))).toMatchObject({
-      type: 'feat',
-      scope: 'blog',
-      subject: 'update blog',
-    });
-  });
-
-  it('Revert 剥掉引号与内层前缀，类型统一记 revert', () => {
-    expect(
-      parseCommitLine(commit('Revert "fix(test): silence Vitest deprecation warning"'))
-    ).toMatchObject({
-      type: 'revert',
-      scope: 'test',
-      subject: 'silence Vitest deprecation warning',
-    });
-    expect(parseCommitLine(commit('Revert "feat: add chest resource page"'))).toMatchObject({
-      type: 'revert',
-      scope: null,
-      subject: 'add chest resource page',
-    });
+  it('整段解析时，一条不合规标题就让构建失败，不静默丢弃', () => {
+    const output = [
+      `b2c3d4e${SEP}2026-10-21${SEP}feat: second`,
+      `a1b2c3d${SEP}2026-10-20${SEP}Fix TOC arrow: ...`,
+    ].join('\n');
+    expect(() => parseCommits(output)).toThrow(/约定式提交规范/);
   });
 
   it('标题里出现分隔符时保留后续内容，不会被截断', () => {
@@ -319,12 +301,10 @@ describe('buildAbout / buildCommits', () => {
       expect(entry.hash).toMatch(/^[0-9a-f]{4,40}$/);
       expect(entry.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(entry.subject.length).toBeGreaterThan(0);
-      /* 归一化之后每条都有类型标签：小写字母开头，允许连字符 / 点
-         （self-host 这类历史首词），界面上每一条都出胶囊。 */
-      expect(entry.type).toMatch(/^[a-z][a-z0-9._-]*$/);
-      /* 大写开头只剩 TOC / Vite / TypeScript 这类缩写与专名；
-         普通动词（Fix / Replace / Optimize…）已被提成类型标签，不许留在正文开头。 */
-      expect(entry.subject).not.toMatch(/^(Fix|Replace|Optimize|Update|Self-host|Revert|My)\b/);
+      /* 历史已按 AGENTS.md 全量重写：类型恒来自固定词表，不存在 other / 兜底类型 */
+      expect(entry.type).toMatch(
+        /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)$/
+      );
       if (entry.scope !== null) expect(entry.scope.length).toBeGreaterThan(0);
     }
 
