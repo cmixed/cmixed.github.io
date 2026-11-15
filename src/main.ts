@@ -749,10 +749,11 @@ function quarterSummaryHtml(
 }
 
 function changelogItem(entry: ChangelogEntry, repo: string | null): string {
-  /* 类型 + 主题靠左，hash 固定右对齐贴住行尾（.changelog-hash 的 margin-left: auto）。
-     每条都有类型胶囊：构建期已按 AGENTS.md 硬校验，不需要展示层兜底。 */
+  /* 行首定长的 commit 编号 → 正文 → 末尾右对齐的分类标签。
+     hash 定宽，正文左缘就不再随 type 标签宽度漂移；构建期已按 AGENTS.md
+     硬校验，每条都有类型标签，不需要展示层兜底。 */
   const typeLabel = entry.scope ? `${entry.type}/${entry.scope}` : entry.type;
-  const inner = `<span class="changelog-type">${escapeHtml(typeLabel)}</span><span class="changelog-subject">${escapeHtml(entry.subject)}</span><span class="changelog-hash">${escapeHtml(entry.hash)}</span>`;
+  const inner = `<span class="changelog-hash">${escapeHtml(entry.hash)}</span><span class="changelog-subject">${escapeHtml(entry.subject)}</span><span class="changelog-type">${escapeHtml(typeLabel)}</span>`;
   if (!repo) return `<li><div class="changelog-item">${inner}</div></li>`;
   return `<li><a class="changelog-item" href="${escapeHtml(
     `${repo}/commit/${entry.hash}`

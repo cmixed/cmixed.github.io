@@ -2089,6 +2089,8 @@ a.changelog-item:hover {
    挂同一个圆角描边胶囊会把主次抹平，还会让人误以为两颗都是可点筛选值。 */
 .changelog-type {
     flex: none;
+    /* 分类列固定右对齐：正文长短只影响中段，type 始终贴住行尾 */
+    margin-left: auto;
     display: inline-flex;
     align-items: center;
     padding: 0.16rem 0.5rem;
@@ -2102,22 +2104,32 @@ a.changelog-item:hover {
     white-space: nowrap;
 }
 
+/* hash 是行首的「编号」：7 位等宽定长，做成中性小方块。
+   定宽是关键 —— 所有行的正文左缘因此对齐，不再被长短不一的分类标签推着走。 */
 .changelog-hash {
     flex: none;
-    /* 固定右对齐：主题长短只影响中段，hash 始终贴住行尾 */
-    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4.6rem;
+    padding: 0.12rem 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--mica-chip);
+    color: var(--text-muted);
     font-family: var(--font-mono);
     font-size: 0.72rem;
-    color: var(--text-muted);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    transition:
+        border-color var(--transition-speed),
+        color var(--transition-speed);
 }
 
-/* hash 只有在整行可点时才显出「这是个链接」 */
+/* 整行可点时才给编号一点反馈，不把 hash 做成一颗抢戏的按钮 */
 a.changelog-item:hover .changelog-hash {
+    border-color: var(--primary);
     color: var(--primary-text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
 }
 
 .changelog-subject {
@@ -2194,9 +2206,10 @@ a.changelog-item:hover .changelog-hash {
     }
 
     /* 窄屏改成「元数据一行、标题独占下一行」：
-       单行三段在 390px 下把正文挤到 130px，一条标题要折三四行，而且正文起点
-       随 type 标签的宽度左右漂移。换行后标题吃满整行、左缘与 type 对齐，
-       hash 靠 margin-left:auto 贴在元数据行右端，视觉上也不再和 type 抢位置。 */
+       第一行 hash 编号靠左、type 分类靠右，标题吃满下一行。
+       单行三段在 390px 下会把正文挤到 130px、折三四行；换行后标题左缘与编号、
+       日期行对齐，正文普遍降到一两行。DOM 顺序是 hash → subject → type，
+       用 order 把 type 提到元数据的那一行，不改结构就能两端对齐。 */
     .changelog-item {
         flex-wrap: wrap;
         align-items: center;
@@ -2204,11 +2217,11 @@ a.changelog-item:hover .changelog-hash {
         row-gap: 0.3rem;
     }
 
-    .changelog-type {
+    .changelog-hash {
         order: 1;
     }
 
-    .changelog-hash {
+    .changelog-type {
         order: 2;
     }
 

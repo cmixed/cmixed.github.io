@@ -3,13 +3,16 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vite-plus/test';
 
 /**
- * 更新日志条目的回归防线：左侧缩进、两颗小标签的分工、窄屏两段式布局。
+ * 更新日志条目的回归防线：左侧缩进、三段顺序、两颗小标签的分工、窄屏两段式布局。
  *
  * 这一版之前 `.md-body ul`（0,1,1）压过了 `.changelog-list`（0,1,0），
  * 整块列表被通用 Markdown 缩进推到右侧 22.5px；窄屏又坚持单行三段，
- * 正文只剩 130px、要折三四行。type 与 hash 还共用同一份圆角描边胶囊材质。
+ * 正文只剩 130px、要折三四行。后来把定长 hash 移到行首、分类标签移到行尾，
+ * 正文左缘才不再随标签宽度漂移。
  */
-const css = readFileSync(join(import.meta.dirname, '..', '..', 'src', 'style.css'), 'utf-8');
+const ROOT = join(import.meta.dirname, '..', '..');
+const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
+const main = readFileSync(join(ROOT, 'src', 'main.ts'), 'utf-8');
 
 /** 取出某个选择器的第一条规则体（这些块都是扁平的）。 */
 function rule(selector: string): string {
@@ -26,12 +29,26 @@ describe('更新日志条目的布局与标签分工', () => {
     expect(rule('.md-body .changelog-list > li')).toContain('margin-bottom: 0');
   });
 
-  it('type 是实心标签、hash 是纯文本，两者不再共用一份材质', () => {
-    expect(rule('.changelog-type')).toContain('background: var(--primary-dim)');
+  it('渲染顺序是 hash → subject → type', () => {
+    const start = main.indexOf('const inner = `<span');
+    expect(start).toBeGreaterThan(-1);
+    const line = main.slice(start, main.indexOf('`;', start));
+    const hash = line.indexOf('changelog-hash');
+    const subject = line.indexOf('changelog-subject');
+    const type = line.indexOf('changelog-type');
+    expect(hash).toBeGreaterThan(-1);
+    expect(hash).toBeLessThan(subject);
+    expect(subject).toBeLessThan(type);
+  });
+
+  it('hash 是定宽编号块、type 是右对齐的分类标签，材质不同', () => {
     const hash = rule('.changelog-hash');
-    expect(hash).toContain('font-family: var(--font-mono)');
-    expect(hash).not.toContain('background');
-    expect(hash).not.toContain('border-radius');
+    expect(hash).toContain('min-width: 4.6rem');
+    expect(hash).toContain('background: var(--mica-chip)');
+    expect(hash).toContain('border: 1px solid var(--border)');
+    const type = rule('.changelog-type');
+    expect(type).toContain('margin-left: auto');
+    expect(type).toContain('background: var(--primary-dim)');
     // 共享的定长标签材质里只剩语言角标
     const shared = css.slice(
       css.indexOf('.code-block-lang {') - 120,
