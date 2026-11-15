@@ -1,5 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="个人博客">
-  <!-- 透明底 + 纯黑线稿：不再铺深色圆角底，浏览器标签页上只看到线条 -->
-  <path d="M13 10.5 7.5 16 13 21.5" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M19 10.5 24.5 16 19 21.5" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#183b3d"/>
+      <stop offset="1" stop-color="#0d2023"/>
+    </linearGradient>
+  </defs>
+  <!-- 与主页 / 小窝共用同一块墨底、受光边与青线笔画 -->
+  <rect x="1" y="1" width="30" height="30" rx="9" fill="url(#ink)" stroke="#5fd1b5" stroke-opacity=".45"/>
+  <!-- 博客：折角稿纸 + 三行文字，比一对尖括号更能说明「这里放文章」 -->
+  <g fill="none" stroke="#7fe3cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.4 6.8h11.2l4 4v14.4H9.4Z"/>
+    <path d="M20.6 6.8v4h4"/>
+  </g>
+  <g fill="none" stroke="#7fe3cc" stroke-opacity=".82" stroke-width="1.6" stroke-linecap="round">
+    <path d="M12.8 14.6h8.8M12.8 18.7h8.8M12.8 22.8h5.6"/>
+  </g>
 </svg>

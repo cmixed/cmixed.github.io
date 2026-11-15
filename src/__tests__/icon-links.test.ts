@@ -44,6 +44,30 @@ describe('页面图标引用', () => {
     }
   });
 
+  it('三枚 SVG 是同一套「墨底青线」家族，不再是透明底黑线', () => {
+    for (const name of ['site', 'blog', 'nook']) {
+      const svg = readFileSync(join(ROOT, 'public', 'assets', 'icons', `${name}.svg`), 'utf-8');
+      expect(svg, name).toContain('viewBox="0 0 32 32"');
+      expect(svg, name).toContain('linearGradient'); // 墨底渐变
+      expect(svg, name).toContain('#5fd1b5'); // 受光描边
+      expect(svg, name).toContain('#7fe3cc'); // 符号青线
+      expect(svg, name).not.toContain('stroke="#111"');
+    }
+  });
+
+  it('apple-touch-icon 是 192×192、四角不透明的 PNG', async () => {
+    const sharp = (await import('sharp')).default;
+    for (const file of ['site-wf-192x192.png', 'blog-192x192.png', 'nook-192x192.png']) {
+      const path = join(ROOT, 'public', 'assets', 'icons', file);
+      const meta = await sharp(path).metadata();
+      expect(meta.width, file).toBe(192);
+      expect(meta.height, file).toBe(192);
+      // iOS 会把圆角外的透明像素渲染成黑块，所以左上角必须是实底
+      const { data } = await sharp(path).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      expect(data[3], file).toBe(255);
+    }
+  });
+
   it('favicon 统一走 SVG 线稿，不再引用 32px 位图', () => {
     for (const source of SOURCES) {
       const html = readFileSync(join(ROOT, source), 'utf-8');

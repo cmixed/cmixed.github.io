@@ -1,5 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="cmixed 主页">
-  <!-- 透明底 + 纯黑线稿：不再铺深色圆角底，浏览器标签页上只看到线条 -->
-  <path d="M4 14.9 16 5.3l12 9.6" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M7.5 13.1v12.5h17V13.1" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#183b3d"/>
+      <stop offset="1" stop-color="#0d2023"/>
+    </linearGradient>
+  </defs>
+  <!-- 墨底 + 受光边：和站内卡片的 mica 材质同一条青线 -->
+  <rect x="1" y="1" width="30" height="30" rx="9" fill="url(#ink)" stroke="#5fd1b5" stroke-opacity=".45"/>
+  <!-- 主页：几何化屋顶 + 拱门，比两笔简笔更立得住 -->
+  <g fill="none" stroke="#7fe3cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.6 14.5 16 7.2l9.4 7.3"/>
+    <path d="M9.2 13.1v11.5h13.6V13.1"/>
+    <path d="M13.4 24.6v-4.2a2.6 2.6 0 0 1 5.2 0v4.2"/>
+  </g>
 </svg>
