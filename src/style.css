@@ -57,6 +57,11 @@
     --warning: #f59e0b;
     --shadow: rgba(0, 0, 0, 0.35);
     --transition-speed: 0.3s;
+    /* spring-ease:start */
+    /* 由 scripts/build-spring.ts 生成，勿手改：改曲线请改脚本里的 ζ / ω */
+    --spring-press: linear(0, 0.0382 3.1%, 0.1255 6.3%, 0.2336 9.4%, 0.3453 12.5%, 0.4513 15.6%, 0.5469 18.8%, 0.6302 21.9%, 0.701 25%, 0.7602 28.1%, 0.8089 31.3%, 0.8486 34.4%, 0.8807 37.5%, 0.9063 40.6%, 0.9267 43.8%, 0.9429 46.9%, 0.9556 50%, 0.9656 53.1%, 0.9734 56.3%, 0.9795 59.4%, 0.9842 62.5%, 0.9879 65.6%, 0.9907 68.8%, 0.9929 71.9%, 0.9945 75%, 0.9958 78.1%, 0.9968 81.3%, 0.9976 84.4%, 0.9982 87.5%, 0.9986 90.6%, 0.9989 93.8%, 0.9992 96.9%, 0.9994 100%);
+    --spring-scroll: linear(0, 0.0121 3.1%, 0.0442 6.3%, 0.0907 9.4%, 0.147 12.5%, 0.2095 15.6%, 0.2751 18.8%, 0.3417 21.9%, 0.4074 25%, 0.4709 28.1%, 0.5314 31.3%, 0.588 34.4%, 0.6405 37.5%, 0.6886 40.6%, 0.7323 43.8%, 0.7716 46.9%, 0.8067 50%, 0.8377 53.1%, 0.8651 56.3%, 0.8889 59.4%, 0.9095 62.5%, 0.9272 65.6%, 0.9424 68.8%, 0.9552 71.9%, 0.9659 75%, 0.9748 78.1%, 0.9822 81.3%, 0.9882 84.4%, 0.993 87.5%, 0.9968 90.6%, 0.9997 93.8%, 1.002 96.9%, 1.0036 100%);
+    /* spring-ease:end */
     /* 等宽字形（代码块、提交 hash、日期）：全站同一串回退，别再各写一份 */
     --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
@@ -468,14 +473,17 @@ body.nav-open::before {
     to { opacity: 1; }
 }
 
-/* Theme toggle */
+/* Theme toggle：一颗圆钮，太阳和月亮在原地交叉 —— 不再有左右滑的滑块。
+   全站按钮都是圆角方，只有它是圆：方的「点一次就走」，圆的「双向状态」。 */
 .theme-toggle {
     position: relative;
-    width: 48px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
     background: var(--mica-raised);
     border: 1px solid var(--border);
-    border-radius: 13px;
+    border-radius: 50%;
     cursor: pointer;
     overflow: hidden;
     transition: border-color var(--transition-speed), background var(--transition-speed);
@@ -486,54 +494,54 @@ body.nav-open::before {
     border-color: var(--primary);
 }
 
-.theme-toggle-slider {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 20px;
-    height: 20px;
-    background: var(--primary);
-    border-radius: 50%;
-    transition: transform var(--transition-speed), background var(--transition-speed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-[data-theme="light"] .theme-toggle-slider {
-    transform: translateX(22px);
+@media (hover: none) and (pointer: coarse) {
+    .theme-toggle { width: 36px; height: 36px; }
 }
 
 .theme-icon {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--bg);
-    transition: opacity 0.3s;
-    transform: translate(-50%, -50%);
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--primary-text);
+    /* 原地交叉 + 轻微旋转：位移交给 opacity / transform，两者都走合成器；
+       曲线是构建期采样好的 spring（--spring-press），运行时零计算 */
+    transition:
+        opacity 0.32s var(--spring-press),
+        transform 0.32s var(--spring-press);
 }
 
 .theme-icon svg {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     display: block;
-    /* 24 格缩到 12px，1.8px 的笔画只剩 0.9px，太阳射线会散成灰点；提到 2.4 */
-    stroke-width: 2.4;
+    stroke-width: 2.2;
+}
+
+/* 跟随系统暗色时 data-theme 是空值（:root 就是暗色），默认给月亮 */
+.theme-toggle .moon-icon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
 }
 
 .theme-toggle .sun-icon {
     opacity: 0;
+    transform: rotate(-90deg) scale(0.55);
 }
 
-.theme-toggle .moon-icon {
+[data-theme="light"] .theme-toggle .moon-icon {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.55);
+}
+
+[data-theme="light"] .theme-toggle .sun-icon {
     opacity: 1;
+    transform: rotate(0deg) scale(1);
 }
 
-[data-theme="light"] .theme-toggle .moon-icon { opacity: 0; }
-[data-theme="light"] .theme-toggle .sun-icon { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+    .theme-icon { transition: none; }
+}
 
 /* ===== HERO ===== */
 .hero {
@@ -4583,6 +4591,27 @@ html.modal-open .fx-layer { visibility: hidden; }
     }
 }
 
+/* 撞到边界的轻回弹：整页压 10px 再弹回。曲线是 ζ=1 的 spring（无振荡），
+   所以只有「压下去 → 回来」一次。html 上的 transform 会临时改变 fixed 的参照，
+   导航和浮动按钮跟着一起弹 —— 这正是橡皮筋该有的样子。 */
+@keyframes edge-bounce-top {
+    from { transform: translateY(10px); }
+    to { transform: none; }
+}
+
+@keyframes edge-bounce-bottom {
+    from { transform: translateY(-10px); }
+    to { transform: none; }
+}
+
+html.edge-top { animation: edge-bounce-top 400ms var(--spring-press); }
+html.edge-bottom { animation: edge-bounce-bottom 400ms var(--spring-press); }
+
+@media (prefers-reduced-motion: reduce) {
+    html.edge-top,
+    html.edge-bottom { animation: none; }
+}
+
 /* ===== 右下角浮动操作 =====
    fab（ui.js）在主页、博客（列表 / 文章）、资源小窝（列表 / 详情）注入同一组按钮：
    回上级 + 回到顶部 + 直达底部。样式只写这一份，页面里不再各存一套。
@@ -4627,7 +4656,18 @@ html.modal-open .fx-layer { visibility: hidden; }
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: border-color var(--transition-speed), color var(--transition-speed),
-        background var(--transition-speed), transform var(--transition-speed);
+        background var(--transition-speed), transform 180ms var(--spring-press);
+}
+
+/* 按下去弹一下：transform 走合成器，曲线是构建期采样好的 ζ=1 spring，
+   松手回弹没有任何运行时计算 */
+.fab-btn:active {
+    transform: scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fab-btn { transition: border-color var(--transition-speed), color var(--transition-speed), background var(--transition-speed); }
+    .fab-btn:active { transform: none; }
 }
 
 /* 只有右下角这组常驻按钮跟着导航做玻璃：文章页导航里那两颗 26px 的按钮本来就在

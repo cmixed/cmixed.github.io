@@ -29,6 +29,7 @@
     "test:watch": "vp test",
     "optimize-images": "tsx scripts/optimize-images.ts",
     "icons": "tsx scripts/build-site-icons.ts",
+    "spring": "tsx scripts/build-spring.ts",
     "og-image": "tsx scripts/og-image.ts",
     "quarter-summary": "tsx scripts/quarter-summary.ts"
   },

@@ -44,9 +44,106 @@
     );
   }
 
+  /* 与 src/lib/spring.ts 同一组参数（构建期由 scripts/build-spring.ts 生成）。
+     esbuild 这里只做 transform 不做 bundle，没法 import，靠测试钉住两处一致：
+     ζ 0.85 有约 0.6% 的一次过冲，肉眼是「到边界轻轻一顿」，不是振荡。 */
+  const SPRING = { zeta: 0.85, omega: 18 } as const;
+
+  let lastY = window.scrollY;
+  let lastT = performance.now();
+  /** 松手瞬间的速度（px/ms）—— spring 的初值，这一项只能在运行时拿到 */
+  let velocity = 0;
+
+  function trackVelocity(): void {
+    const now = performance.now();
+    const y = window.scrollY;
+    const dt = now - lastT;
+    if (dt > 0) velocity = (y - lastY) / dt;
+    lastY = y;
+    lastT = now;
+  }
+  window.addEventListener('scroll', trackVelocity, { passive: true });
+
   // 系统要求减少动效时，跳转改成瞬移，别逼着前庭敏感的人看一段长滚动
-  function behavior(): ScrollBehavior {
-    return matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  function reducedMotion(): boolean {
+    return matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /**
+   * 弹簧滚动。
+   *
+   * scrollTop 不是合成属性，WAAPI 也动不了它，只能逐帧写 —— 但每帧只有一次
+   * 解析式求值和一次 scrollTo，不读布局、不碰别的属性，主线程成本可以忽略。
+   * u(t) 是归一化到 [0,1] 的位移；ζ<1 时中后段会略过 1，边界那一下回弹就是它。
+   */
+  function springScrollTo(target: number): void {
+    if (reducedMotion()) {
+      window.scrollTo(0, target);
+      return;
+    }
+    const start = window.scrollY;
+    const distance = target - start;
+    // 点击那一刻的速度才是「松手速度」；动画跑起来之后 velocity 会被自己的滚动覆盖
+    const startVelocity = velocity;
+    if (Math.abs(distance) < 2) {
+      bounceAtEdge(target);
+      return;
+    }
+    // 初速度换算成「每秒走完几个行程」，夹一下：滚轮一格的爆冲不该让页面飞出去
+    const v0 = Math.max(-1.4, Math.min(1.4, (startVelocity * 1000) / Math.abs(distance)));
+    const t0 = performance.now();
+    const { zeta, omega } = SPRING;
+    const wd = omega * Math.sqrt(1 - zeta * zeta);
+    let raf = 0;
+    let done = false;
+
+    const stop = (): void => {
+      done = true;
+      cancelAnimationFrame(raf);
+      window.removeEventListener('wheel', stop);
+      window.removeEventListener('touchstart', stop);
+      window.removeEventListener('keydown', stop);
+    };
+    window.addEventListener('wheel', stop, { passive: true });
+    window.addEventListener('touchstart', stop, { passive: true });
+    window.addEventListener('keydown', stop);
+
+    const step = (): void => {
+      if (done) return;
+      const t = (performance.now() - t0) / 1000;
+      const e = Math.exp(-zeta * omega * t);
+      const u = 1 - e * (Math.cos(wd * t) + ((zeta * omega - v0) / wd) * Math.sin(wd * t));
+      window.scrollTo(0, start + u * distance);
+      // 收敛就收手：等满 1.1s 会在目标位置空转，滚动事件也跟着多响几百帧
+      if (Math.abs(1 - u) < 0.002 || t >= 0.9) {
+        window.scrollTo(0, target);
+        stop();
+        bounceAtEdge(target);
+        return;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  /**
+   * 撞到顶 / 底时的一次轻回弹：整页压 10px 再弹回。
+   *
+   * html 上的 transform 会临时改变 fixed 的参照 —— 导航和浮动按钮跟着一起弹，
+   * 这正是橡皮筋该有的样子。只在滚动收尾时触发一次，420ms 后撤类，静止无 transform。
+   */
+  function bounceAtEdge(target: number): void {
+    // 落在边界就给一次回弹：这是「撞到墙」的确认，不该看用户当时滚得多快
+    if (reducedMotion()) return;
+    const root = document.documentElement;
+    const max = root.scrollHeight - window.innerHeight;
+    const atTop = target <= 0.5;
+    const atBottom = target >= max - 1;
+    if (!atTop && !atBottom) return;
+    root.classList.remove('edge-top', 'edge-bottom');
+    void root.offsetWidth;
+    root.classList.add(atTop ? 'edge-top' : 'edge-bottom');
+    window.setTimeout(() => root.classList.remove('edge-top', 'edge-bottom'), 420);
   }
 
   /**
@@ -67,7 +164,7 @@
     const root = document.documentElement;
     root.classList.add('fab-measuring');
     const top = root.scrollHeight;
-    window.scrollTo({ top, behavior: behavior() });
+    springScrollTo(top);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => root.classList.remove('fab-measuring'));
     });
@@ -100,7 +197,8 @@
       cleanup();
       const max = root.scrollHeight - window.innerHeight;
       if (window.scrollY < max - 2) {
-        window.scrollTo({ top: max, behavior: 'smooth' });
+        // 补的是一两屏以内的余量，再跑一遍 spring 反而像第二段动画，直接落位
+        window.scrollTo(0, max);
       }
     };
 
@@ -163,13 +261,13 @@
 
   group.appendChild(
     actionButton('返回顶部', 'up', () => {
-      window.scrollTo({ top: 0, behavior: behavior() });
+      springScrollTo(0);
     })
   );
   group.appendChild(
     actionButton('直达底部', 'down', () => {
       toBottom();
-      if (behavior() === 'smooth') settleAtBottom();
+      settleAtBottom();
     })
   );
 
