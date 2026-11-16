@@ -709,18 +709,20 @@ body.nav-open::before {
     margin-left: 2px;
 }
 
-/* 逐字删到空的那 500ms 里，页面上只剩一颗孤零零的竖线在闪，看着像加载失败。
-   没有文字就不该有光标：空的时候直接藏掉，下一句第一个字落进来再跟着出现。 */
-.typewriter:has(#type-text:empty) .cursor {
+/* 光标只在「正在逐字写 / 删」时出现：停顿（打完停 2s、删完停 0.5s）期间藏起来。
+   一根一直闪的竖线悬在签名上方，读起来像页面卡在了半截；
+   何况打字机和签名都是居中的，句子短的时候它正好落在签名尾巴上，
+   看起来就像是点签名点出来的东西。 */
+.typewriter:not(.is-typing) .cursor {
     animation: none;
     opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    /* 打字机已停（main.ts 直接写死第一句），光标也就不该继续闪 */
+    /* 打字机已停（main.ts 直接写死第一句），没有「正在输入」这回事，光标整个藏掉 */
     .typewriter .cursor {
         animation: none;
-        opacity: 1;
+        opacity: 0;
     }
 }
 
@@ -730,19 +732,28 @@ body.nav-open::before {
 }
 
 .hero-signature {
+    /* 注意：这里别再写 opacity —— `.hero-content > *` 的入场动画带 forwards，
+       动画终值是 opacity: 1，会盖掉普通声明；此前写在容器上的 0.5 / hover 0.8
+       从来没生效过，真正决定浓淡的是下面 img 上那份按主题给的透明度。
+       签名是装饰图，不是内容：不该能被选中、也不该点一下就冒出一个文本插入符。
+       图片在文档流里，浏览器默认把它当「可选中的内容」处理，单击后会把
+       选区 / 插入符锚到图片后面（开了光标浏览时最明显：签名尾巴上一直闪一根竖线）。
+       这几件事一起掐断：不给选中、不给拖拽、指针事件也不落在图片本身上。 */
     margin-bottom: 2rem;
-    opacity: 0.5;
-    transition: opacity var(--transition-speed);
-}
-
-.hero-signature:hover {
-    opacity: 0.8;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    cursor: default;
 }
 
 .hero-signature img {
     height: 36px;
     width: auto;
     transition: filter var(--transition-speed), opacity var(--transition-speed);
+    /* 指针事件不落在图片上：点击的目标是容器，不会触发原生图片拖拽 */
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
 [data-theme="dark"] .hero-signature img {

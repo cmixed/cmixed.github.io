@@ -101,6 +101,7 @@ let textIndex = 0;
 let charIndex = 0;
 let isDeleting = false;
 const typeElement = document.getElementById('type-text') as HTMLElement;
+const typewriter = document.getElementById('typewriter') as HTMLElement;
 
 /* 这条 setTimeout 链本身永不停止，所以两个开关必须放在循环外面：
    ① prefers-reduced-motion: reduce —— CSS 只压得动 animation / transition，
@@ -139,13 +140,16 @@ function type(): void {
     typeSpeed = 500;
   }
 
+  /* 光标只在真正逐字写 / 删的时候挂出来（.is-typing），两段停顿（2s 换句、
+     0.5s 起头）里整根藏掉 —— 一根一直闪的竖线停在原地看着像故障。 */
+  typewriter.classList.toggle('is-typing', typeSpeed <= 100);
+
   typeTimer = window.setTimeout(type, typeSpeed);
 }
 
 if (prefersReduced.matches) {
   typeElement.textContent = texts[0];
 } else {
-  const typewriter = document.getElementById('typewriter') as HTMLElement;
   const typewriterObserver = new IntersectionObserver(
     ([entry]) => {
       typewriterVisible = entry.isIntersecting;
