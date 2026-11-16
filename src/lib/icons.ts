@@ -25,8 +25,9 @@ export type IconName =
   | 'indent';
 
 const ICONS: Record<IconName, string> = {
-  // 置顶用 Material 的 push_pin 实心路径：12px 下比描边 pin 更容易认出来。
-  pin: '<path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>',
+  // 置顶：图钉线稿（帽 + 身 + 针），和全站其它图标同一套描边。
+  // 原来是 Material 的实心 push_pin —— 在所有线稿里像一块贴纸，12px 下也糊成一坨黑。
+  pin: '<path d="M8 3.2h8"/><path d="M9.8 3.2v5.2l-2.4 2.8v2.4h9.2v-2.4L14.2 8.4V3.2"/><path d="M12 13.6v5.4"/>',
   doc: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
   tool: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
   code: '<path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>',
@@ -52,9 +53,7 @@ const ICONS: Record<IconName, string> = {
     '<polyline points="3 8 7 12 3 16"/><line x1="21" y1="12" x2="11" y2="12"/><line x1="21" y1="6" x2="11" y2="6"/><line x1="21" y1="18" x2="11" y2="18"/>',
 };
 
-/** 置顶徽标是唯一保留实心的：12px 下描边 pin 认不出来。搜索已改回描边。 */
-const FILLED = new Set<IconName>(['pin']);
-
+/** 全部图标统一走描边（fill: none）；置顶也从实心改回线稿，不再有例外。 */
 const ICON_NAMES = new Set<string>(Object.keys(ICONS));
 
 const CATEGORY_ICONS: Record<string, IconName> = {
@@ -66,10 +65,7 @@ const CATEGORY_ICONS: Record<string, IconName> = {
 
 export function icon(name: IconName, className?: string): string {
   const cls = className ? ` class="${className}"` : '';
-  const paint = FILLED.has(name)
-    ? 'fill="currentColor"'
-    : 'fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"';
-  return `<svg${cls} viewBox="0 0 24 24" ${paint} aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
+  return `<svg${cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
 }
 
 /** 小窝分类图标；未知分类回落到「包裹」，不再出现 emoji 兜底。 */

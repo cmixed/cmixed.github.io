@@ -1003,7 +1003,8 @@ html.fab-measuring section {
     /* 负 margin 撑到外框左右边缘：这半块与外框同宽，既不外伸也不悬空。
        底边贴着外框，圆角由外框裁出来，所以它天生是「半个圆角矩形」。 */
     margin: 0.45rem -0.45rem 0;
-    height: 2.2rem;
+    /* 2.2rem 时名带比两侧文字厚一档，卡片看上去拖了一条尾巴；1.85rem 刚好装下 */
+    height: 1.85rem;
     font-family: var(--font-mono);
     font-size: 0.875rem;
     font-weight: 600;
@@ -1056,8 +1057,9 @@ html.fab-measuring section {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
-    /* 贴住右列底部，与头像卡底边齐平：上面那截空白因此变成简介与事实之间的呼吸 */
-    margin: auto 0 0;
+    /* 贴住右列底部，与头像卡底边齐平；留 0.4rem 不死贴 —— 全贴死会让事实列表
+       像被顶到地板，简介与它之间的那段留白反而更突兀 */
+    margin: auto 0 0.4rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
 }
@@ -3793,6 +3795,8 @@ html::after {
 .pin-badge svg {
     width: 0.9em;
     height: 0.9em;
+    /* 15px 下 1.7px 只剩 1px，图钉的帽和身会糊成一条；补到 1.9 才和方框描边同重 */
+    stroke-width: 1.9;
 }
 
 /* 卡片右上角的置顶徽标：卡片标题现在只有一行，徽标从标题行里挪到标题右侧，

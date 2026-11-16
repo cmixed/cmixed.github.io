@@ -11,12 +11,15 @@ describe('icon', () => {
     expect(svg).toContain('viewBox="0 0 24 24"');
   });
 
-  it('只有置顶保留实心，搜索与其它图标一样走描边', () => {
-    expect(icon('pin')).toContain('fill="currentColor"');
-    const search = icon('search');
-    expect(search).toContain('stroke="currentColor"');
-    expect(search).toContain('stroke-width="1.7"');
-    expect(search).not.toContain('fill="currentColor"');
+  it('所有图标根元素统一描边，不再有整颗实心的图标', () => {
+    for (const name of ['pin', 'search', 'rss', 'moon'] as const) {
+      const svg = icon(name);
+      expect(svg, name).toMatch(/^<svg[^>]*fill="none"/);
+      expect(svg, name).toContain('stroke-width="1.7"');
+      /* 内部的小点可以 fill —— RSS 的圆点、标签的孔洞在 14px 下只能这么画；
+         但整颗图标本身不再是实心路径 */
+      expect(svg, name).not.toMatch(/^<svg[^>]*fill="currentColor"/);
+    }
   });
 
   it('可以附加 class', () => {
