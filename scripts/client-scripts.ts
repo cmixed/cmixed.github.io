@@ -29,13 +29,14 @@ type SourceScript =
   | 'filter-panel'
   | 'card-popover'
   | 'fab'
-  | 'scrollbar';
+  | 'scrollbar'
+  | 'keys';
 
 /** 产物名 → 源码（按顺序拼接，各自仍是独立 IIFE）。 */
 const BUNDLES = {
   theme: ['theme'],
   cursor: ['cursor'],
-  ui: ['cursor', 'fab', 'scrollbar', 'card-popover'],
+  ui: ['cursor', 'fab', 'scrollbar', 'card-popover', 'keys'],
   list: ['search', 'sort', 'filter-panel'],
 } as const satisfies Record<string, readonly SourceScript[]>;
 

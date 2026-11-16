@@ -4661,6 +4661,89 @@ html.modal-open .fx-layer { visibility: hidden; }
     }
 }
 
+/* ===== 快捷键帮助（keys.js，复用 .site-modal 的皮）===== */
+.keys-help {
+    width: min(440px, calc(100vw - 2rem));
+    /* 面板材质：.site-modal 的背景来自文件末尾的共享组，但那份是按
+       「头部 + 正文区」两块拼的，独立创建的这个 dialog 得自己兜一层底色，
+       否则整块是半透明的，后面的文章文字会透进来 */
+    background: var(--mica-chrome);
+    -webkit-backdrop-filter: var(--mica-panel-glass);
+    backdrop-filter: var(--mica-panel-glass);
+}
+
+.keys-help-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.keys-help-close {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: border-color var(--transition-speed), color var(--transition-speed);
+}
+
+.keys-help-close:hover {
+    border-color: var(--primary);
+    color: var(--primary-text);
+}
+
+.keys-help-list {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+}
+
+.keys-help-row {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.keys-help-row dt {
+    flex: 0 0 5.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.keys-help-row dd {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.keys-help-row kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.6rem;
+    padding: 0.1rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text);
+    background: var(--mica-chip);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+}
+
+.keys-help-then {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
 /* 撞到边界的轻回弹：整页压 10px 再弹回。曲线是 ζ=1 的 spring（无振荡），
    所以只有「压下去 → 回来」一次。html 上的 transform 会临时改变 fixed 的参照，
    导航和浮动按钮跟着一起弹 —— 这正是橡皮筋该有的样子。 */
