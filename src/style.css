@@ -3456,12 +3456,19 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 
    打开的是「读者会选中复制」的内容：文章正文与代码（.md-body 同时在文章和
    悬浮框正文上）、关于卡的简介与事实、小窝详情正文、输入控件。标题、标签、
-   卡片、状态、导航一律不开 —— 它们点了不该冒出文本插入符。 */
+   卡片、状态、导航一律不开 —— 它们点了不该冒出文本插入符。
+
+   caret-color 一起转成 transparent：user-select: none 只保证不产生**选区**，
+   不保证不画**插入符** —— 实测在部分浏览器（以及开了 F7 光标浏览时）点
+   胶囊、点签名左上仍会落下一根白竖线（那是 h1 行盒上的插入符，高度等于
+   h1 的字号）。不可选中的内容本来就没什么可插入的，干脆把插入符也藏掉；
+   读者要读的正文在下面 allowlist 里把 caret-color 放回 auto。 */
 *,
 *::before,
 *::after {
     -webkit-user-select: none;
     user-select: none;
+    caret-color: transparent;
 }
 
 :is(.md-body, .about-text, .about-facts, .nook-detail-content,
@@ -3470,6 +3477,7 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     .site-modal-body, input, textarea, [contenteditable='true'], pre, code) * {
     -webkit-user-select: text;
     user-select: text;
+    caret-color: auto;
 }
 
 button {

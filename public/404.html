@@ -11,10 +11,12 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         /* 这一页自带内联样式（不加载 style.css），但文本选中规则与主站一致：
-           默认全站不可选，避免点状态文字 / 404 大字号时冒出插入符。 */
+           默认全站不可选，避免点状态文字 / 404 大字号时冒出插入符。
+           caret-color 同理 —— user-select: none 挡选区，不保证挡插入符。 */
         *, *::before, *::after {
             -webkit-user-select: none;
             user-select: none;
+            caret-color: transparent;
         }
         :root {
             --primary: #0f766e;

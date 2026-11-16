@@ -17,6 +17,8 @@ const ROOT = join(import.meta.dirname, '..', '..');
 const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const main = readFileSync(join(ROOT, 'src', 'main.ts'), 'utf-8');
 const page404 = readFileSync(join(ROOT, 'public', '404.html'), 'utf-8');
+const caretGuard = readFileSync(join(ROOT, 'src', 'client', 'caret.ts'), 'utf-8');
+const bundles = readFileSync(join(ROOT, 'scripts', 'client-scripts.ts'), 'utf-8');
 
 /** 取某条规则的声明体（剥掉注释，避免把文字里的属性名误判为声明）。 */
 function declarations(selector: string): string {
@@ -26,10 +28,13 @@ function declarations(selector: string): string {
 }
 
 describe('全站文本选中策略', () => {
-  it('全站默认不可选，用 * 覆盖顶层 dialog，且不用 !important', () => {
+  it('全站默认不可选且不画插入符，用 * 覆盖顶层 dialog，且不用 !important', () => {
     const deny = declarations('*,\n*::before,\n*::after');
     expect(deny).toContain('user-select: none');
     expect(deny).toContain('-webkit-user-select: none');
+    // user-select: none 只挡选区；部分浏览器 / 光标浏览仍会画插入符（首页胶囊
+    // 与签名左上被点出过一根白竖线），必须一起藏掉
+    expect(deny).toContain('caret-color: transparent');
     expect(deny).not.toContain('!important');
   });
 
@@ -52,6 +57,8 @@ describe('全站文本选中策略', () => {
       expect(block, `allowlist 缺少 ${name}`).toContain(name);
     }
     expect(block).toContain('user-select: text');
+    // 读者要读的正文里插入符必须放回来，否则光标浏览读到哪都看不见
+    expect(block).toContain('caret-color: auto');
     expect(block).toContain(') *');
   });
 
@@ -73,5 +80,19 @@ describe('全站文本选中策略', () => {
     expect(declarations('.about-name-tag')).not.toContain('user-select');
     expect(declarations('.footer-dot')).not.toContain('user-select');
     expect(main).not.toContain("addEventListener('mousedown'");
+  });
+
+  it('插入符兜底在 ui.js：只拦不可选中且非交互的目标', () => {
+    // CSS 只能「看不见」插入符；有的浏览器（含光标浏览）照样会落下一根。
+    // mousedown 的默认动作里包含「移动插入符」，拦掉它才是「不产生」。
+    expect(caretGuard).toContain("'mousedown'");
+    expect(caretGuard).toContain('preventDefault');
+    // 拦不拦跟着 CSS 的选中策略走，不在 JS 里维护第二份名单
+    expect(caretGuard).toMatch(/userSelect !== 'none'/);
+    // 交互控件必须放行：preventDefault 会连它们的 focus 一起吃掉
+    expect(caretGuard).toContain('a, button, input');
+    // 编进全站共用的 ui.js，而不是只在首页生效的 main.ts
+    expect(bundles).toContain("'caret'");
+    expect(bundles).toMatch(/ui: \[[^\]]*'caret'/);
   });
 });
