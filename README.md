@@ -295,7 +295,7 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 
 `upTarget()` 一次返回 `{ href, label, icon }`，图标和落点是同一个决策的两个字段 —— 分两处判断迟早会漂移成「点了房子却回博客」。
 
-三颗图标都是**开放路径、只描边**（`fill: none`，24×24 / 1.7px / 圆头 / `currentColor`），与导航里的 RSS、主题、搜索同源。不给 `hover` 加 `fill`：房顶和三面墙填起来会糊成一个色块；「填充」交给按钮本身 —— 悬停时底色、描边、文字色一起变亮。
+三颗图标都是**开放路径、只描边**（`fill: none`，24×24 / 1.8px / 圆头 / `currentColor`），与两处 favicon 同构：房子带拱门、折角稿纸、等距收纳盒 —— 「点它就回那个栏目」由图形本身说明。不给 `hover` 加 `fill`：房顶和三面墙填起来会糊成一个色块；「填充」交给按钮本身 —— 悬停时底色、描边、文字色一起变亮。
 
 主站的标签页标题是 `cmixed · 主页 · 博客 · 资源`（三个栏目名并列）；OG / twitter 标题仍是 `cmixed · 技术博客` —— 分享卡片上「这个站是干什么的」比罗列栏目更有用，两者受众不同，不强行统一。博客列表页的 `<title>` / OG / twitter 统一为 `个人博客 · cmixed`，与导航里的栏目名一致。
 
@@ -514,7 +514,7 @@ tags: [标签1, 标签2]
 
 - **源码一律用 TypeScript。** `src/`、`blog/build.ts`、`nook/build.ts`、`scripts/` 都在 `vp check` 的类型检查范围内；`blog/vendor/highlight.min.js` 是 `build-hljs.ts` 的产物，属于唯一例外。
 - **七个源文件、四个产物，全是「固定文件名的经典脚本」。** `src/client/` 下的 `theme` / `cursor` / `search` / `sort` / `filter-panel` / `fab` / `scrollbar` 不进 Vite 的打包图：进了会被加 hash、变成 module，而主题脚本必须在 `<head>` 里同步跑完（否则首帧闪）。所以由 `scripts/client-scripts.ts` 用 esbuild 单独编译，并按「总是一起加载」分组：`theme.js`（仅 theme）、`cursor.js`（仅独立 404 页）、`ui.js`（cursor + fab + scrollbar + card-popover，全站主页面）、`list.js`（search + sort + filter-panel，两个列表页）—— 少两个 `<script src>`、少两次请求。`vp build` 作为 asset 写出，`vp dev` 用中间件现编译现发，HTML 里的 `./ui.js` 这类引用因此保持稳定。
-- **图标一律内联 SVG。** `src/lib/icons.ts` 是唯一来源：24×24、`currentColor`、1.7px 描边、圆头圆角；`{{icon:name}}` / `{{icon:name:class}}` 令牌由 `scripts/icon-tokens.ts`（首页 Vite 入口）和 `replaceIcons()`（博客 / 小窝构建）展开。GitHub 官方 mark 是唯一品牌例外。不再用 emoji（置顶图钉 / 分类图标）或字体字符（RSS / 太阳 / 月亮 / 目录 / 缩进用的 `U+260D`、`U+263C`、`U+263E`、`U+2630`、`U+21E5`）：彩色字形跨平台不一致，也不跟主题色走。
+- **图标一律内联 SVG。** `src/lib/icons.ts` 是唯一来源：24×24、`currentColor`、1.7px 描边、圆头圆角；`{{icon:name}}` / `{{icon:name:class}}` 令牌由 `scripts/icon-tokens.ts`（首页 Vite 入口）和 `replaceIcons()`（博客 / 小窝构建）展开。GitHub 官方 mark 是唯一品牌例外。不再用 emoji（置顶图钉 / 分类图标）或字体字符（RSS / 太阳 / 月亮 / 目录 / 缩进用的 `U+260D`、`U+263C`、`U+263E`、`U+2630`、`U+21E5`）：彩色字形跨平台不一致，也不跟主题色走。搜索也从实心 Material 路径改回描边，导航里不再有唯一一颗实心图标；12–14px 的小容器在 CSS 里把 `stroke-width` 补到 2–2.4，否则 1.8px 缩下去只剩半个像素、整颗发灰。
 - **图标只留有人用的尺寸。** favicon 只给一份 SVG（标签页就是它，几行路径不占流量），192 只写 `apple-touch-icon`：桌面 Chrome 看到一条没有 `sizes` 的 `rel="icon"` 会把它当候选去拉，位图时代实测白拉 38.4KB —— 换 SVG 后这个浪费消失。首页签名图补上 `width`，图片到达前后不跳行。
 - **材质与尺寸只有 `src/style.css` 一个来源**，页面内联样式只留布局（定位、间距、网格）。
 - **动界面必须同时验证深浅两套主题。** 颜色、边框、阴影、文字一律走 token，不在组件里写死色值；改完用 `data-theme="dark"` 与 `"light"` 各看一眼，确认对比度和层次都不塌。硬编码的 `#fff` / `rgba(255,255,255,…)` 只允许出现在「压在 `--primary` 实心上的文字」这类不随主题变化的场景，并且要注释说明理由 —— 筛选胶囊的选中态从实心 `--primary` 换成 `--primary-dim` 之后，原先压在它上面的 `rgba(255,255,255,.82)` 计数色在浅色主题下会直接消失，就是这一类坑。
