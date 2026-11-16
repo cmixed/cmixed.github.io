@@ -274,7 +274,26 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 - `public/404.html` 是自带内联样式的独立页、不加载 `style.css`，在那份 `<style>` 里也写了同一条默认关；它没有任何正文，不需要 allowlist。
 - 签名图的 `pointer-events: none` / `-webkit-user-drag: none` 和 `draggable="false"` 仍保留（挡原生拖拽），但 `user-select` 与 h1 上的 `mousedown` 兜底都删了 —— 那两处现在是重复的，留着会有「两套真相」。
 
-焦点环与此无关，仍是 `button:focus-visible` / `a:focus-visible` 一圈 accent：用 `:focus-visible` 而不是 `:focus`，鼠标点击不留框，键盘 Tab 又不会丢焦点；已有自定义焦点样式的组件特异性更高，仍走自己的规则。
+### 键盘焦点环：不依赖祖先给空间
+
+焦点环与文本选中无关，仍是 `button:focus-visible` / `a:focus-visible` 一圈 accent（`2px` + `outline-offset: 2px`）：用 `:focus-visible` 而不是 `:focus`，鼠标点击不留框，键盘 Tab 又不会丢焦点。
+
+**「F1 打开帮助 → Esc 关闭 → 季度胶囊只剩四枚角标」不是焦点丢了，是环被裁了。** 实测 Esc 后 `activeElement` 正确回到 `26Q4`、`:focus-visible` 为 true，`outline` 也还是 `2px/2px`。问题在 `.site-modal-actions`：它写的是 `overflow-x: auto`，而 CSS 规定**一个轴不是 `visible` 时，另一个轴的 `visible` 会计算成 `auto`** —— 只想横向滚动的胶囊条其实上下也裁。外环在元素 border box 之外 4px，上下各被切掉，只剩左右两道弧和四个角，看上去像「重点被吃掉」。
+
+| 场合 | 处理 |
+| --- | --- |
+| 弹窗标题栏 `.site-modal-actions`、筛选面板 `.list-filters-scroll` | `padding: 6px` 撑开 **padding box**（裁切边就在它上面），`margin-block: -6px` 把高度还回去；桌面仍是完整外环 |
+| 正文/浮层/代码/表格等纵向滚动区 | `scroll-padding-block: 10px`，Tab 落点不再贴着裁切边 |
+| ≤768px 的 `.skill-group-items`、≤600px 的 `.site-modal-actions` | 横向条里最后一颗会正好贴住右边，`scroll-padding` 也救不了（元素已「可见」，浏览器不会再滚）→ 改 **`outline-offset: -2px` 内嵌环**，画在自己框里，任何祖先的 overflow / mask 都碰不到 |
+| 文章目录 `.blog-toc`（`blog/template/post.html` 内联样式） | 底部 18px 是渐隐带：补 `padding-bottom` + `scroll-padding-block: 26px`，让最后一条能滚出渐隐带再停 |
+
+三条附带结论：
+
+- **焦点恢复本身是对的**：`<dialog>` 的 `showModal()` / `close()` 原生恢复焦点，实测键盘链路是「触发按钮 → 季度胶囊 → F1 帮助 → 胶囊 → 触发按钮」。所以没有加任何 JS 去「焦点回来时把环藏掉」——`outline: none` 会让键盘用户不知道自己在哪，而且正常 Tab 时照样被裁，治标不治本。
+- **鼠标流程本来就没有环**：真实鼠标点击打开弹窗时 `26Q4` 的 `:focus-visible` 是 false；F1/Esc 是键盘操作，Chrome 把模态切成键盘，环才出现，这是正确行为。焦点环加 `focus-ring-in` 0.2s 淡入（只动 `outline-color`，不改几何），`prefers-reduced-motion` 下关掉。
+- **关着的移动抽屉退出可聚焦树**：≤768px 时 `.nav-links` 停在 `right: -100%`，链接仍在 Tab 顺序里，聚焦一个屏幕外元素时环还会被 `nav` 的 `overflow-x: clip` 切掉。现在关闭态 `visibility: hidden`（`visibility 0s linear 0.3s` 延迟，滑出动画仍可见），打开态立刻 `visible`。
+
+> 另一个方案是把**全站**焦点环统一改成内嵌（`outline-offset: -2px` 或 `box-shadow: inset`）。一处规则、永不裁切，代价是胶囊的 `.active` 底色与焦点环叠成一圈厚边、卡片等自定义外环要逐个改；目前按「能撑开的留安全区，撑不开的才内嵌」分流，视觉更接近原设计。
 
 ### 更新日志：按季度分段
 
