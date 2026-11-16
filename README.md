@@ -296,11 +296,12 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 | ≤768px 的 `.skill-group-items`、≤600px 的 `.site-modal-actions` | 横向条里最后一颗会正好贴住右边，`scroll-padding` 也救不了（元素已「可见」，浏览器不会再滚）→ 改 **`outline-offset: -2px` 内嵌环**，画在自己框里，任何祖先的 overflow / mask 都碰不到 |
 | 文章目录 `.blog-toc`（`blog/template/post.html` 内联样式） | 底部 18px 是渐隐带：补 `padding-bottom` + `scroll-padding-block: 26px`，让最后一条能滚出渐隐带再停 |
 
-三条附带结论：
+四条附带结论：
 
 - **焦点恢复本身是对的**：`<dialog>` 的 `showModal()` / `close()` 原生恢复焦点，实测键盘链路是「触发按钮 → 季度胶囊 → F1 帮助 → 胶囊 → 触发按钮」。所以没有加任何 JS 去「焦点回来时把环藏掉」——`outline: none` 会让键盘用户不知道自己在哪，而且正常 Tab 时照样被裁，治标不治本。
 - **鼠标流程本来就没有环**：真实鼠标点击打开弹窗时 `26Q4` 的 `:focus-visible` 是 false；F1/Esc 是键盘操作，Chrome 把模态切成键盘，环才出现，这是正确行为。焦点环加 `focus-ring-in` 0.2s 淡入（只动 `outline-color`，不改几何），`prefers-reduced-motion` 下关掉。
 - **关着的移动抽屉退出可聚焦树**：≤768px 时 `.nav-links` 停在 `right: -100%`，链接仍在 Tab 顺序里，聚焦一个屏幕外元素时环还会被 `nav` 的 `overflow-x: clip` 切掉。现在关闭态 `visibility: hidden`（`visibility 0s linear 0.3s` 延迟，滑出动画仍可见），打开态立刻 `visible`。
+- **半露在横向滚动条里的目标要滚进视口**：Chrome 只在元素**完全不可见**时才替焦点滚动，半露在外的原地不动 —— 实测 390px 的技能胶囊条，Tab 到 `Large-Scale C++ Design` 时 155px 里被切掉 103px，内嵌焦点环也跟着没了一截。`src/client/focus-scroll.ts`（编进 `ui.js`）在 `focusin` 时对最近的 `overflow != visible` 祖先判断一次，越界就 `scrollIntoView({ block: 'nearest', inline: 'nearest' })`。**只在 `:focus-visible` 时滚**：鼠标点半露的胶囊用户本来就知道点的是哪颗，而且技能胶囊的 click 还要滚到项目卡，两段滚动叠在一起更乱。不维护滚动容器名单 —— 跟着计算出来的 `overflow` 走，和 `caret.ts` 只看 `user-select` 是同一套做法。
 
 > 另一个方案是把**全站**焦点环统一改成内嵌（`outline-offset: -2px` 或 `box-shadow: inset`）。一处规则、永不裁切，代价是胶囊的 `.active` 底色与焦点环叠成一圈厚边、卡片等自定义外环要逐个改；目前按「能撑开的留安全区，撑不开的才内嵌」分流，视觉更接近原设计。
 
