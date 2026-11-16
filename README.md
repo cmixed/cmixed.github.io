@@ -166,7 +166,7 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 **首页标题就是那枚手写签名**：`<h1 class="hero-title">` 里只有一张 `alt="cmixed"` 的图，没有文字节点 —— 签名本身写的就是 cmixed，再排一行 4.5rem 的字等于把同一个名字说两遍。标题语义与可读文本都还在（屏幕阅读器从 `alt` 拿到 cmixed），视觉上只有签名。体量按 4.6:1 手写体的「字高」给：`clamp(52px, 7.2vw, 96px)`，96px 时约 443px 宽，占 720 栏六成，读起来是个字标；64px（296 宽）时像随手画的装饰，撑不起首屏（实测过）。暗色 `brightness(0) invert(1)` + 0.92，浅色原墨 + 0.82。
 
-**它同时也是「不可点」的**：`pointer-events: none` / `-webkit-user-drag: none` / `user-select: none`，HTML 上 `draggable="false"`。`<img>` 在文档流里会被浏览器当成「可选中的内容」，单击后把选区 / 插入符锚到图片后面 —— 开了光标浏览（Chrome / Edge 的 F7）时最明显：签名尾巴上一直闪一根竖线。指针事件不落在图片上之后，原生拖拽和图片选中都不会再发生。但**只靠这一层不够**：签名两侧的空白点击目标是 `h1` 行盒，光标浏览下会在图片前面画一根竖线（`getSelection().type === "Caret"`，锚点是 H1 —— 实测对照过）。所以 `main.ts` 还在 `.hero-title` 上 `mousedown` 时 `preventDefault()`，不选中、不聚焦、不落插入符。
+**它同时也是「不可点」的**：`pointer-events: none` / `-webkit-user-drag: none`，HTML 上 `draggable="false"`，挡掉原生图片拖拽。文本插入符不再单独处理 —— 全站 `user-select` 默认关（见「文本选中」一节）覆盖签名两侧空白落到的 `h1` 行盒，原先 `main.ts` 里那段 `mousedown` 拦截与图片上的 `user-select: none` 都已删除。
 
 区块标题（关于 / 项目 / 博客 / 资源 / 联系）从 `1.5rem` 提到 `1.75rem`（窄屏 `1.3rem` → `1.5rem`）。「查看全部」从标题**下面**一行搬进标题行右端：标题左对齐、按钮右对齐，中间仍是那道渐隐装饰线 —— 靠 `order` 排列（标题 0 / 线 1 / 按钮 2），线自然夹在两者之间并吃掉剩余宽度，不用额外包一层 flex。按钮做成胶囊（按全站约定，胶囊 = 可点），高度直接取标题的行盒（`--section-header-size × --section-header-line`），所以标题与按钮上下两端严丝合缝；按钮字号也跟着标题缩放，窄屏不会出现「大胶囊配小标题」。标题行盒单独定成 1.15 而不是继承正文的 1.6：后者会把单行标题撑成 45px 的胖条，胶囊也得跟着变胖。
 
@@ -255,11 +255,26 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 解决方式：`scripts/client-scripts.ts` 在 `buildStart` 阶段编译出全部产物、算 `sha256` 前 8 位，`transformIndexHtml` 把 `<script src="./ui.js">` 改写成 `./ui.js?v=<hash>`；博客与小窝的模板由各自的 `build.ts` 用同一套算法（读 `dist/<name>.js` 再算）补齐。改一次脚本 → hash 变 → URL 变 → 缓存自然失效。
 
-### 交互控件：文字选中与键盘焦点
+### 文本选中：默认全站关，只有正文开
 
-按钮 / 胶囊里的文字默认可选中：点击时若有几像素手部位移，就会选走半个标签（实测点 `26Q3` 选成 `"6Q"`），中间留下一段蓝色选区和文本光标 —— 用户看到的「点击后光标放在中间」就是这个。
+按钮 / 胶囊里的文字默认可选中：点击时若有几像素手部位移，就会选走半个标签（实测点 `26Q3` 选成 `"6Q"`），中间留下一段蓝色选区和文本光标 —— 用户看到的「点击后光标放在中间」就是这个。开了浏览器**光标浏览**（Chrome / Edge 的 F7）时，选区会变成一根真正的竖线，落点更显眼：签名两侧、卡片标题、状态文字点了都能冒出一根。
 
-所以所有**可点控件**（`button`、`.list-chip`、`.list-chip-more`、`.list-sort-btn`、`.meta-chip`、`.skill-chip`、导航项、FAB、footer 按钮等）统一 `user-select: none`；正文、文章、代码、邮箱仍用 `user-select: text`，不影响复制。同时给 `button:focus-visible` / `a:focus-visible` 兜一圈 accent 焦点环：用 `:focus-visible` 而不是 `:focus`，鼠标点击不留框，键盘 Tab 又不会丢焦点；已有自定义焦点样式的组件特异性更高，仍走自己的规则。
+旧做法是**枚举式白名单**：给 `button` / `.list-chip` / `.btn` 等 22 个选择器写 `user-select: none`。问题是它只会越落越多 —— 每加一个组件都得想起来补一项，全站审计实测漏了 **40 处**：卡片标题与描述、技术标签、状态条、区块标题、目录链接、详情元信息、`svg` / `canvas`、404 文案都能落插入符。
+
+现在**反转默认值**，一处策略覆盖全站：
+
+| 规则 | 内容 |
+| --- | --- |
+| 默认关 | `*, *::before, *::after { user-select: none }` |
+| 只开正文 | `:is(.md-body, .about-text, .about-facts, .nook-detail-content, .site-modal-body, input, textarea, [contenteditable], pre, code)` 及其后代 `user-select: text` |
+
+- **用 `*` 不用 `html` / `body`**：`<dialog>` 在顶层（top layer），不继承根元素的 `user-select`，弹窗头部 `.site-modal-title` 会漏出来；`*` 直接落到每个元素上才盖得住。不用 `!important` —— allowlist 里 `:is()` 含类，特异性高于 `*`，靠源码顺序生效。
+- **allowlist 必须写「容器 + 其后代」两条**：只写容器本身的话，后代被 `*` 改回 `none`，文章正文就选不中了。
+- `.md-body` 同时挂在文章正文和悬浮框正文上，一处覆盖两处；`.about-facts` 是「Modern C++」这类读者会复制的事实值。标题、标签、卡片、状态、导航一律不开 —— 点了不该冒插入符。
+- `public/404.html` 是自带内联样式的独立页、不加载 `style.css`，在那份 `<style>` 里也写了同一条默认关；它没有任何正文，不需要 allowlist。
+- 签名图的 `pointer-events: none` / `-webkit-user-drag: none` 和 `draggable="false"` 仍保留（挡原生拖拽），但 `user-select` 与 h1 上的 `mousedown` 兜底都删了 —— 那两处现在是重复的，留着会有「两套真相」。
+
+焦点环与此无关，仍是 `button:focus-visible` / `a:focus-visible` 一圈 accent：用 `:focus-visible` 而不是 `:focus`，鼠标点击不留框，键盘 Tab 又不会丢焦点；已有自定义焦点样式的组件特异性更高，仍走自己的规则。
 
 ### 更新日志：按季度分段
 
