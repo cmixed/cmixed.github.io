@@ -140,11 +140,58 @@
     const atTop = target <= 0.5;
     const atBottom = target >= max - 1;
     if (!atTop && !atBottom) return;
+    playEdge(atTop);
+  }
+
+  let edgeAt = 0;
+
+  /** 一次 10px 的整页回弹；520ms 内只播一次，别连发。 */
+  function playEdge(toTop: boolean): void {
+    const now = performance.now();
+    if (now - edgeAt < 520) return;
+    edgeAt = now;
+    const root = document.documentElement;
     root.classList.remove('edge-top', 'edge-bottom');
     void root.offsetWidth;
-    root.classList.add(atTop ? 'edge-top' : 'edge-bottom');
+    root.classList.add(toTop ? 'edge-top' : 'edge-bottom');
     window.setTimeout(() => root.classList.remove('edge-top', 'edge-bottom'), 420);
   }
+
+  /**
+   * 手势滚到边界后还继续滚：也压一下再回弹。
+   *
+   * 之前只有点浮动按钮才有阻尼，用户自己滑到顶 / 底什么都没有 —— 那才是最常用的路径。
+   * 用方向的「反向」判断，而不是看滚动了多少：到边界后 scrollY 已经不动了，
+   * 只能从 wheel / touch 的方向知道用户还在往外推。
+   */
+  function edgeOnGesture(delta: number): void {
+    if (reducedMotion() || delta === 0) return;
+    const root = document.documentElement;
+    const max = root.scrollHeight - window.innerHeight;
+    if (window.scrollY <= 0 && delta < 0) playEdge(true);
+    else if (window.scrollY >= max - 1 && delta > 0) playEdge(false);
+  }
+
+  window.addEventListener('wheel', (event) => edgeOnGesture(event.deltaY), { passive: true });
+
+  let touchY = 0;
+  window.addEventListener(
+    'touchstart',
+    (event: TouchEvent) => {
+      touchY = event.touches[0]?.clientY ?? 0;
+    },
+    { passive: true }
+  );
+  window.addEventListener(
+    'touchmove',
+    (event: TouchEvent) => {
+      const y = event.touches[0]?.clientY ?? touchY;
+      // 手指往上滑 = 内容向上滚 = delta 为正，与 wheel 的 deltaY 同向
+      edgeOnGesture(touchY - y);
+      touchY = y;
+    },
+    { passive: true }
+  );
 
   /**
    * 量一次「真实的」页面底部再滚。

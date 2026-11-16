@@ -486,8 +486,14 @@ body.nav-open::before {
     border-radius: 50%;
     cursor: pointer;
     overflow: hidden;
-    transition: border-color var(--transition-speed), background var(--transition-speed);
+    transition: border-color var(--transition-speed), background var(--transition-speed),
+        transform 160ms var(--spring-press);
     -webkit-tap-highlight-color: transparent;
+}
+
+/* 按下去也弹一下，跟右下角那组按钮同一套 */
+.theme-toggle:active {
+    transform: scale(0.9);
 }
 
 .theme-toggle:hover {
@@ -504,11 +510,12 @@ body.nav-open::before {
     display: grid;
     place-items: center;
     color: var(--primary-text);
-    /* 原地交叉 + 轻微旋转：位移交给 opacity / transform，两者都走合成器；
-       曲线是构建期采样好的 spring（--spring-press），运行时零计算 */
+    /* 原地交叉 + 明显旋转：位移交给 opacity / transform，两者都走合成器；
+       曲线是构建期采样好的 spring（--spring-press），运行时零计算。
+       旋转 150° + 缩到 0.35 才「看得出来」，90°/0.55 那版几乎只剩一次淡入淡出。 */
     transition:
-        opacity 0.32s var(--spring-press),
-        transform 0.32s var(--spring-press);
+        opacity 0.26s ease,
+        transform 0.46s var(--spring-press);
 }
 
 .theme-icon svg {
@@ -526,12 +533,12 @@ body.nav-open::before {
 
 .theme-toggle .sun-icon {
     opacity: 0;
-    transform: rotate(-90deg) scale(0.55);
+    transform: rotate(-150deg) scale(0.35);
 }
 
 [data-theme="light"] .theme-toggle .moon-icon {
     opacity: 0;
-    transform: rotate(90deg) scale(0.55);
+    transform: rotate(150deg) scale(0.35);
 }
 
 [data-theme="light"] .theme-toggle .sun-icon {
@@ -955,7 +962,15 @@ html.fab-measuring section {
 .about-main {
     display: flex;
     gap: 2rem;
-    align-items: flex-start;
+    /* 右列（简介 + 事实）比头像卡矮 57px，flex-start 会把这段空白全甩在卡片
+       右下角；改成 stretch + 事实列表贴底，空白落到「简介」和「事实」之间，
+       视觉上是两块信息的分隔，不是没人用的空地。 */
+    align-items: stretch;
+}
+
+.about-body {
+    display: flex;
+    flex-direction: column;
 }
 
 .about-avatar {
@@ -1041,7 +1056,8 @@ html.fab-measuring section {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
-    margin: 0.25rem 0 0;
+    /* 贴住右列底部，与头像卡底边齐平：上面那截空白因此变成简介与事实之间的呼吸 */
+    margin: auto 0 0;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
 }
@@ -1075,7 +1091,7 @@ html.fab-measuring section {
 .about-skills {
     /* 上半段（身份）与分隔线之间只留一道呼吸缝；原先 1.5rem 加上标签行
        自己的 1.1rem 下边距，中间空出一大块，卡片像被切成了两页 */
-    margin-top: 0.85rem;
+    margin-top: 0.5rem;
     scroll-margin-top: 90px;
 }
 
@@ -1083,7 +1099,7 @@ html.fab-measuring section {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.35rem;
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -3685,6 +3701,36 @@ body.nav-open nav::after {
     to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0px)); }
 }
 
+/* 开关单独成一个 View Transition 组：整页在揭示的同时，钮里的月亮 / 太阳
+   自己转出去、转进来。不这么做的话，上面那条 `html.vt * { transition: none }`
+   会把钮里的交叉淡入淡出一起掐掉 —— 用户看到的只是「整页刷了一下」，
+   钮里几乎没变化，这正是「动画基本看不出来」的原因。 */
+.theme-toggle {
+    view-transition-name: theme-toggle;
+}
+
+::view-transition-old(theme-toggle) {
+    animation: toggle-out 320ms var(--spring-press) both;
+}
+
+::view-transition-new(theme-toggle) {
+    animation: toggle-in 460ms var(--spring-press) both;
+}
+
+@keyframes toggle-out {
+    to {
+        opacity: 0;
+        transform: rotate(140deg) scale(0.35);
+    }
+}
+
+@keyframes toggle-in {
+    from {
+        opacity: 0;
+        transform: rotate(-140deg) scale(0.35);
+    }
+}
+
 /* 揭示进行中：临时掐掉所有颜色过渡。
    View Transition 抓「新快照」是在下一帧，如果 body/nav 的 background 过渡正在跑，
    新快照抓到的是过渡起点（旧颜色）→ 揭示出来什么都没变、0.46s 后才在底下突变。
@@ -3832,7 +3878,7 @@ html::after {
     border-radius: 999px;
     cursor: pointer;
     text-decoration: none;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 200ms var(--spring-press);
     /* 与只读标签同一套量化（见下方「内容标签」选择器组）：保底对齐，内容宽可撑开 */
     box-sizing: border-box;
     min-width: calc(var(--chip-cols, 1) * 1em);
@@ -3842,13 +3888,33 @@ html::after {
     background: var(--chip-fill-hover);
     border-color: var(--primary);
     color: var(--primary-text);
+    transform: translateY(-1px);
 }
 
+.list-chip:active {
+    transform: scale(0.95);
+}
+
+/* 选中时弹一下：24 颗胶囊里点中的那颗要「应一声」，但只弹一次，不振荡。
+   animation 只在 class 切换时重播，静止的面板不会有任何常驻动画。 */
 .list-chip.active {
     background: var(--primary-dim);
     border-color: var(--primary);
     color: var(--primary-text);
     font-weight: 600;
+    animation: chip-pop 320ms var(--spring-press);
+}
+
+@keyframes chip-pop {
+    from { transform: scale(0.94); }
+    to { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .list-chip,
+    .list-chip:hover,
+    .list-chip:active { transform: none; }
+    .list-chip.active { animation: none; }
 }
 
 /* 长尾折叠：计数为 1 的标签由构建期打上 .is-tail、默认收起；
