@@ -169,8 +169,14 @@
             </div>
         </section>
 
+        <!-- 站点速览：数字由 main.ts 按到货顺序填（项目来自打包进来的 projects.json，
+             文章 / 资源跟着各自的预览数据一起到，最新一条提交来自 site-stats.json）。
+             它卡在「关于」和「项目」之间的那段留白里，空白不再是一段没人用的空地。 -->
+        <div class="site-stats" id="siteStats" aria-label="站点速览"></div>
+
         <section id="projects">
             <div class="section-header">项目</div>
+            <p class="section-lede">C++ 库、小工具与实验项目</p>
             <div class="projects-grid" id="projectsGrid"></div>
         </section>
 
@@ -179,6 +185,7 @@
                 博客
                 <a href="blog/" class="section-more">查看全部 <span aria-hidden="true">&rarr;</span></a>
             </div>
+            <p class="section-lede">学习笔记、工程规范与上手指南</p>
             <div class="blog-preview-grid" id="blogPreviewGrid"></div>
         </section>
 
@@ -187,6 +194,7 @@
                 资源
                 <a href="nook/" class="section-more">查看全部 <span aria-hidden="true">&rarr;</span></a>
             </div>
+            <p class="section-lede">常用工具、配置包与资料</p>
             <div class="nook-preview-grid" id="nookPreviewGrid"></div>
         </section>
 
@@ -207,9 +215,6 @@
                             <span class="contact-chip">问题反馈</span>
                             <span class="contact-chip">招聘沟通</span>
                         </div>
-                        <!-- 不公开微信 / 手机号：IM 账号可被搜索加好友，截图之后也撤不干净。
-                             主动权留给自己 —— 想给再给。 -->
-                        <p class="contact-note">更直接的渠道（微信等）来信即可索取。</p>
                     </div>
 
                     <div class="contact-channels">
@@ -235,6 +240,18 @@
                             </div>
                             <a class="contact-action" href="https://github.com/cmixed" target="_blank" rel="noopener noreferrer">打开</a>
                         </div>
+
+                        <div class="contact-row">
+                            <!-- Gitee 同为品牌标识，和章鱼猫一样保留实心 -->
+                            <span class="contact-row-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="is-brand"><path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.982 0 1.778-.796 1.778-1.778v-.296a.593.593 0 0 0-.592-.593h-4.15a.592.592 0 0 1-.592-.592v-1.482a.593.593 0 0 1 .593-.592h6.815c.327 0 .593.265.593.592v3.408a4 4 0 0 1-4 4H5.926a.593.593 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h8.296Z"/></svg>
+                            </span>
+                            <div class="contact-row-body">
+                                <span class="contact-row-label">Gitee</span>
+                                <a class="contact-row-value" href="https://gitee.com/cmixed" target="_blank" rel="noopener noreferrer">gitee.com/cmixed</a>
+                            </div>
+                            <a class="contact-action" href="https://gitee.com/cmixed" target="_blank" rel="noopener noreferrer">打开</a>
+                        </div>
                     </div>
                 </div>
 
@@ -243,7 +260,7 @@
                     <span class="footer-dot" aria-hidden="true">·</span>
                     <span>邮件为主</span>
                     <span class="footer-dot" aria-hidden="true">·</span>
-                    <span>开放机会</span>
+                    <span>欢迎工作机会</span>
                 </div>
             </div>
         </section>

@@ -31,11 +31,11 @@ describe('联系卡', () => {
   });
 
   it('每条渠道都有标签与动作，不再是两颗无字图标', () => {
-    for (const label of ['邮箱', 'GitHub']) {
+    for (const label of ['邮箱', 'GitHub', 'Gitee']) {
       expect(section, `缺少渠道标签 ${label}`).toContain(`>${label}</span>`);
     }
     expect(section).toContain('>复制</button>');
-    expect(section).toContain('>打开</a>');
+    expect(section).toContain('https://gitee.com/cmixed');
     // 旧的纯文本邮箱与无标签图标按钮都已退役
     expect(section).not.toContain('email-display');
     expect(section).not.toContain('social-link');
@@ -43,8 +43,11 @@ describe('联系卡', () => {
 
   it('没有内联样式，元信息一行把「何时找、找得到吗」说清', () => {
     expect(section).not.toContain('style="');
-    for (const item of ['UTC+8', '邮件为主', '开放机会']) {
+    for (const item of ['UTC+8', '邮件为主', '欢迎工作机会']) {
       expect(section, `元信息缺少 ${item}`).toContain(item);
     }
+    // 「来信索取」那行已按要求撤掉，别再回来
+    expect(section).not.toContain('contact-note');
+    expect(section).not.toContain('来信索取');
   });
 });

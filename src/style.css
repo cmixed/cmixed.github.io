@@ -861,7 +861,7 @@ body.nav-open::before {
 
 /* ===== SECTIONS ===== */
 section {
-    padding: 5rem 2rem;
+    padding: 4rem 2rem;
     /* 导航是 58px 的 sticky：锚点跳过来时留出这段高度，标题才不被压在导航下面 */
     scroll-margin-top: calc(var(--nav-h) + 1.5rem);
     max-width: 960px;
@@ -874,8 +874,10 @@ section {
    769px 实测 919px、600px 实测 1020px，任何一档占位都会在展开时让页面长高或缩短。
    它又紧贴首屏下方，content-visibility 省不了多少，索性不虚拟化这一块。 */
 #about { content-visibility: visible; }
-#projects { contain-intrinsic-size: auto 400px; }
-#contact { contain-intrinsic-size: auto 560px; }
+/* #contact 是唯一还虚拟化的区块，占位给实测高度（1440px 下 598px）；
+   项目那条 contain-intrinsic-size 删了 —— 它已经 content-visibility: visible，
+   写着也不生效。 */
+#contact { contain-intrinsic-size: auto 600px; }
 
 /* 三个有卡片的区块（项目 / 博客预览 / 资源预览）也不虚拟化：
    content-visibility 隐含 paint 裁切，而卡片浮窗挂在卡片盒子外面、还会翻到卡片上方，
@@ -919,6 +921,51 @@ html.fab-measuring section {
     flex: 1;
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* 区块导语：一行小字说清这块是什么。标题与导语之间只留一线，下方间距给卡片 ——
+   标题行不再是「一行大字 + 一整片空白」。没有导语的区块（关于 / 联系）不受影响。 */
+.section-header:has(+ .section-lede) {
+    margin-bottom: 0.75rem;
+}
+
+.section-lede {
+    margin: 0 0 1.75rem;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
+}
+
+/* 站点速览：卡在「关于」和「项目」之间的那段留白里，把空白换成一行实信息。
+   和联系卡底部的元信息同一套语言（等宽小字 + · 分隔），不引入第三种排版。
+   负 margin 吃进两侧 section 的 padding —— 它自己不额外撑高页面。 */
+.site-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.45rem 0.7rem;
+    max-width: 960px;
+    margin: -1.25rem auto;
+    padding: 0 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+}
+
+.site-stats b {
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+/* 最近一条提交：文本是英文的提交摘要，靠省略号收在一行里，不把速览条撑成两行 */
+.site-stats-recent {
+    margin-left: auto;
+    min-width: 0;
+    max-width: 46%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 「查看全部」：从标题下方搬进标题行右端，和标题共用一条水平线。
@@ -1586,6 +1633,11 @@ html.fab-measuring section {
 .contact-intro {
     flex: 1 1 auto;
     min-width: 0;
+    /* 右列三条渠道行比左列高，左列内容垂直居中，上下留白对称 ——
+       顶对齐的话多出来的整段空白全落在左下角，卡片像少了一块 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .contact-lede {
@@ -1598,7 +1650,6 @@ html.fab-measuring section {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 1.15rem;
 }
 
 .contact-chip {
@@ -1610,12 +1661,6 @@ html.fab-measuring section {
     background: var(--chip-fill);
     border: 1px solid var(--chip-border);
     border-radius: 999px;
-}
-
-.contact-note {
-    margin: 0;
-    font-size: 0.82rem;
-    color: var(--text-muted);
 }
 
 .contact-channels {
@@ -2725,7 +2770,18 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     section {
-        padding: 3rem 1.5rem;
+        padding: 2.5rem 1.5rem;
+    }
+
+    /* 窄屏速览条整行换行，最近提交另起一行并吃满宽度 */
+    .site-stats {
+        margin: -0.75rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .site-stats-recent {
+        margin-left: 0;
+        max-width: 100%;
     }
 
     :root {
@@ -2896,7 +2952,7 @@ html.modal-open .page-scrollbar-thumb {
 @media (min-width: 1920px) {
     section {
         max-width: 1400px;
-        padding: 6rem 3rem;
+        padding: 5rem 3rem;
     }
 
     .hero::before {
