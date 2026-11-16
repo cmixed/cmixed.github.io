@@ -6,9 +6,9 @@ import { describe, expect, it } from 'vite-plus/test';
  * 首页 hero 的两条回归防线：
  *
  * 1. 打字机光标只在「正在逐字写 / 删」时出现。此前它 24 小时都在闪，
- *    而打字机和签名都是居中的 —— 句子一短，那根竖线就落在签名尾巴上，
+ *    而标题（签名）和打字机都是居中的 —— 句子一短，那根竖线就落在签名尾巴上，
  *    看起来像是签名自己冒出来的光标。
- * 2. 签名是装饰图，不能被选中、不能拖、指针事件也不落在 <img> 上：
+ * 2. 标题图（手写签名）不能被选中、不能拖、指针事件也不落在 <img> 上：
  *    否则单击图片后浏览器会把选区 / 插入符锚到图片后面（开了光标浏览时最明显）。
  */
 const ROOT = join(import.meta.dirname, '..', '..');
@@ -42,20 +42,20 @@ describe('hero 光标与签名', () => {
     expect(main).toMatch(/toggle\('is-typing',\s*typeSpeed <= 100\)/);
   });
 
-  it('签名不可选中、不可拖拽、图片不接收指针事件', () => {
-    const box = declarations('.hero-signature');
-    expect(box).toContain('user-select: none');
-    expect(box).toContain('cursor: default');
-    // 容器的 opacity 会被 .hero-content > * 的入场动画盖掉，写了也是死代码
-    expect(box).not.toContain('opacity');
-
-    const img = declarations('.hero-signature img');
+  it('标题就是签名图：不可选中、不可拖拽、不接收指针事件，alt 仍是 cmixed', () => {
+    const img = declarations('.hero-title img');
     expect(img).toContain('pointer-events: none');
     expect(img).toContain('-webkit-user-drag: none');
+    expect(img).toContain('user-select: none');
 
-    expect(html).toMatch(/class="hero-signature"[^>]*aria-hidden="true"/);
+    // h1 里只有这一张图，标题的可读文本由 alt 提供
+    expect(html).toMatch(
+      /<h1 class="hero-title">\s*<img[^>]*cmixed_sign_v1\.svg"[^>]*alt="cmixed"/
+    );
     expect(html).toMatch(/cmixed_sign_v1\.svg"[^>]*draggable="false"/);
-    // 装饰图不该再和 <h1> 抢同一个可读文本
-    expect(html).not.toContain('alt="cmixed" width="166"');
+    // 首页不再另排一行文字标题，也不再有独立的 .hero-signature 块
+    expect(html).not.toContain('<h1>cmixed</h1>');
+    expect(html).not.toContain('hero-signature');
+    expect(css).not.toContain('.hero-signature');
   });
 });

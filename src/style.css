@@ -682,17 +682,42 @@ body.nav-open::before {
     70%, 100% { transform: scale(3); opacity: 0; }
 }
 
-.hero h1 {
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    font-weight: 800;
-    margin-bottom: 0.75rem;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    transition: color var(--transition-speed);
+/* 首页标题就是那枚手写签名，不再另排一行文字：签名本身写的就是 cmixed，
+   两行叠在一起只是把同一个名字说了两遍。h1 里放一张 alt 为 cmixed 的图，
+   标题层级与可读文本都还在（屏幕阅读器读到的是 cmixed），视觉上只有签名。 */
+.hero-title {
+    margin: 0 0 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-title img {
+    /* 4.6:1 的手写体，高度才是观感上的「字号」。当标题用时得给足体量：
+       64px 时整枚只有 296px 宽，读起来像随手画的一道装饰，撑不起首屏。
+       96px → 约 443px 宽，正好占 720 栏的六成，是个像样的字标。 */
+    height: clamp(52px, 7.2vw, 96px);
+    width: auto;
+    /* 装饰性的图形标题：不接收指针、不可选中 —— 否则单击图片时浏览器会把
+       插入符锚到图片后面（开了光标浏览时最明显），还会触发原生图片拖拽 */
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+[data-theme="dark"] .hero-title img {
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+}
+
+[data-theme="light"] .hero-title img {
+    filter: none;
+    opacity: 0.82;
 }
 
 .typewriter {
-    font-size: 1.15rem;
+    /* 标题交给签名之后，这行副标题就是首屏唯一可读的文字，1.15rem 太轻 */
+    font-size: 1.3rem;
     color: var(--text-dim);
     margin-bottom: 2.5rem;
     min-height: 1.5em;
@@ -729,41 +754,6 @@ body.nav-open::before {
 @keyframes blink {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
-}
-
-.hero-signature {
-    /* 注意：这里别再写 opacity —— `.hero-content > *` 的入场动画带 forwards，
-       动画终值是 opacity: 1，会盖掉普通声明；此前写在容器上的 0.5 / hover 0.8
-       从来没生效过，真正决定浓淡的是下面 img 上那份按主题给的透明度。
-       签名是装饰图，不是内容：不该能被选中、也不该点一下就冒出一个文本插入符。
-       图片在文档流里，浏览器默认把它当「可选中的内容」处理，单击后会把
-       选区 / 插入符锚到图片后面（开了光标浏览时最明显：签名尾巴上一直闪一根竖线）。
-       这几件事一起掐断：不给选中、不给拖拽、指针事件也不落在图片本身上。 */
-    margin-bottom: 2rem;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    cursor: default;
-}
-
-.hero-signature img {
-    height: 36px;
-    width: auto;
-    transition: filter var(--transition-speed), opacity var(--transition-speed);
-    /* 指针事件不落在图片上：点击的目标是容器，不会触发原生图片拖拽 */
-    pointer-events: none;
-    -webkit-user-drag: none;
-    user-select: none;
-}
-
-[data-theme="dark"] .hero-signature img {
-    filter: brightness(0) invert(1);
-    opacity: 0.7;
-}
-
-[data-theme="light"] .hero-signature img {
-    filter: none;
-    opacity: 0.6;
 }
 
 .cta-buttons {
@@ -987,12 +977,10 @@ html.fab-measuring section {
 
 .about-main {
     display: flex;
-    gap: 2rem;
-    /* 头像卡不再自带「照片 + 名带」两段高度，而是被这一行拉高：照片用
-       object-fit: cover 铺满拉伸后的框。左列与右列（简介 + 事实）同高，
-       卡片里不会剩下一块没人用的空地，事实列表也不必靠 margin-top: auto
-       硬顶到底 —— 它就在简介下面一行。 */
-    align-items: stretch;
+    gap: 1.75rem;
+    /* 头像缩成一张小方照片后不再需要「与右列同高」：名带没了，左边只剩一张图，
+       硬拉高只会把照片扯成竖条。右列（简介 + 事实）自己决定这一行多高。 */
+    align-items: flex-start;
 }
 
 .about-body {
@@ -1001,60 +989,52 @@ html.fab-measuring section {
 }
 
 .about-avatar {
-    position: relative;
-    flex-shrink: 0;
-    /* 宽度是唯一的固定值：高度交给左列那一行的 stretch，照片用 cover 填满。
-       换断点时只要改这一个数，照片、名字、外框不会各自为政。 */
-    width: 168px;
-    /* 拉到 240px 就够：左右两栏都变窄时右列会明显变高（简介折行 + 事实三列
-       变两行），再高照片就成了窄条。超出部分留白，比把照片拉成 1:1.8 好看。 */
-    max-height: 240px;
-    background: var(--mica-chip);
-    /* 外框是唯一的轮廓：照片直接铺到边上，没有内衬、没有第二层边框、没有缝 */
-    border: 1px solid var(--mica-chip-border);
+    flex: none;
+    /* 小头像下面压一枚签名，等于「签了名的肖像」：不挂名字带、不占一整条，
+       132 + 24 的高度刚好把左列补到与右列相近，照片也不会被拉成竖条 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    width: 132px;
+}
+
+.about-avatar-photo {
+    display: block;
+    width: 100%;
+    /* height: auto 不能省：<img> 的 height 属性是表现层提示，会压过 aspect-ratio，
+       少了它照片就是 132×160 的竖条而不是方图 */
+    height: auto;
+    aspect-ratio: 1;
+    /* 照片是唯一的实心块：外框、圆角、阴影都长在它身上 */
+    object-fit: cover;
     border-radius: 16px;
-    overflow: hidden;
+    border: 1px solid var(--mica-chip-border);
+    background: var(--mica-chip);
     box-shadow: 0 4px 20px var(--shadow);
     transition: border-color var(--transition-speed);
 }
 
-.about-avatar:hover {
+.about-avatar:hover .about-avatar-photo {
     border-color: var(--primary);
 }
 
-.about-name-tag {
-    position: absolute;
-    inset: auto 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 2.6rem;
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    /* 压在照片上：深浅主题下底都是暗的，所以用固定的亮青，不跟主题 token 走，
-       否则浅色主题的 --primary-text 是深青，落到暗照片上就看不见了 */
-    color: #d7fff4;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
-    /* 名字不是一块牌子，是照片下缘的一层渐隐：没有上边界，所以没有缝 */
-    background: linear-gradient(
-        to top,
-        rgba(3, 17, 15, 0.82) 0%,
-        rgba(3, 17, 15, 0.62) 42%,
-        rgba(3, 17, 15, 0) 100%
-    );
-    white-space: nowrap;
-    user-select: none;
+.about-avatar-sign {
+    width: 112px;
+    height: auto;
+    /* 签名是装饰：不接收指针、不可选中（点了不会冒出文本插入符） */
     pointer-events: none;
+    user-select: none;
 }
 
-.about-avatar img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    /* 框比照片高时裁切，不拉伸变形 */
-    object-fit: cover;
+[data-theme="dark"] .about-avatar-sign {
+    filter: brightness(0) invert(1);
+    opacity: 0.55;
+}
+
+[data-theme="light"] .about-avatar-sign {
+    filter: none;
+    opacity: 0.5;
 }
 
 .about-grid {
@@ -2533,13 +2513,6 @@ html.modal-open .page-scrollbar-thumb {
         gap: 1.25rem;
     }
 
-    /* 窄屏标题卡 110–130px 见方，名带要按比例收：2.6rem 会吃掉三分之一张照片 */
-    .about-name-tag {
-        height: 2rem;
-        font-size: 0.7rem;
-        letter-spacing: 0.1em;
-    }
-
     .about-facts {
         grid-template-columns: 1fr;
         gap: 0.85rem;
@@ -2582,11 +2555,7 @@ html.modal-open .page-scrollbar-thumb {
         flex: 0 0 auto;
     }
 
-    /* 窄屏纵排，头像卡不再被拉伸：宽度决定一切 */
-    .about-avatar {
-        width: 130px;
-        max-height: none;
-    }
+    .about-avatar { width: 112px; }
 
     .about-grid {
         grid-template-columns: 1fr;
@@ -2687,7 +2656,7 @@ html.modal-open .page-scrollbar-thumb {
         gap: 0.35rem;
     }
 
-    .about-avatar { width: 110px; }
+    .about-avatar { width: 96px; }
 
     .typewriter { font-size: 1rem; }
     .status-bar { font-size: 0.75rem; }
@@ -2849,10 +2818,7 @@ html.modal-open .page-scrollbar-thumb {
         height: 28px;
     }
 
-    .about-avatar {
-        width: 180px;
-        max-height: 260px;
-    }
+    .about-avatar { width: 152px; }
 }
 
 /* ===== Accessibility: reduced motion ===== */
@@ -2888,7 +2854,9 @@ html.modal-open .page-scrollbar-thumb {
     .hero { padding: 2rem 0 !important; min-height: auto !important; }
     .hero-content { opacity: 1 !important; transform: none !important; }
     section { break-inside: avoid; }
-    .about-avatar img { filter: none; }
+    /* 深色主题下签名是「反白」的：印到白纸上会整片消失 */
+    .about-avatar img,
+    .hero-title img { filter: none; }
 }
 
 /* ===== SHARED NAV STYLES ===== */
@@ -3434,7 +3402,6 @@ button,
 .skill-chip,
 .tag-more,
 .pin-badge,
-.about-name-tag,
 .footer-link,
 .hamburger,
 .fab-btn,
