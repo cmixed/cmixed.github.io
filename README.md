@@ -108,7 +108,7 @@ hero 自己的光晕（`.hero::before`，6 秒呼吸）现在**显式居中在�
 | `--spring-press` | ζ=1、ω=26、约 260ms | 按钮按压缩放、图标交叉、边界回弹 | 无（临界阻尼） |
 | `--spring-scroll` | ζ=0.85、ω=18、约 380ms | 仅作对照，实际滚动用解析式 | 约 0.6%，一次就收 |
 
-**滚动为什么不能编译期做完**：`scrollTop` 不是合成属性，WAAPI 也动不了它，只能 `requestAnimationFrame` 逐帧写。能优化的地方是每帧只做一次解析式求值和一次 `scrollTo`，不读布局、不碰别的属性 —— 相比 `scroll-behavior: smooth` 的黑盒，它换来的是可设阻尼、可设初速度、可被打断。**边界回弹**用 `html` 上的 10px `translateY` 撤回（`--spring-press`，400ms）：`html` 的 transform 会临时改变 fixed 的参照，导航和浮动按钮跟着一起弹，这正是橡皮筋该有的样子。它有两条入口：点浮动按钮落到底，以及**手势在页面边界继续滚** —— 后者靠 `wheel` / `touchmove` 的方向判断（到边界后 `scrollY` 已经不走了，只能从推力方向知道用户还在往外推），520ms 内只播一次。`prefers-reduced-motion: reduce` 下按压、滚动、回弹三条全部退化为即时。
+**滚动为什么不能编译期做完**：`scrollTop` 不是合成属性，WAAPI 也动不了它，只能 `requestAnimationFrame` 逐帧写。能优化的地方是每帧只做一次解析式求值和一次 `scrollTo`，不读布局、不碰别的属性 —— 相比 `scroll-behavior: smooth` 的黑盒，它换来的是可设阻尼、可设初速度、可被打断。**边界回弹**只做底部：到边界后手势继续往下推，或浮动按钮落到页底，`main` / `footer` 一起上移 6px 再用 `--spring-press` 弹回（260ms）。**不给 `html` 加 transform** —— 那会把整页连同 fixed 的导航和浮动按钮一起位移，视口边缘露出的是画布底色，就是「黑一块」的来源；只动内容层，露出来的仍是 `body` 的页面底色。顶部不做：内容下移会在导航下方拉出一条空条，观感收益远不如底部。手势那条靠 `wheel` / `touchmove` 的方向判断（到边界后 `scrollY` 已经不走了，只能从推力方向知道用户还在往外推），520ms 内只播一次。`prefers-reduced-motion: reduce` 下按压、滚动、回弹三条全部退化为即时。
 
 ### 色彩：前景色与填充色分离
 

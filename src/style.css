@@ -4744,25 +4744,23 @@ html.modal-open .fx-layer { visibility: hidden; }
     color: var(--text-muted);
 }
 
-/* 撞到边界的轻回弹：整页压 10px 再弹回。曲线是 ζ=1 的 spring（无振荡），
-   所以只有「压下去 → 回来」一次。html 上的 transform 会临时改变 fixed 的参照，
-   导航和浮动按钮跟着一起弹 —— 这正是橡皮筋该有的样子。 */
-@keyframes edge-bounce-top {
-    from { transform: translateY(10px); }
-    to { transform: none; }
-}
-
+/* 到底的轻回弹：只让**内容层**（main / footer）上移 6px 再回来。
+   不给 html 加 transform —— 那会把整页连同 fixed 的导航、浮动按钮一起位移，
+   视口边缘露出的是画布底色，「黑一块」就是这么来的。
+   位移只作用在内容层，露出来的仍是 body 的页面底色，看起来是页面「压了一下」而不是被撕开。 */
 @keyframes edge-bounce-bottom {
-    from { transform: translateY(-10px); }
+    from { transform: translateY(-6px); }
     to { transform: none; }
 }
 
-html.edge-top { animation: edge-bounce-top 400ms var(--spring-press); }
-html.edge-bottom { animation: edge-bounce-bottom 400ms var(--spring-press); }
+main.edge-bounce,
+footer.edge-bounce {
+    animation: edge-bounce-bottom 260ms var(--spring-press);
+}
 
 @media (prefers-reduced-motion: reduce) {
-    html.edge-top,
-    html.edge-bottom { animation: none; }
+    main.edge-bounce,
+    footer.edge-bounce { animation: none; }
 }
 
 /* ===== 右下角浮动操作 =====

@@ -127,34 +127,34 @@
   }
 
   /**
-   * 撞到顶 / 底时的一次轻回弹：整页压 10px 再弹回。
+   * 到底时的一次轻回弹：内容层上移 6px 再弹回。
    *
-   * html 上的 transform 会临时改变 fixed 的参照 —— 导航和浮动按钮跟着一起弹，
-   * 这正是橡皮筋该有的样子。只在滚动收尾时触发一次，420ms 后撤类，静止无 transform。
+   * 不给 html 加 transform —— 那会把整页连同 fixed 的导航、浮动按钮一起位移，
+   * 视口边缘露出画布底色，「黑一块」就是这么来的。只动 main / footer，
+   * 露出来的仍是 body 的页面底色。顶部不做：内容下移会在导航下方拉出一条空条，
+   * 观感收益远不如底部。
    */
   function bounceAtEdge(target: number): void {
-    // 落在边界就给一次回弹：这是「撞到墙」的确认，不该看用户当时滚得多快
     if (reducedMotion()) return;
-    const root = document.documentElement;
-    const max = root.scrollHeight - window.innerHeight;
-    const atTop = target <= 0.5;
-    const atBottom = target >= max - 1;
-    if (!atTop && !atBottom) return;
-    playEdge(atTop);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    if (target < max - 1) return;
+    playEdge();
   }
 
   let edgeAt = 0;
 
-  /** 一次 10px 的整页回弹；520ms 内只播一次，别连发。 */
-  function playEdge(toTop: boolean): void {
+  /** 内容层 6px 回弹；520ms 内只播一次，别连发。 */
+  function playEdge(): void {
     const now = performance.now();
     if (now - edgeAt < 520) return;
     edgeAt = now;
-    const root = document.documentElement;
-    root.classList.remove('edge-top', 'edge-bottom');
-    void root.offsetWidth;
-    root.classList.add(toTop ? 'edge-top' : 'edge-bottom');
-    window.setTimeout(() => root.classList.remove('edge-top', 'edge-bottom'), 420);
+    const layers = Array.from(document.querySelectorAll<HTMLElement>('main, footer'));
+    for (const el of layers) el.classList.remove('edge-bounce');
+    void document.body.offsetWidth;
+    for (const el of layers) el.classList.add('edge-bounce');
+    window.setTimeout(() => {
+      for (const el of layers) el.classList.remove('edge-bounce');
+    }, 320);
   }
 
   /**
@@ -166,10 +166,9 @@
    */
   function edgeOnGesture(delta: number): void {
     if (reducedMotion() || delta === 0) return;
-    const root = document.documentElement;
-    const max = root.scrollHeight - window.innerHeight;
-    if (window.scrollY <= 0 && delta < 0) playEdge(true);
-    else if (window.scrollY >= max - 1 && delta > 0) playEdge(false);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    // 只有底部：顶部继续往外推时什么都不做（见 bounceAtEdge 的说明）
+    if (window.scrollY >= max - 1 && delta > 0) playEdge();
   }
 
   window.addEventListener('wheel', (event) => edgeOnGesture(event.deltaY), { passive: true });
