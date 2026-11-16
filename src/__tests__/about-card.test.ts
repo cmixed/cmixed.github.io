@@ -46,7 +46,6 @@ describe('关于卡的头像与事实区', () => {
     expect(tag).toContain('position: absolute');
     expect(tag).toContain('inset: auto 0 0');
     expect(tag).toContain('linear-gradient');
-    expect(tag).toContain('user-select: none');
     expect(tag).toContain('pointer-events: none');
     // 有上边框就等于有接缝；名字不该是一块贴上去的牌子
     expect(tag).not.toContain('border-top');

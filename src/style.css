@@ -697,12 +697,10 @@ body.nav-open::before {
        96px → 约 443px 宽，正好占 720 栏的六成，是个像样的字标。 */
     height: clamp(52px, 7.2vw, 96px);
     width: auto;
-    /* 装饰性的图形标题：不接收指针、不可选中 —— 否则单击图片时浏览器会把
-       插入符锚到图片后面（开了光标浏览时最明显），还会触发原生图片拖拽 */
+    /* 装饰性的图形标题：不接收指针、不可拖 —— 否则单击会触发原生图片拖拽。
+       文本插入符由全站的 user-select 默认关统一处理，这里不再各写一份。 */
     pointer-events: none;
     -webkit-user-drag: none;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 [data-theme="dark"] .hero-title img {
@@ -1033,7 +1031,6 @@ html.fab-measuring section {
         rgba(3, 17, 15, 0) 100%
     );
     white-space: nowrap;
-    user-select: none;
     pointer-events: none;
 }
 
@@ -1644,7 +1641,6 @@ footer {
 .footer-dot {
     color: var(--text-muted);
     opacity: 0.55;
-    user-select: none;
 }
 
 .footer-link {
@@ -3410,34 +3406,34 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     }
 }
 
-/* ===== 交互控件的文字选中与焦点 =====
-   按钮 / 胶囊里的文字默认可选中：点击时若有几像素手部位移，就会选走半个标签
-   （实测点 26Q3 选成 "6Q"），文字中间留下一段选区和文本光标。
-   只覆盖控件本身 —— 正文、文章、代码、邮箱仍可自由选取复制。 */
-button,
-[role='button'],
-.list-chip,
-.list-chip-more,
-.list-sort-btn,
-.meta-chip,
-.changelog-more,
-.skill-chip,
-.tag-more,
-.pin-badge,
-.footer-link,
-.hamburger,
-.fab-btn,
-.section-more,
-.nav-title,
-.nav-links a,
-.blog-nav-title,
-.nook-nav-title,
-.nook-detail-nav-title,
-.btn,
-.social-link,
-.nook-download {
+/* ===== 文本选中：全站默认关，只有「读者要复制的正文」开 =====
+   旧做法是一张 22 项的白名单（button / .list-chip / .btn …），逐个给「不该落插入符」
+   的控件写 user-select: none。它是枚举式的：每加一个组件就得想起来补一项，
+   实测漏了 40 处 —— 卡片标题、技术标签、状态条、区块标题、目录、详情元信息、
+   svg / canvas、404 文案都能被点击落插入符。反过来做更稳：默认全站不可选，
+   只把「真的要给读者复制」的几块正文显式打开。这样新增任何 UI 都自动安全。
+
+   为什么用 * 而不是 html / body：<dialog> 在顶层（top layer）不继承根元素的
+   user-select，弹窗头部（.site-modal-title）会漏出来；* 直接落到每个元素上，
+   弹窗头部也能盖住。不用 !important —— 下面 allowlist 的特异性（:is 里有类）
+   高于 *，靠源码顺序生效即可。
+
+   打开的是「读者会选中复制」的内容：文章正文与代码（.md-body 同时在文章和
+   悬浮框正文上）、关于卡的简介与事实、小窝详情正文、输入控件。标题、标签、
+   卡片、状态、导航一律不开 —— 它们点了不该冒出文本插入符。 */
+*,
+*::before,
+*::after {
     -webkit-user-select: none;
     user-select: none;
+}
+
+:is(.md-body, .about-text, .about-facts, .nook-detail-content,
+    .site-modal-body, input, textarea, [contenteditable='true'], pre, code),
+:is(.md-body, .about-text, .about-facts, .nook-detail-content,
+    .site-modal-body, input, textarea, [contenteditable='true'], pre, code) * {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 button {
