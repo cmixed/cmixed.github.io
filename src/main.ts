@@ -546,6 +546,8 @@ interface CommitsData {
   summaries: Record<string, QuarterSummaryView>;
   /** 还没过完的季度：页面上显示「进行中」占位公告，不触发补写提醒 */
   inProgress?: string[];
+  /** 进行中季度的统计（提交数 / 活跃日 / 类型分布）：编译期算，不依赖人工总结 */
+  liveStats?: Record<string, QuarterStatsView>;
   /** 「进行中」公告的文案，透传自 quarter-summaries.json 的 defaults.inProgress */
   inProgressNotice?: QuarterNoticeView | null;
 }
@@ -720,17 +722,34 @@ function quarterOf(date: string): string {
 function quarterSummaryHtml(
   quarter: string,
   summary: QuarterSummaryView | undefined,
-  meta: Pick<CommitsData, 'inProgress' | 'inProgressNotice'>
+  meta: Pick<CommitsData, 'inProgress' | 'inProgressNotice' | 'liveStats'>
 ): string {
   if (!summary) {
     const notice = meta.inProgressNotice;
     if (!meta.inProgress?.includes(quarter) || !notice) return '';
+    /* 总结是人工的、统计不是：进行中的季度照样把编译期算好的数字摊出来，
+       否则这一块只剩一句「还没写」，等于白占一屏。 */
+    const live = meta.liveStats?.[quarter];
+    const types = live?.topTypes
+      ?.map((item) => `${escapeHtml(item.type)} ${item.count}`)
+      .join(' · ');
+    const statsLine = live
+      ? `<div class="changelog-summary-stats">${live.commits} 次提交 · ${live.days} 个活跃日${
+          types ? ` · ${types}` : ''
+        }</div>`
+      : '';
     return `<article class="changelog-summary is-in-progress">
       <div class="changelog-summary-head">
         <span class="changelog-summary-tag">季度进行中 · ${escapeHtml(quarter)}</span>
+        ${
+          live
+            ? `<span class="changelog-summary-range">${escapeHtml(live.from)} — ${escapeHtml(live.to)}</span>`
+            : ''
+        }
       </div>
       <h3 class="changelog-summary-title">${escapeHtml(notice.headline)}</h3>
       <p>${escapeHtml(notice.body)}</p>
+      ${statsLine}
     </article>`;
   }
   const { stats } = summary;

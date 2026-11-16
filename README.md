@@ -265,7 +265,7 @@ README 有好几节、弹窗只有一屏高，找「内容维护」得滚半天�
 
 更新日志的季度段里会插一张总结卡（标题、一段概述、要点、统计）。三条硬规则：
 
-- **没过完的季度不总结**。`isQuarterComplete()` 用 UTC 月份判断：Q3 结束于 9 月，要等 10 月才算过完；2026-11 时的 26Q4 仍是进行中，即使存档里有总结也不会输出。当前只有 26Q3（226 条）和 26Q2（18 条）有总结。进行中的季度在页面上显示一块**虚线「进行中」占位公告**：文案归数据层——住在 `quarter-summaries.json` 的 `defaults.inProgress`（改措辞不用动 TS），构建期透传为 `site-commits.json` 的 `inProgressNotice`，`src/main.ts` 只渲染。`readSummaryArchive()` 把 `defaults` 与季度条目分开，缺口判定与总结挑选只看条目，公告文案永远不会被当成"这条总结写过了"，补写提醒不受影响。
+- **没过完的季度不总结**。`isQuarterComplete()` 用 UTC 月份判断：Q3 结束于 9 月，要等 10 月才算过完；2026-11 时的 26Q4 仍是进行中，即使存档里有总结也不会输出。当前只有 26Q3（226 条）和 26Q2（18 条）有总结。进行中的季度在页面上显示一块**虚线「进行中」占位公告**：文案归数据层——住在 `quarter-summaries.json` 的 `defaults.inProgress`（改措辞不用动 TS），构建期透传为 `site-commits.json` 的 `inProgressNotice`，`src/main.ts` 只渲染。**统计不跟总结一起缺席**：提交数 / 活跃日 / 首末日期 / 类型分布都是编译期算的，`buildCommits()` 只对进行中的季度另存一份 `liveStats`，卡片照样把 `174 次提交 · 13 个活跃日 · feat 53 · …` 摊出来，人工的只有概述和要点两段。`readSummaryArchive()` 把 `defaults` 与季度条目分开，缺口判定与总结挑选只看条目，公告文案永远不会被当成"这条总结写过了"，补写提醒不受影响。
 - **不重复总结**。总结文本写在 `src/data/quarter-summaries.json`，一个季度一条、带 `fingerprint`（该季度全部 `hash + subject` 的 sha256 前 12 位）。构建期 `selectQuarterSummaries()` **只读不生成**：已有总结原样复用；已完结但缺总结的只 `console.warn` 提醒，绝不自动补一份；指纹变了也继续复用旧总结、只提醒人工复核。所以每次构建不会重新"总结"一遍。
 - **每段一张**。`renderChangelog()` 按季度键取一次，插在横线胶囊标题之后、按日期分组的明细之前；日期分组里不会再插。统计（条数 / 活跃日 / 首末日期 / 类型分布）从完整提交记录现算，不写进存档文件，免得和 git 历史对不上。
 

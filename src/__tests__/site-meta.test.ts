@@ -274,6 +274,7 @@ describe('buildAbout / buildCommits', () => {
       'changelog',
       'inProgress',
       'inProgressNotice',
+      'liveStats',
       'repo',
       'summaries',
       'total',
@@ -296,6 +297,18 @@ describe('buildAbout / buildCommits', () => {
     expect(commits.changelog.length).toBeLessThanOrEqual(MAX_COMMITS);
     expect(commits.total).toBeGreaterThanOrEqual(commits.changelog.length);
     if (commits.total > 0) expect(commits.changelog.length).toBeGreaterThan(0);
+
+    /* 进行中的季度没有总结，但统计照样要有：它是编译期算的，不该和人工总结一起缺席 */
+    for (const quarter of commits.inProgress) {
+      const live = commits.liveStats[quarter];
+      expect(live, quarter).toBeDefined();
+      expect(live.commits).toBeGreaterThan(0);
+      expect(live.days).toBeGreaterThan(0);
+      expect(live.from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(live.to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(live.topTypes.length).toBeGreaterThan(0);
+      expect(live.topTypes.length).toBeLessThanOrEqual(4);
+    }
 
     for (const entry of commits.changelog) {
       expect(entry.hash).toMatch(/^[0-9a-f]{4,40}$/);

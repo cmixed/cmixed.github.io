@@ -132,6 +132,11 @@ export interface CommitsMeta {
    */
   inProgress: string[];
   /**
+   * 进行中的季度也有统计：提交数 / 活跃日 / 类型分布都是编译期能算的，
+   * 不该因为「总结还没写」就整块空着。总结是人工的，统计不是。
+   */
+  liveStats: Record<string, QuarterStats>;
+  /**
    * 「进行中」公告的文案（透传自 quarter-summaries.json 的 defaults.inProgress）。
    * 文案归数据、状态归构建，前端只渲染；为 null 时前端不出公告卡。
    */
@@ -481,12 +486,21 @@ export async function buildAbout(): Promise<AboutMeta> {
 export function buildCommits(now: Date = new Date()): CommitsMeta {
   const { changelog, total } = readCommits();
   const archive = readSummaryArchive();
+  const inProgress = inProgressQuarters(changelog, now);
+  /* 进行中的季度照样出统计：它不依赖人工总结，随每次提交重新算 */
+  const groups = groupByQuarter(changelog);
+  const liveStats: Record<string, QuarterStats> = {};
+  for (const quarter of inProgress) {
+    const list = groups.get(quarter);
+    if (list) liveStats[quarter] = quarterStats(list);
+  }
   return {
     changelog,
     total,
     repo: readRepoUrl(),
     summaries: selectQuarterSummaries(changelog, archive.entries, now),
-    inProgress: inProgressQuarters(changelog, now),
+    inProgress,
+    liveStats,
     inProgressNotice: archive.inProgressNotice,
   };
 }
