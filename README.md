@@ -265,14 +265,23 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 
 | 规则 | 内容 |
 | --- | --- |
-| 默认关 | `*, *::before, *::after { user-select: none }` |
-| 只开正文 | `:is(.md-body, .about-text, .about-facts, .nook-detail-content, .site-modal-body, input, textarea, [contenteditable], pre, code)` 及其后代 `user-select: text` |
+| 默认关 | `*, *::before, *::after { user-select: none; caret-color: transparent }` |
+| 只开正文 | `:is(.md-body, .about-text, .about-facts, .nook-detail-content, .site-modal-body, input, textarea, [contenteditable], pre, code)` 及其后代 `user-select: text; caret-color: auto` |
 
 - **用 `*` 不用 `html` / `body`**：`<dialog>` 在顶层（top layer），不继承根元素的 `user-select`，弹窗头部 `.site-modal-title` 会漏出来；`*` 直接落到每个元素上才盖得住。不用 `!important` —— allowlist 里 `:is()` 含类，特异性高于 `*`，靠源码顺序生效。
 - **allowlist 必须写「容器 + 其后代」两条**：只写容器本身的话，后代被 `*` 改回 `none`，文章正文就选不中了。
 - `.md-body` 同时挂在文章正文和悬浮框正文上，一处覆盖两处；`.about-facts` 是「Modern C++」这类读者会复制的事实值。标题、标签、卡片、状态、导航一律不开 —— 点了不该冒插入符。
 - `public/404.html` 是自带内联样式的独立页、不加载 `style.css`，在那份 `<style>` 里也写了同一条默认关；它没有任何正文，不需要 allowlist。
-- 签名图的 `pointer-events: none` / `-webkit-user-drag: none` 和 `draggable="false"` 仍保留（挡原生拖拽），但 `user-select` 与 h1 上的 `mousedown` 兜底都删了 —— 那两处现在是重复的，留着会有「两套真相」。
+- 签名图的 `pointer-events: none` / `-webkit-user-drag: none` 和 `draggable="false"` 仍保留（挡原生拖拽）。
+
+**`user-select: none` 只保证不产生选区，不保证不画插入符。** 首页的状态胶囊和签名左上点一下仍会落下一根白竖线 —— 那是 h1 行盒上的插入符（高度等于 h1 的字号，实测 32px 字号 → 约 42px 的竖线），浏览器把它当成「可点击的文本边界」；开着 F7 光标浏览时到处都能点出一根。所以这条策略有两半：
+
+| 半边 | 谁来做 | 作用 |
+| --- | --- | --- |
+| **不产生** | `src/client/caret.ts`（编进 `ui.js`，全站生效）：捕获阶段 `mousedown` 上 `preventDefault()` —— 默认动作里就包含「移动插入符 / 开始选择」 | 从源头掐掉，任何浏览器都落不下插入符 |
+| **看不见** | 上表的 `caret-color: transparent` | 即便某处仍落下一根，也画不出来 |
+
+守卫**只拦不可选中的内容**：交互控件（`a, button, input, textarea, select, summary, [tabindex], [contenteditable]`）一律放行，否则 `preventDefault` 会把它们自己的 `focus` 一起吃掉；拦不拦只看计算出来的 `user-select`，**不在 JS 里维护第二份 allowlist** —— 改 CSS 那边这边自动跟着走。
 
 ### 键盘焦点环：不依赖祖先给空间
 
