@@ -16,7 +16,7 @@
  * 指向站点主页用房子，指回博客 / 小窝用对应栏目的标记。
  *
  * 图标用内联 SVG 而不是字符：系统字体缺字时会把 U+2302（⌂）画成方框，
- * 不同平台的 emoji / 符号字形也各不相同。三颗图标同一套 1.7px 描边，
+ * 不同平台的 emoji / 符号字形也各不相同。三颗图标同一套 1.8px 描边，
  * 和主题色只靠 currentColor 联系，深浅色切换不用另写一套；导航里的
  * RSS / 主题 / 目录 / 缩进同样来自 src/lib/icons.ts。
  *
@@ -24,22 +24,21 @@
  */
 (() => {
   const ICONS = {
-    /* 全部走站内同一套线形图标：24×24、1.7px 描边、圆头、currentColor，
-       与导航里的 RSS / 主题 / 搜索同源。三颗按钮不再各有各的画法。
-       blog / nook 就是把两个栏目的 favicon 挪进 24 格：尖括号、立方体，
-       所以「点它就回那个栏目」这件事，图标本身已经说清楚了。 */
-    home: '<path d="M3 11.2 12 4l9 7.2"/><path d="M5.6 9.8v9.4h12.8V9.8"/>',
-    blog: '<path d="M9.8 7.9 5.6 12l4.2 4.1"/><path d="M14.2 7.9 18.4 12l-4.2 4.1"/>',
-    nook: '<path d="M12 5.9 18.5 9.2v6.2L12 18.7 5.5 15.4V9.2Z"/><path d="M5.6 9.2 12 12.6l6.5-3.4M12 12.6v6.1"/>',
-    up: '<path d="M12 19V5.2"/><path d="m5.8 11.4 6.2-6.2 6.2 6.2"/>',
-    down: '<path d="M12 5v13.8"/><path d="m18.2 12.6-6.2 6.2-6.2-6.2"/>',
+    /* 全部走站内同一套线形图标：24×24、1.8px 描边、圆头、currentColor，
+       与导航里的 RSS / 主题 / 搜索同源。blog / nook 与两处 favicon 同构 ——
+       折角稿纸、等距收纳盒 —— 「点它就回那个栏目」由图形本身说明。 */
+    home: '<path d="M4.4 11.3 12 5.1l7.6 6.2"/><path d="M6.7 9.9v9.2h10.6V9.9"/><path d="M10.4 19.1v-3.2a1.6 1.6 0 0 1 3.2 0v3.2"/>',
+    blog: '<path d="M7.4 4.6h6.4l3.2 3.2v11.6H7.4Z"/><path d="M13.8 4.6v3.2h3.2"/><path d="M9.8 12.2h5.4M9.8 15.2h3.8"/>',
+    nook: '<path d="M12 5 18.6 8.4v7.2L12 19l-6.6-3.4V8.4Z"/><path d="M5.4 8.4 12 11.8l6.6-3.4M12 11.8V19"/>',
+    up: '<path d="M12 18.8V5.4"/><path d="m6.4 11 5.6-5.6 5.6 5.6"/>',
+    down: '<path d="M12 5.2v13.4"/><path d="m17.6 12.8-5.6 5.6-5.6-5.6"/>',
   } as const;
 
   type IconName = keyof typeof ICONS;
 
   function svg(name: IconName): string {
     return (
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
       `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`
     );
   }

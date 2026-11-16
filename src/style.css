@@ -423,7 +423,7 @@ body::before {
 .hamburger {
     display: none;
     flex-direction: column;
-    gap: 5px;
+    gap: 4.5px;
     cursor: pointer;
     background: none;
     border: none;
@@ -431,10 +431,11 @@ body::before {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* 18×1.7 而不是 24×2：原来三条线比旁边的文字还重，汉堡成了导航里最抢眼的东西 */
 .hamburger span {
     display: block;
-    width: 24px;
-    height: 2px;
+    width: 18px;
+    height: 1.7px;
     background: var(--text-dim);
     transition: transform 0.3s, opacity 0.3s;
     border-radius: 1px;
@@ -519,6 +520,8 @@ body.nav-open::before {
     width: 12px;
     height: 12px;
     display: block;
+    /* 24 格缩到 12px，1.8px 的笔画只剩 0.9px，太阳射线会散成灰点；提到 2.4 */
+    stroke-width: 2.4;
 }
 
 .theme-toggle .sun-icon {
@@ -2883,15 +2886,16 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: inline-flex; align-items: center;
     color: var(--text-dim); text-decoration: none;
 }
-.blog-nav-rss svg, .nook-nav-rss svg { width: 16px; height: 16px; display: block; }
+.blog-nav-rss svg, .nook-nav-rss svg { width: 16px; height: 16px; display: block; stroke-width: 1.9; }
 .blog-nav-rss:hover, .nook-nav-rss:hover { color: var(--primary-text); }
 /* 文章阅读页导航里复用了 .fab-btn，必须收小一档：
    原来的 40×40 把导航从 58px 撑到 72px（右下角浮动的 .fab-group 仍是 40px）。 */
 .blog-nav .fab-btn,
 .nook-nav .fab-btn { width: 26px; height: 26px; border-radius: 6px; font-size: 0.85rem; position: relative; }
-/* 导航里的按钮只有 26px，SVG 收到 14px；触屏再放大一档，和 32px 的按钮成比例。 */
+/* 导航里的按钮只有 26px，SVG 收到 14px；触屏再放大一档，和 32px 的按钮成比例。
+   14px 下 1.8px 的笔画只剩 1.05px，补到 2 才和旁边的文字同重量。 */
 .blog-nav .fab-btn svg,
-.nook-nav .fab-btn svg { width: 14px; height: 14px; }
+.nook-nav .fab-btn svg { width: 14px; height: 14px; stroke-width: 2; }
 @media (hover: none) and (pointer: coarse) {
     .blog-nav .fab-btn svg,
     .nook-nav .fab-btn svg { width: 16px; height: 16px; }
@@ -2949,7 +2953,8 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .search-bar:focus-within .search-icon { color: var(--primary-text); }
 .search-icon {
     flex: none; width: 1rem; height: 1rem;
-    color: var(--text-muted); fill: currentColor;
+    /* 搜索改成描边后不能再 fill：那会把圆填成实心。笔画补到 2 补上 1rem 下的损耗 */
+    color: var(--text-muted); stroke-width: 2;
     transition: color 0.3s;
 }
 
@@ -4638,8 +4643,9 @@ html.modal-open .fx-layer { visibility: hidden; }
 /* 图标是内联 SVG（ui.js 里），尺寸跟 40px 的方片成比例；
    文章页导航里的「首行缩进 / 目录」两颗仍是字符，所以上面保留了 font-size */
 .fab-btn svg {
-    width: 18px;
-    height: 18px;
+    /* 40px 按钮里留 10px 边：18px 时图标四周空得发虚，20px 才撑得住这颗玻璃方块 */
+    width: 20px;
+    height: 20px;
     display: block;
     /* 只描边、不填色：这套图标是开放路径（房顶 + 三面墙、单独的箭头线），
        填色会把它们糊成色块。镂空本身正是站内的图标语言。

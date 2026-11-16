@@ -11,10 +11,12 @@ describe('icon', () => {
     expect(svg).toContain('viewBox="0 0 24 24"');
   });
 
-  it('置顶与搜索用实心路径', () => {
+  it('只有置顶保留实心，搜索与其它图标一样走描边', () => {
     expect(icon('pin')).toContain('fill="currentColor"');
-    expect(icon('search')).toContain('fill="currentColor"');
-    expect(icon('search')).not.toContain('stroke-width');
+    const search = icon('search');
+    expect(search).toContain('stroke="currentColor"');
+    expect(search).toContain('stroke-width="1.7"');
+    expect(search).not.toContain('fill="currentColor"');
   });
 
   it('可以附加 class', () => {
