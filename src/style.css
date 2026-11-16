@@ -977,9 +977,10 @@ html.fab-measuring section {
 .about-main {
     display: flex;
     gap: 2rem;
-    /* 右列（简介 + 事实）比头像卡矮 57px，flex-start 会把这段空白全甩在卡片
-       右下角；改成 stretch + 事实列表贴底，空白落到「简介」和「事实」之间，
-       视觉上是两块信息的分隔，不是没人用的空地。 */
+    /* 头像卡不再自带「照片 + 名带」两段高度，而是被这一行拉高：照片用
+       object-fit: cover 铺满拉伸后的框。左列与右列（简介 + 事实）同高，
+       卡片里不会剩下一块没人用的空地，事实列表也不必靠 margin-top: auto
+       硬顶到底 —— 它就在简介下面一行。 */
     align-items: stretch;
 }
 
@@ -989,18 +990,18 @@ html.fab-measuring section {
 }
 
 .about-avatar {
+    position: relative;
     flex-shrink: 0;
-    /* 一个**大的圆角矩形**把「图片 + 下面多出的半块」整个包住：
-       图片四角保留自己的 14px；底部那半块由外框的 overflow: hidden + 20px 圆角
-       裁出一个只有下半部圆角的形状。两块共用同一条轮廓、同一层底色，
-       没有间隙、没有吊线 —— 是融合，不是挂牌子。 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.45rem 0.45rem 0;
+    /* 宽度是唯一的固定值：高度交给左列那一行的 stretch，照片用 cover 填满。
+       换断点时只要改这一个数，照片、名字、外框不会各自为政。 */
+    width: 168px;
+    /* 拉到 240px 就够：左右两栏都变窄时右列会明显变高（简介折行 + 事实三列
+       变两行），再高照片就成了窄条。超出部分留白，比把照片拉成 1:1.8 好看。 */
+    max-height: 240px;
     background: var(--mica-chip);
+    /* 外框是唯一的轮廓：照片直接铺到边上，没有内衬、没有第二层边框、没有缝 */
     border: 1px solid var(--mica-chip-border);
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 4px 20px var(--shadow);
     transition: border-color var(--transition-speed);
@@ -1011,41 +1012,38 @@ html.fab-measuring section {
 }
 
 .about-name-tag {
-    align-self: stretch;
+    position: absolute;
+    inset: auto 0 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* 负 margin 撑到外框左右边缘：这半块与外框同宽，既不外伸也不悬空。
-       底边贴着外框，圆角由外框裁出来，所以它天生是「半个圆角矩形」。 */
-    margin: 0.45rem -0.45rem 0;
-    /* 2.2rem 时名带比两侧文字厚一档，卡片看上去拖了一条尾巴；1.85rem 刚好装下 */
-    height: 1.85rem;
+    height: 2.6rem;
     font-family: var(--font-mono);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
-    color: var(--mica-chip-text);
-    background: var(--primary-dim);
-    border: 0;
-    border-top: 1px solid var(--mica-chip-border);
-    border-radius: 0;
+    letter-spacing: 0.14em;
+    /* 压在照片上：深浅主题下底都是暗的，所以用固定的亮青，不跟主题 token 走，
+       否则浅色主题的 --primary-text 是深青，落到暗照片上就看不见了 */
+    color: #d7fff4;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    /* 名字不是一块牌子，是照片下缘的一层渐隐：没有上边界，所以没有缝 */
+    background: linear-gradient(
+        to top,
+        rgba(3, 17, 15, 0.82) 0%,
+        rgba(3, 17, 15, 0.62) 42%,
+        rgba(3, 17, 15, 0) 100%
+    );
     white-space: nowrap;
     user-select: none;
+    pointer-events: none;
 }
 
 .about-avatar img {
     display: block;
-    width: 168px;
-    height: 168px;
-    /* 图片自己的四角圆角，与外框分开：被包裹，而不是被削平 */
-    border-radius: 14px;
+    width: 100%;
+    height: 100%;
+    /* 框比照片高时裁切，不拉伸变形 */
     object-fit: cover;
-    border: 1px solid var(--border);
-    transition: border-color var(--transition-speed);
-}
-
-.about-avatar img:hover {
-    border-color: var(--primary);
 }
 
 .about-grid {
@@ -1072,9 +1070,9 @@ html.fab-measuring section {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
-    /* 贴住右列底部，与头像卡底边齐平；留 0.4rem 不死贴 —— 全贴死会让事实列表
-       像被顶到地板，简介与它之间的那段留白反而更突兀 */
-    margin: auto 0 0.4rem;
+    /* 紧跟在简介下面：事实是简介的补充，不是贴着卡底的封条。
+       这里一旦用 auto 顶到底，右列有多高就空多大一块，事实反而离正文很远 */
+    margin: 1.1rem 0 0;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
 }
@@ -1106,9 +1104,9 @@ html.fab-measuring section {
    上半是身份、下半是能力，但两者仍同属「关于」一个区块，所以它只是导线的注记，
    不是第二个区块标题 —— 字号与组名同级，压在线槽里，不参与标题层级。 */
 .about-skills {
-    /* 上半段（身份）与分隔线之间只留一道呼吸缝；原先 1.5rem 加上标签行
-       自己的 1.1rem 下边距，中间空出一大块，卡片像被切成了两页 */
-    margin-top: 0.5rem;
+    /* 事实列表现在就是这一行的底边，8px 的缝会让「技能」贴着上一行的字；
+       一道真正的呼吸缝（1.1rem）才让分隔线看起来是分隔，不是下划线 */
+    margin-top: 1.1rem;
     scroll-margin-top: 90px;
 }
 
@@ -2524,11 +2522,11 @@ html.modal-open .page-scrollbar-thumb {
         gap: 1.25rem;
     }
 
-    /* 窄屏是纵向堆叠：胶囊绝对定位会压到下面的正文，这里改回流内 */
-    /* 窄屏只收字号与高度；宽度由外框 stretch 决定，不写 width */
+    /* 窄屏标题卡 110–130px 见方，名带要按比例收：2.6rem 会吃掉三分之一张照片 */
     .about-name-tag {
-        height: 2.1rem;
-        font-size: 0.78rem;
+        height: 2rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
     }
 
     .about-facts {
@@ -2573,9 +2571,10 @@ html.modal-open .page-scrollbar-thumb {
         flex: 0 0 auto;
     }
 
-    .about-avatar img {
+    /* 窄屏纵排，头像卡不再被拉伸：宽度决定一切 */
+    .about-avatar {
         width: 130px;
-        height: 130px;
+        max-height: none;
     }
 
     .about-grid {
@@ -2677,7 +2676,7 @@ html.modal-open .page-scrollbar-thumb {
         gap: 0.35rem;
     }
 
-    .about-avatar img { width: 110px; height: 110px; }
+    .about-avatar { width: 110px; }
 
     .typewriter { font-size: 1rem; }
     .status-bar { font-size: 0.75rem; }
@@ -2839,9 +2838,9 @@ html.modal-open .page-scrollbar-thumb {
         height: 28px;
     }
 
-    .about-avatar img {
+    .about-avatar {
         width: 180px;
-        height: 180px;
+        max-height: 260px;
     }
 }
 
