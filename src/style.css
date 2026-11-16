@@ -4653,43 +4653,14 @@ html.modal-open .fx-layer { visibility: hidden; }
     }
 }
 
-/* ===== 快捷键帮助（keys.js，复用 .site-modal 的皮）===== */
+/* ===== 快捷键帮助（keys.js）=====
+   面板本身就是 .site-modal：底色、七层受光、圆角、关闭钮、正文内边距全部来自
+   那份共享规则，这里只补「宽度」和那张键位表。
+   早先这里写过 `background: var(--mica-chrome)` —— 简写会把共享组的
+   background-image 整组重置成 none，于是它看着和更新日志 / 关于本站不像一个画风
+   （一块平色板 vs 一块玻璃）。改皮肤请动 .site-modal，不要在这个文件里另铺一层。 */
 .keys-help {
     width: min(440px, calc(100vw - 2rem));
-    /* 面板材质：.site-modal 的背景来自文件末尾的共享组，但那份是按
-       「头部 + 正文区」两块拼的，独立创建的这个 dialog 得自己兜一层底色，
-       否则整块是半透明的，后面的文章文字会透进来 */
-    background: var(--mica-chrome);
-    -webkit-backdrop-filter: var(--mica-panel-glass);
-    backdrop-filter: var(--mica-panel-glass);
-}
-
-.keys-help-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.keys-help-close {
-    flex: none;
-    width: 28px;
-    height: 28px;
-    display: grid;
-    place-items: center;
-    font-size: 1.1rem;
-    line-height: 1;
-    color: var(--text-dim);
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: border-color var(--transition-speed), color var(--transition-speed);
-}
-
-.keys-help-close:hover {
-    border-color: var(--primary);
-    color: var(--primary-text);
 }
 
 .keys-help-list {
