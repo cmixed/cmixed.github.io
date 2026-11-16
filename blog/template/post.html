@@ -93,6 +93,11 @@
             max-height: calc(100vh - 100px);
             overflow-y: auto;
             padding-right: 1rem;
+            /* 焦点环安全区：底部 18px 是渐隐带，最后一条目录贴着底边时它的焦点环
+               既被 overflow 裁掉、又被 mask 淡掉。留 26px 尾部空白 + 同样的
+               scroll-padding，Tab 过去就能滚出渐隐带（>18px）再停下。 */
+            padding-bottom: 26px;
+            scroll-padding-block: 26px;
             /* 目录一溢出，浏览器就会画一条原生滚动条：它既挤掉 1rem 的内容宽度、
                让链接文字跳一下，也和全站「隐藏原生滚动条」的做法不一致。
                这里统一隐藏（Firefox 用 scrollbar-width，Chromium/Safari 用

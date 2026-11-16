@@ -1744,7 +1744,12 @@ footer {
 
 /* 标题右侧的常驻操作区（目前的唯一住户是更新日志的季度跳转）。
    它在正文滚动区之外，所以永远看得见，不需要 sticky。
-   内容为空时整块塌掉 —— 「关于本站」不占位置。 */
+   内容为空时整块塌掉 —— 「关于本站」不占位置。
+   6px 内边距是焦点环的安全区：outline-offset 是正值，环画在胶囊外面；
+   overflow-x: auto 会把另一轴的 visible 也算成 auto，于是上下各 4px 的环
+   会被裁成四枚角标（F1 → Esc 焦点回到季度胶囊时最明显）。padding box 才是
+   裁切边，留出这 6px 环就完整了；margin-block 把撑开的高度还回去，
+   margin-left: auto 不动，标题行仍是原来的高度。 */
 .site-modal-actions {
     flex: 0 0 auto;
     display: flex;
@@ -1753,7 +1758,10 @@ footer {
     align-self: center;
     min-width: 0;
     margin-left: auto;
+    padding: 6px;
+    margin-block: -6px;
     overflow-x: auto;
+    scroll-padding-inline: 6px;
     scrollbar-width: none;
 }
 
@@ -2247,6 +2255,13 @@ a.changelog-item:hover .changelog-hash {
         padding: 0.16rem 0.55rem;
     }
 
+    /* 窄屏这一行会横向滚动，最后一颗正好贴着裁切边：外环的右侧 4px 无处可去，
+       scroll-padding 也救不了（元素已经「可见」，浏览器不会再滚）。改画内嵌环，
+       和 .skill-group-items 的窄屏处理同一条规矩。 */
+    .site-modal-actions .meta-chip:focus-visible {
+        outline-offset: -2px;
+    }
+
     .site-modal-body {
         padding: 1rem 1rem 1.25rem;
         font-size: 0.875rem;
@@ -2492,7 +2507,11 @@ html.modal-open .page-scrollbar-thumb {
         justify-content: center;
         align-items: center;
         gap: 3rem;
-        transition: right 0.3s;
+        /* 关着的抽屉停在 right:-100%，链接仍在 tab 顺序里：Tab 过去会聚焦一个
+           屏幕外的元素，焦点环又被 nav 的 overflow-x: clip 裁掉。visibility 让
+           关闭态彻底退出可聚焦树；延迟 0.3s 是为了让滑出动画还能被看见。 */
+        visibility: hidden;
+        transition: right 0.3s, visibility 0s linear 0.3s;
         z-index: 200;
         box-shadow: -4px 0 30px var(--shadow);
         padding-bottom: env(safe-area-inset-bottom);
@@ -2500,6 +2519,8 @@ html.modal-open .page-scrollbar-thumb {
 
     .nav-links.active {
         right: 0;
+        visibility: visible;
+        transition: right 0.3s, visibility 0s;
     }
 
     .nav-links a {
@@ -2548,11 +2569,21 @@ html.modal-open .page-scrollbar-thumb {
         overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        padding-bottom: 2px;
+        /* 横排之后 x 轴 auto 会把 y 轴也变成 auto。这一行是 flex 项，不能像
+           弹窗那样用负 margin 抵高度（会把胶囊挤出下边缘），所以留 6px 实内边距；
+           焦点环改画在胶囊内缘（见下面那条），不吃这 6px 之外的任何空间。 */
+        padding: 6px;
     }
 
     .skill-group-items::-webkit-scrollbar {
         display: none;
+    }
+
+    /* 窄屏这一行本来就只有 40px 高，外环一定会被上下裁掉。内嵌环落在胶囊自己
+       的框里，任何祖先的 overflow / mask 都碰不到它。特异性要压过上面的
+       .skill-chip.is-link:focus-visible 那条 outline-offset: 2px。 */
+    .skill-group-items .skill-chip.is-link:focus-visible {
+        outline-offset: -2px;
     }
 
     .skill-chip {
@@ -3251,11 +3282,16 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     color: var(--primary-text);
 }
 
-/* 长标签列表：隐藏原生滚动条，用上下渐隐提示还有内容（和文章目录同一套） */
+/* 长标签列表：隐藏原生滚动条，用上下渐隐提示还有内容（和文章目录同一套）。
+   和 .site-modal-actions 同一条焦点环规矩：overflow-y: auto 会连 x 轴一起裁，
+   6px 内边距让标签的外环完整，负的上下 margin 抵掉多出来的高度。 */
 .list-filters-scroll {
     flex: 1 1 auto;
     min-height: 0;
+    padding: 6px;
+    margin-block: -6px;
     overflow-y: auto;
+    scroll-padding-block: 10px;
     scrollbar-width: none;
     overscroll-behavior: contain;
 }
@@ -3443,11 +3479,33 @@ button {
 /* 键盘焦点统一给一圈 accent 焦点环。用 :focus-visible：鼠标点击不触发，
    不会在点击之后留一个框；已有自定义焦点样式的组件（.btn / .fab-btn / 卡片）
    特异性更高，仍走自己的规则。 */
+@keyframes focus-ring-in {
+    from { outline-color: transparent; }
+}
+
 button:focus-visible,
 a:focus-visible,
 [role='button']:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+    /* F1 → Esc 焦点回到原处时，环用 0.2s 淡入，不是「啪」地多出一条硬线。
+       只动 outline-color，不改几何，所以裁切安全区不用跟着变。 */
+    animation: focus-ring-in 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button:focus-visible,
+    a:focus-visible,
+    [role='button']:focus-visible {
+        animation: none;
+    }
+}
+
+/* 焦点环安全区的另一半：纵向滚动区里，Tab 到某一项时浏览器会把它滚到刚好
+   贴住裁切边，外环的最后 4px 就没了。scroll-padding 让落点离边 10px，
+   环完整；不改 padding，所以正文排版一点不动。 */
+:where(.site-modal-body, .card-popover-body, .md-body pre, .md-body .table-wrapper) {
+    scroll-padding-block: 10px;
 }
 
 .list-sort {
