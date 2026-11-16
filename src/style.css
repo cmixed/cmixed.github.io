@@ -875,7 +875,7 @@ section {
    它又紧贴首屏下方，content-visibility 省不了多少，索性不虚拟化这一块。 */
 #about { content-visibility: visible; }
 #projects { contain-intrinsic-size: auto 400px; }
-#contact { contain-intrinsic-size: auto 300px; }
+#contact { contain-intrinsic-size: auto 560px; }
 
 /* 三个有卡片的区块（项目 / 博客预览 / 资源预览）也不虚拟化：
    content-visibility 隐含 paint 裁切，而卡片浮窗挂在卡片盒子外面、还会翻到卡片上方，
@@ -1567,55 +1567,181 @@ html.fab-measuring section {
 
 /* ===== CONTACT ===== */
 .contact-container {
-    text-align: center;
     background: var(--mica-surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 3rem 2rem;
+    padding: 3rem 2.5rem;
     box-shadow: var(--mica-elev-1);
     transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
-.email-display {
-    font-size: 1.3rem;
-    color: var(--primary-text);
-    margin: 1.25rem 0;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.social-links {
+/* 左右双栏：左「是谁 / 能合作什么」，右「怎么找到你」。和关于卡同构，
+   这样加内容不会显得空 —— 单栏居中放一个邮箱，卡片一宽就只剩留白。 */
+.contact-main {
     display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
+    align-items: stretch;
+    gap: 2.5rem;
 }
 
-.social-link {
-    width: 44px;
-    height: 44px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
+.contact-intro {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.contact-lede {
+    margin: 0 0 1.35rem;
+    color: var(--text-dim);
+    line-height: 1.85;
+}
+
+.contact-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.15rem;
+}
+
+.contact-chip {
+    padding: 0.22rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    color: var(--text-dim);
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+}
+
+.contact-note {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.contact-channels {
+    /* 宽度按「邮箱一行放得下」定：图标 32 + 两道缝 + 复制钮 + 值本身，
+       少 20px 都会把 cmixed@foxmail.com 切成省略号 */
+    flex: 0 0 330px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+/* 渠道行 = 「小标签 + 值 + 一颗动作」。值是链接（点邮箱发信、点 GitHub 跳转），
+   动作只给重复次数最高的那件事（复制 / 打开），不做两套等价按钮。 */
+.contact-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: var(--text-dim);
-    text-decoration: none;
-    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.3s;
-    background: var(--bg);
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
+    background: var(--mica-chip);
+    border: 1px solid var(--mica-chip-border);
+    border-radius: 12px;
+    transition: border-color var(--transition-speed);
 }
 
-.social-link:hover {
+.contact-row:hover {
     border-color: var(--primary);
-    color: var(--primary-text);
-    box-shadow: 0 0 15px var(--primary-glow);
-    transform: translateY(-2px);
 }
 
-.social-link svg {
-    width: 22px;
-    height: 22px;
+.contact-row-icon {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--mica-raised);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+
+.contact-row-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* 品牌标识例外：章鱼猫线稿在 18px 下认不出来 */
+.contact-row-icon svg.is-brand {
     fill: currentColor;
+    stroke: none;
+}
+
+.contact-row-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.contact-row-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+}
+
+.contact-row-value {
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--transition-speed);
+}
+
+.contact-row-value:hover {
+    color: var(--primary-text);
+}
+
+.contact-action {
+    flex: none;
+    padding: 0.32rem 0.72rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    background: var(--chip-fill);
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color var(--transition-speed), border-color var(--transition-speed), background var(--transition-speed);
+}
+
+.contact-action:hover {
+    color: var(--primary-text);
+    border-color: var(--primary);
+}
+
+.contact-action.is-copied {
+    color: var(--primary-text);
+    border-color: var(--primary);
+    background: var(--primary-dim);
+}
+
+/* 底部一条元信息：把「什么时候找、找得到吗」一次说清，不用读者翻页面猜 */
+.contact-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    margin-top: 2.25rem;
+    padding-top: 1.35rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
 }
 
 /* ===== FOOTER ===== */
@@ -2439,16 +2565,6 @@ html.modal-open .page-scrollbar-thumb {
 
 /* --- Touch devices: larger tap targets --- */
 @media (hover: none) and (pointer: coarse) {
-    .social-link {
-        width: 48px;
-        height: 48px;
-    }
-
-    .social-link svg {
-        width: 24px;
-        height: 24px;
-    }
-
     /* 触屏只保证 44px 的点击高度，不再靠加大 padding 撑尺寸 ——
        那会把两颗「轻」档胶囊一起撑成和主按钮一样大，两档在手机上又糊回一层。 */
     .btn {
@@ -2718,8 +2834,15 @@ html.modal-open .page-scrollbar-thumb {
     .project-title { font-size: 1rem; }
     .project-desc { font-size: 0.8rem; }
 
-    .contact-container { padding: 2rem 1.25rem; }
-    .email-display { font-size: 1.1rem; word-break: break-all; }
+    .contact-container { padding: 2.25rem 1.25rem; }
+    /* 窄屏两栏并成一列：渠道行跟在简介下面，宽度才够放完整的邮箱 */
+    .contact-main {
+        flex-direction: column;
+        gap: 1.75rem;
+    }
+    .contact-channels { flex: none; }
+    .contact-row { padding: 0.8rem 0.9rem; }
+    .contact-meta { margin-top: 1.75rem; padding-top: 1.1rem; }
 
     footer { padding: 1.5rem; font-size: 0.8rem; }
 }
@@ -2803,17 +2926,15 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .contact-container {
-        padding: 4rem 3rem;
+        padding: 4rem 3.25rem;
     }
 
-    .social-link {
-        width: 52px;
-        height: 52px;
+    .contact-main {
+        gap: 3.25rem;
     }
 
-    .social-link svg {
-        width: 26px;
-        height: 26px;
+    .contact-channels {
+        flex: 0 0 350px;
     }
 }
 
@@ -2851,17 +2972,11 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .contact-container {
-        padding: 5rem 4rem;
+        padding: 5rem 4.5rem;
     }
 
-    .social-link {
-        width: 56px;
-        height: 56px;
-    }
-
-    .social-link svg {
-        width: 28px;
-        height: 28px;
+    .contact-main {
+        gap: 4rem;
     }
 
     .about-avatar {
@@ -3471,9 +3586,9 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     caret-color: transparent;
 }
 
-:is(.md-body, .about-text, .about-facts, .nook-detail-content,
+:is(.md-body, .about-text, .about-facts, .contact-row-value, .nook-detail-content,
     .site-modal-body, input, textarea, [contenteditable='true'], pre, code),
-:is(.md-body, .about-text, .about-facts, .nook-detail-content,
+:is(.md-body, .about-text, .about-facts, .contact-row-value, .nook-detail-content,
     .site-modal-body, input, textarea, [contenteditable='true'], pre, code) * {
     -webkit-user-select: text;
     user-select: text;

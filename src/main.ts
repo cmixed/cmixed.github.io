@@ -1210,3 +1210,41 @@ if (metaDialog && metaBody) {
   );
   if (initial) void openMeta(initial);
 }
+
+/* 联系卡的「复制」：把 data-copy 里的值写进剪贴板，按钮文字临时改成「已复制」。
+   值本身同时是可选中的文本（见 style.css 的选中 allowlist），剪贴板被拒时
+   读者还能手动拖选 —— 这条兜底不能省。 */
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // 非安全上下文（http）或权限被拒时退回 execCommand：老但到处都还在
+    const scratch = document.createElement('textarea');
+    scratch.value = text;
+    scratch.setAttribute('readonly', '');
+    scratch.style.position = 'fixed';
+    scratch.style.opacity = '0';
+    document.body.appendChild(scratch);
+    scratch.select();
+    const ok = document.execCommand('copy');
+    scratch.remove();
+    return ok;
+  }
+}
+
+document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const value = button.dataset.copy ?? '';
+    if (!value) return;
+    void copyToClipboard(value).then((ok) => {
+      const original = button.textContent ?? '';
+      button.textContent = ok ? '已复制' : '复制失败';
+      button.classList.toggle('is-copied', ok);
+      window.setTimeout(() => {
+        button.textContent = original;
+        button.classList.remove('is-copied');
+      }, 1600);
+    });
+  });
+});

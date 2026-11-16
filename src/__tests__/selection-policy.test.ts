@@ -47,6 +47,7 @@ describe('全站文本选中策略', () => {
       '.md-body',
       '.about-text',
       '.about-facts',
+      '.contact-row-value',
       '.nook-detail-content',
       '.site-modal-body',
       'input',
