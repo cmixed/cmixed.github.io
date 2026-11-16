@@ -10,6 +10,8 @@ import { describe, expect, it } from 'vite-plus/test';
  *    看起来像是签名自己冒出来的光标。
  * 2. 标题图（手写签名）不能被选中、不能拖、指针事件也不落在 <img> 上：
  *    否则单击图片后浏览器会把选区 / 插入符锚到图片后面（开了光标浏览时最明显）。
+ *    图片两侧的空白点击会落到 h1 行盒上，还得在 h1 上拦 mousedown —— 只给
+ *    <img> 加 pointer-events: none 挡不住那根竖线（实测对照：不拦时选区类型是 Caret）。
  */
 const ROOT = join(import.meta.dirname, '..', '..');
 const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
@@ -57,5 +59,12 @@ describe('hero 光标与签名', () => {
     expect(html).not.toContain('<h1>cmixed</h1>');
     expect(html).not.toContain('hero-signature');
     expect(css).not.toContain('.hero-signature');
+  });
+
+  it('h1 拦截 mousedown：点签名上半部分也不会落下文本插入符', () => {
+    // 只靠 img 的 pointer-events: none 不够：空白处的点击目标是 h1，
+    // 光标浏览下会在图片前面画一根竖线。必须在行盒上 cancel 默认动作。
+    expect(main).toMatch(/\.hero-title['"]\)\?\.addEventListener\(\s*'mousedown'/);
+    expect(main).toMatch(/addEventListener\('mousedown'[\s\S]{0,200}preventDefault\(\)/);
   });
 });

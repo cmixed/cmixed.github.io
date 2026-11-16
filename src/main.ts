@@ -88,6 +88,14 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
   updateThemeText(e.matches ? 'dark' : 'light');
 });
 
+/* 标题是一张手写签名图，不是可以编辑的内容：点它不该落下一根文本插入符。
+   图片上已经有 pointer-events: none，但点击会落到 h1 这个行盒上（签名两侧的空白
+   也算），浏览器开了「光标浏览」时就会在图片前面画一根竖线。
+   这里直接拦掉 mousedown 的默认动作 —— 不选中、不聚焦、不落插入符。 */
+document.querySelector('.hero-title')?.addEventListener('mousedown', (event) => {
+  event.preventDefault();
+});
+
 const texts = [
   'Modern C++ Developer',
   '职业资格软件设计师',

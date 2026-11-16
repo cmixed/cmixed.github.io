@@ -978,9 +978,9 @@ html.fab-measuring section {
 .about-main {
     display: flex;
     gap: 1.75rem;
-    /* 头像缩成一张小方照片后不再需要「与右列同高」：名带没了，左边只剩一张图，
-       硬拉高只会把照片扯成竖条。右列（简介 + 事实）自己决定这一行多高。 */
-    align-items: flex-start;
+    /* 头像卡与右列（简介 + 事实）同高，照片铺满拉伸后的框；名字压在照片下缘，
+       所以多出的高度被照片吃掉，左列不会在底部留一块空地。 */
+    align-items: stretch;
 }
 
 .about-body {
@@ -989,52 +989,60 @@ html.fab-measuring section {
 }
 
 .about-avatar {
-    flex: none;
-    /* 小头像下面压一枚签名，等于「签了名的肖像」：不挂名字带、不占一整条，
-       132 + 24 的高度刚好把左列补到与右列相近，照片也不会被拉成竖条 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    width: 132px;
-}
-
-.about-avatar-photo {
-    display: block;
-    width: 100%;
-    /* height: auto 不能省：<img> 的 height 属性是表现层提示，会压过 aspect-ratio，
-       少了它照片就是 132×160 的竖条而不是方图 */
-    height: auto;
-    aspect-ratio: 1;
-    /* 照片是唯一的实心块：外框、圆角、阴影都长在它身上 */
-    object-fit: cover;
-    border-radius: 16px;
-    border: 1px solid var(--mica-chip-border);
+    position: relative;
+    flex-shrink: 0;
+    /* 宽度是唯一的固定值：高度交给左列那一行的 stretch，照片用 cover 填满。
+       换断点时只要改这一个数，照片、名字、外框不会各自为政。 */
+    width: 168px;
+    /* 拉到 240px 就够：左右两栏都变窄时右列会明显变高（简介折行 + 事实三列
+       变两行），再高照片就成了窄条。超出部分留白，比把照片拉成 1:1.8 好看。 */
+    max-height: 240px;
     background: var(--mica-chip);
+    /* 外框是唯一的轮廓：照片直接铺到边上，没有内衬、没有第二层边框、没有缝 */
+    border: 1px solid var(--mica-chip-border);
+    border-radius: 16px;
+    overflow: hidden;
     box-shadow: 0 4px 20px var(--shadow);
     transition: border-color var(--transition-speed);
 }
 
-.about-avatar:hover .about-avatar-photo {
+.about-avatar:hover {
     border-color: var(--primary);
 }
 
-.about-avatar-sign {
-    width: 112px;
-    height: auto;
-    /* 签名是装饰：不接收指针、不可选中（点了不会冒出文本插入符） */
-    pointer-events: none;
+.about-name-tag {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    /* 压在照片上：深浅主题下底都是暗的，所以用固定的亮青，不跟主题 token 走，
+       否则浅色主题的 --primary-text 是深青，落到暗照片上就看不见了 */
+    color: #d7fff4;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    /* 名字不是一块牌子，是照片下缘的一层渐隐：没有上边界，所以没有缝 */
+    background: linear-gradient(
+        to top,
+        rgba(3, 17, 15, 0.82) 0%,
+        rgba(3, 17, 15, 0.62) 42%,
+        rgba(3, 17, 15, 0) 100%
+    );
+    white-space: nowrap;
     user-select: none;
+    pointer-events: none;
 }
 
-[data-theme="dark"] .about-avatar-sign {
-    filter: brightness(0) invert(1);
-    opacity: 0.55;
-}
-
-[data-theme="light"] .about-avatar-sign {
-    filter: none;
-    opacity: 0.5;
+.about-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* 框比照片高时裁切，不拉伸变形 */
+    object-fit: cover;
 }
 
 .about-grid {
@@ -2555,7 +2563,18 @@ html.modal-open .page-scrollbar-thumb {
         flex: 0 0 auto;
     }
 
-    .about-avatar { width: 112px; }
+    /* 窄屏纵排，头像卡不再被拉伸：宽度决定一切 */
+    .about-avatar {
+        width: 130px;
+        max-height: none;
+    }
+
+    /* 窄屏照片只有 110–130px 见方，名带要按比例收：2.6rem 会吃掉三分之一张照片 */
+    .about-name-tag {
+        height: 2rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+    }
 
     .about-grid {
         grid-template-columns: 1fr;
@@ -2656,7 +2675,7 @@ html.modal-open .page-scrollbar-thumb {
         gap: 0.35rem;
     }
 
-    .about-avatar { width: 96px; }
+    .about-avatar { width: 110px; }
 
     .typewriter { font-size: 1rem; }
     .status-bar { font-size: 0.75rem; }
@@ -2818,7 +2837,10 @@ html.modal-open .page-scrollbar-thumb {
         height: 28px;
     }
 
-    .about-avatar { width: 152px; }
+    .about-avatar {
+        width: 180px;
+        max-height: 260px;
+    }
 }
 
 /* ===== Accessibility: reduced motion ===== */
