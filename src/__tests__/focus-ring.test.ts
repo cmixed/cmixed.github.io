@@ -18,6 +18,8 @@ import { describe, expect, it } from 'vite-plus/test';
 const ROOT = join(import.meta.dirname, '..', '..');
 const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const post = readFileSync(join(ROOT, 'blog', 'template', 'post.html'), 'utf-8');
+const focusScroll = readFileSync(join(ROOT, 'src', 'client', 'focus-scroll.ts'), 'utf-8');
+const bundles = readFileSync(join(ROOT, 'scripts', 'client-scripts.ts'), 'utf-8');
 
 /** 取规则的声明体（含选择器里的换行），剥掉注释避免误判。 */
 function rule(selector: string): string {
@@ -91,5 +93,19 @@ describe('键盘焦点环安全区', () => {
     expect(closed).toContain('visibility: hidden');
     expect(closed).toContain('visibility 0s linear 0.3s');
     expect(rule('    .nav-links.active {')).toContain('visibility: visible');
+  });
+
+  it('半露在滚动条里的键盘焦点会被滚进视口', () => {
+    // Chrome 只在元素完全不可见时才替焦点滚动；半露在外的（窄屏技能胶囊
+    // 最狠 155px 里被切掉 103px）原地不动，内嵌焦点环也跟着没了一截
+    expect(focusScroll).toContain("'focusin'");
+    expect(focusScroll).toContain('scrollIntoView');
+    expect(focusScroll).toContain("block: 'nearest'");
+    expect(focusScroll).toContain("inline: 'nearest'");
+    // 只在键盘焦点时滚，鼠标点击不跟着跳（技能胶囊的 click 还要滚到项目卡）
+    expect(focusScroll).toMatch(/matches\(':focus-visible'\)/);
+    // 不维护滚动容器名单：跟着计算出来的 overflow 走，和 caret.ts 同一套做法
+    expect(focusScroll).toContain("overflowX !== 'visible'");
+    expect(bundles).toMatch(/ui: \[[^\]]*'focus-scroll'/);
   });
 });
