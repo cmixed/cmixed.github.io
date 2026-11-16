@@ -709,6 +709,21 @@ body.nav-open::before {
     margin-left: 2px;
 }
 
+/* 逐字删到空的那 500ms 里，页面上只剩一颗孤零零的竖线在闪，看着像加载失败。
+   没有文字就不该有光标：空的时候直接藏掉，下一句第一个字落进来再跟着出现。 */
+.typewriter:has(#type-text:empty) .cursor {
+    animation: none;
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* 打字机已停（main.ts 直接写死第一句），光标也就不该继续闪 */
+    .typewriter .cursor {
+        animation: none;
+        opacity: 1;
+    }
+}
+
 @keyframes blink {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
