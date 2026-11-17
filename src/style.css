@@ -554,13 +554,14 @@ body.nav-open::before {
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
        下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。
-       85svh → 100svh - 379px：首屏底部落在「关于」卡里事实区**第一行末尾**，
-       第二行完全不露 —— 露半行会在小标题底下留一道「断层」。
-       379 = 导航 58 + 事实第一行底距 hero 底 319 + 余量 2（1440×900 实测：
-       事实第一行底 853、第二行顶 857、hero 底 534，853 - 534 = 319）。
-       按像素反推而非百分比：事实行高是固定 px，用 vh 会在矮屏上又切到第二行。 */
-    min-height: calc(100vh - 379px);
-    min-height: calc(100svh - 379px);
+       85svh → 100svh - 294px：首屏底部落在「关于」卡里**简介第二段末尾** + 8px，
+       只露两段简介、不露事实区 —— 事实区露半行会在小标题底下留一道断层。
+       294 = 导航 58 + 简介第二段底距 hero 底 234 + 余量 2（1440×900 实测：
+       第二段底 807、hero 底 579 时会露出 93px 过多，故 hero 增高 85px → 664，
+       第二段底相对新 hero 底 = 807 + 85 - 664 = 228，再加 8px 余量 → 294）。
+       按像素反推而非百分比：正文行高是固定 px，用 vh 会在矮屏上又多露一行。 */
+    min-height: calc(100vh - 294px);
+    min-height: calc(100svh - 294px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -588,6 +589,11 @@ body.nav-open::before {
     border-radius: 50%;
     animation: hero-glow 6s ease-in-out infinite alternate;
     pointer-events: none;
+    /* 光晕 diameter 600px + scale 1.08 会越过 hero 下沿 ~20px，在下面「关于」区
+       留一道弧形亮边（背景色断层）。用 mask 让它在 hero 内就渐隐到 0：
+       45% → 84% 是 250px 的缓坡，不会自己变成新的硬边。 */
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 84%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 84%);
 }
 
 @keyframes hero-glow {
@@ -2808,8 +2814,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .hero {
-        min-height: calc(100vh - 379px);
-        min-height: calc(100svh - 379px);
+        min-height: calc(100vh - 294px);
+        min-height: calc(100svh - 294px);
         padding: 2rem 1.5rem;
     }
 
@@ -3019,11 +3025,11 @@ html.modal-open .page-scrollbar-thumb {
         padding: 7rem 4rem;
     }
 
-    /* 5K 的 section 上下 padding 是 7rem，事实区比桌面低 48px，
-       多减 48 才能同样切在第一行末尾（379 + 48 = 427）。 */
+    /* 5K 的 section 上下 padding 是 7rem，简介比桌面低 48px，
+       多减 48 才能同样切在第二段末尾（294 + 48 = 342）。 */
     .hero {
-        min-height: calc(100vh - 427px);
-        min-height: calc(100svh - 427px);
+        min-height: calc(100vh - 342px);
+        min-height: calc(100svh - 342px);
     }
 
     .hero::before {
