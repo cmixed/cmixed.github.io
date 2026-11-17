@@ -554,14 +554,15 @@ body.nav-open::before {
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
        下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。
-       85svh → 100svh - 294px：首屏底部落在「关于」卡里**简介第二段末尾** + 8px，
-       只露两段简介、不露事实区 —— 事实区露半行会在小标题底下留一道断层。
-       294 = 导航 58 + 简介第二段底距 hero 底 234 + 余量 2（1440×900 实测：
-       第二段底 807、hero 底 579 时会露出 93px 过多，故 hero 增高 85px → 664，
-       第二段底相对新 hero 底 = 807 + 85 - 664 = 228，再加 8px 余量 → 294）。
+       85svh → 100svh - 319px：首屏底部刚好露出「关于」卡里事实区**上方那条横线** ——
+       线可见（露出约 4px），但「语言 / 工程能力 / 领域」三个小标题仍在折叠线下。
+       只露一段横线是为了给「下面还有」一个明确的视觉句点：露半行小标题会在
+       字底下留一道断层，只露两段简介又缺少一条收尾的线。
+       319 = 导航 58 + 横线顶距 hero 底 257 + 露出 4（1440×900 实测：
+       横线顶 905、hero 底 648，905 - 648 = 257）。
        按像素反推而非百分比：正文行高是固定 px，用 vh 会在矮屏上又多露一行。 */
-    min-height: calc(100vh - 294px);
-    min-height: calc(100svh - 294px);
+    min-height: calc(100vh - 319px);
+    min-height: calc(100svh - 319px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -613,6 +614,12 @@ body.nav-open::before {
     text-align: center;
     position: relative;
     z-index: 1;
+    /* hero 用 align-items:center 把整块放在垂直中心，但签名 + 打字机 + 按钮
+       的视觉重心偏下（按钮下面还有 2.5rem 的 margin-bottom），看上图像是
+       整体沉在下半部。上移 24px 让重心回到几何中心；用 transform 而不是
+       改 padding / align-items —— 后者会连带改 hero 的可视高度，把下方
+       「关于」卡片的折线一起推走。入场动画挂在子元素上，不与这里冲突。 */
+    transform: translateY(-24px);
 }
 
 /* Hero entrance animation */
@@ -2814,8 +2821,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .hero {
-        min-height: calc(100vh - 294px);
-        min-height: calc(100svh - 294px);
+        min-height: calc(100vh - 319px);
+        min-height: calc(100svh - 319px);
         padding: 2rem 1.5rem;
     }
 
@@ -2982,6 +2989,13 @@ html.modal-open .page-scrollbar-thumb {
         padding: 5rem 3rem;
     }
 
+    /* section 上下从 4rem 涨到 5rem，横线比 1440 档低 16px；
+       hero 多减 16 才能同样切在横线上（319 + 16 = 335）。 */
+    .hero {
+        min-height: calc(100vh - 335px);
+        min-height: calc(100svh - 335px);
+    }
+
     .hero::before {
         width: 1000px;
         height: 1000px;
@@ -3030,10 +3044,10 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 5K 的 section 上下 padding 是 7rem，简介比桌面低 48px，
-       多减 48 才能同样切在第二段末尾（294 + 48 = 342）。 */
+       多减 48 才能同样切在第二段末尾（319 + 48 = 367）。 */
     .hero {
-        min-height: calc(100vh - 342px);
-        min-height: calc(100svh - 342px);
+        min-height: calc(100vh - 367px);
+        min-height: calc(100svh - 367px);
     }
 
     .hero::before {
