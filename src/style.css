@@ -554,10 +554,12 @@ body.nav-open::before {
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
        下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。
-       85 → 68svh：首屏底部原本只露出「关于」两个字，收到头像上沿 ——
-       露出一张脸比露出一行标题更能暗示「下面还有内容」。 */
-    min-height: 68vh;
-    min-height: 68svh;
+       85svh → 100svh - 424px：首屏底部原本只露出「关于」两个字，
+       现在让头像**整张露出来** —— 露出一张脸比露出一行标题更能暗示「下面还有内容」。
+       424 = 导航 58 + 头像顶距 hero 底 165 + 头像高 181 + 余量 20（1440×900 实测）。
+       按像素反推而非百分比：头像高度是固定 px，用 vh 会在矮屏上又把它压回折叠线下。 */
+    min-height: calc(100vh - 424px);
+    min-height: calc(100svh - 424px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2785,8 +2787,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .hero {
-        min-height: 68vh;
-        min-height: 68svh;
+        min-height: calc(100vh - 424px);
+        min-height: calc(100svh - 424px);
         padding: 2rem 1.5rem;
     }
 
@@ -2994,6 +2996,13 @@ html.modal-open .page-scrollbar-thumb {
     section {
         max-width: 1500px;
         padding: 7rem 4rem;
+    }
+
+    /* 5K 的 section 上下 padding 是 7rem，头像顶距 hero 底比桌面多 48px，
+       多减 48 才能同样露出整张脸（424 + 48 = 472）。 */
+    .hero {
+        min-height: calc(100vh - 472px);
+        min-height: calc(100svh - 472px);
     }
 
     .hero::before {
