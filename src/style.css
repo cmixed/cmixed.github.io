@@ -554,12 +554,13 @@ body.nav-open::before {
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
        下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。
-       85svh → 100svh - 424px：首屏底部原本只露出「关于」两个字，
-       现在让头像**整张露出来** —— 露出一张脸比露出一行标题更能暗示「下面还有内容」。
-       424 = 导航 58 + 头像顶距 hero 底 165 + 头像高 181 + 余量 20（1440×900 实测）。
-       按像素反推而非百分比：头像高度是固定 px，用 vh 会在矮屏上又把它压回折叠线下。 */
-    min-height: calc(100vh - 424px);
-    min-height: calc(100svh - 424px);
+       85svh → 100svh - 379px：首屏底部落在「关于」卡里事实区**第一行末尾**，
+       第二行完全不露 —— 露半行会在小标题底下留一道「断层」。
+       379 = 导航 58 + 事实第一行底距 hero 底 319 + 余量 2（1440×900 实测：
+       事实第一行底 853、第二行顶 857、hero 底 534，853 - 534 = 319）。
+       按像素反推而非百分比：事实行高是固定 px，用 vh 会在矮屏上又切到第二行。 */
+    min-height: calc(100vh - 379px);
+    min-height: calc(100svh - 379px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2807,8 +2808,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .hero {
-        min-height: calc(100vh - 424px);
-        min-height: calc(100svh - 424px);
+        min-height: calc(100vh - 379px);
+        min-height: calc(100svh - 379px);
         padding: 2rem 1.5rem;
     }
 
@@ -3018,11 +3019,11 @@ html.modal-open .page-scrollbar-thumb {
         padding: 7rem 4rem;
     }
 
-    /* 5K 的 section 上下 padding 是 7rem，头像顶距 hero 底比桌面多 48px，
-       多减 48 才能同样露出整张脸（424 + 48 = 472）。 */
+    /* 5K 的 section 上下 padding 是 7rem，事实区比桌面低 48px，
+       多减 48 才能同样切在第一行末尾（379 + 48 = 427）。 */
     .hero {
-        min-height: calc(100vh - 472px);
-        min-height: calc(100svh - 472px);
+        min-height: calc(100vh - 427px);
+        min-height: calc(100svh - 427px);
     }
 
     .hero::before {
