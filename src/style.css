@@ -553,9 +553,11 @@ body.nav-open::before {
 /* ===== HERO ===== */
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
-       下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。 */
-    min-height: 85vh;
-    min-height: 85svh;
+       下方内容不会跟着上下跳。dvh 会随工具栏实时变化，正是抖动的来源。
+       85 → 68svh：首屏底部原本只露出「关于」两个字，收到头像上沿 ——
+       露出一张脸比露出一行标题更能暗示「下面还有内容」。 */
+    min-height: 68vh;
+    min-height: 68svh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -926,11 +928,13 @@ html.fab-measuring section {
 /* 区块导语：一行小字说清这块是什么。标题与导语之间只留一线，下方间距给卡片 ——
    标题行不再是「一行大字 + 一整片空白」。没有导语的区块（关于 / 联系）不受影响。 */
 .section-header:has(+ .section-lede) {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.4rem;
 }
 
 .section-lede {
-    margin: 0 0 1.75rem;
+    /* 导语要「换掉」原来的空白，不是叠加上去：标题到卡片的空档从 65px 收到 45px，
+       比加导语之前的 40px 只多 5px —— 多出来的是一行字，不是一段空。 */
+    margin: 0 0 0.9rem;
     color: var(--text-muted);
     font-size: 0.92rem;
     line-height: 1.7;
@@ -956,16 +960,6 @@ html.fab-measuring section {
 .site-stats b {
     color: var(--text-dim);
     font-weight: 600;
-}
-
-/* 最近一条提交：文本是英文的提交摘要，靠省略号收在一行里，不把速览条撑成两行 */
-.site-stats-recent {
-    margin-left: auto;
-    min-width: 0;
-    max-width: 46%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 /* 「查看全部」：从标题下方搬进标题行右端，和标题共用一条水平线。
@@ -1622,8 +1616,9 @@ html.fab-measuring section {
     transition: background-color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed), --glare 0.28s ease;
 }
 
-/* 左右双栏：左「是谁 / 能合作什么」，右「怎么找到你」。和关于卡同构，
-   这样加内容不会显得空 —— 单栏居中放一个邮箱，卡片一宽就只剩留白。 */
+/* 左右双栏：左「是谁 / 能合作什么」，右「怎么找到你」。
+   右栏是两栏网格（邮箱整行打头，GitHub / Gitee 并排），元信息压在左栏底部 ——
+   之前左栏只有简介 + 胶囊，比右栏三条行矮一截，空白全落在左下角。 */
 .contact-main {
     display: flex;
     align-items: stretch;
@@ -1633,11 +1628,8 @@ html.fab-measuring section {
 .contact-intro {
     flex: 1 1 auto;
     min-width: 0;
-    /* 右列三条渠道行比左列高，左列内容垂直居中，上下留白对称 ——
-       顶对齐的话多出来的整段空白全落在左下角，卡片像少了一块 */
     display: flex;
     flex-direction: column;
-    justify-content: center;
 }
 
 .contact-lede {
@@ -1664,21 +1656,22 @@ html.fab-measuring section {
 }
 
 .contact-channels {
-    /* 宽度按「邮箱一行放得下」定：图标 32 + 两道缝 + 复制钮 + 值本身，
-       少 20px 都会把 cmixed@foxmail.com 切成省略号 */
-    flex: 0 0 330px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    /* 两栏网格。宽度按「邮箱一行放得下 + 并排小卡不挤」定：整行的邮箱需要
+       图标 32 + 标签 + 复制钮 + 值本身，少 20px 都会把 cmixed@foxmail.com 切成省略号 */
+    flex: 0 0 420px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+    align-content: center;
 }
 
-/* 渠道行 = 「小标签 + 值 + 一颗动作」。值是链接（点邮箱发信、点 GitHub 跳转），
-   动作只给重复次数最高的那件事（复制 / 打开），不做两套等价按钮。 */
+/* 渠道卡 = 「小标签 + 一颗动作」一行，值在第二行。值是链接（点邮箱发信、
+   点 GitHub 跳转），动作只给重复次数最高的那件事（复制 / 打开），不做两套等价按钮。 */
 .contact-row {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
     padding: 0.85rem 0.95rem;
     background: var(--mica-chip);
     border: 1px solid var(--mica-chip-border);
@@ -1686,8 +1679,19 @@ html.fab-measuring section {
     transition: border-color var(--transition-speed);
 }
 
+/* 邮箱值最长，独占整行；GitHub / Gitee 的值短，并排放两栏 */
+.contact-row--wide {
+    grid-column: 1 / -1;
+}
+
 .contact-row:hover {
     border-color: var(--primary);
+}
+
+.contact-row-head {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
 }
 
 .contact-row-icon {
@@ -1718,15 +1722,8 @@ html.fab-measuring section {
     stroke: none;
 }
 
-.contact-row-body {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-}
-
 .contact-row-label {
+    flex: 1 1 auto;
     font-family: var(--font-mono);
     font-size: 0.68rem;
     letter-spacing: 0.12em;
@@ -1773,15 +1770,15 @@ html.fab-measuring section {
     background: var(--primary-dim);
 }
 
-/* 底部一条元信息：把「什么时候找、找得到吗」一次说清，不用读者翻页面猜 */
+/* 元信息压在左栏底部（margin-top: auto 把剩余空间推到胶囊下方）：
+   「什么时候找、找得到吗」一行说清，同时填掉左栏原本的空脚 */
 .contact-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
     gap: 0.65rem;
-    margin-top: 2.25rem;
-    padding-top: 1.35rem;
+    margin-top: auto;
+    padding-top: 1.15rem;
     border-top: 1px solid var(--border);
     font-family: var(--font-mono);
     font-size: 0.75rem;
@@ -2779,11 +2776,6 @@ html.modal-open .page-scrollbar-thumb {
         padding: 0 1.5rem;
     }
 
-    .site-stats-recent {
-        margin-left: 0;
-        max-width: 100%;
-    }
-
     :root {
         --section-header-size: 1.5rem;
     }
@@ -2793,8 +2785,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .hero {
-        min-height: 80vh;
-        min-height: 80svh;
+        min-height: 68vh;
+        min-height: 68svh;
         padding: 2rem 1.5rem;
     }
 
@@ -2856,8 +2848,8 @@ html.modal-open .page-scrollbar-thumb {
     .nav-right { gap: 0.75rem; }
 
     .hero {
-        min-height: 75vh;
-        min-height: 75svh;
+        min-height: 64vh;
+        min-height: 64svh;
         padding: 2rem 1rem;
     }
     .hero h1 { font-size: clamp(2rem, 10vw, 3rem); }
@@ -2896,9 +2888,11 @@ html.modal-open .page-scrollbar-thumb {
         flex-direction: column;
         gap: 1.75rem;
     }
-    .contact-channels { flex: none; }
+    /* 窄屏右栏两列并成一列：390px 下两列会把 github.com/cmixed 切掉 */
+    .contact-channels { flex: none; grid-template-columns: 1fr; }
     .contact-row { padding: 0.8rem 0.9rem; }
-    .contact-meta { margin-top: 1.75rem; padding-top: 1.1rem; }
+    /* 元信息已挪进左栏，窄屏不再需要外边距 */
+    .contact-meta { margin-top: 1.35rem; }
 
     footer { padding: 1.5rem; font-size: 0.8rem; }
 }
@@ -2990,7 +2984,8 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     .contact-channels {
-        flex: 0 0 350px;
+        /* 大屏两栏要更宽，值才不会被省略号切掉 */
+        flex: 0 0 500px;
     }
 }
 

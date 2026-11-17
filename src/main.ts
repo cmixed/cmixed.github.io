@@ -310,27 +310,16 @@ function renderSkills(): void {
 renderSkills();
 
 /* ===== 站点速览 =====
-   「关于」和「项目」之间那条小字：三个数字 + 最新一条提交。项目数来自打包进来的
-   projects.json；文章 / 资源数跟着各自的预览数据一起到货；最新一条提交来自
-   site-stats.json —— 只有几十字节，不为一行字去拉 59KB 的 site-commits.json。
-   到货一项填一项，全空时不占位。 */
+   「关于」和「项目」之间那条小字：只报内容规模（项目 / 文章 / 资源）。
+   项目数来自打包进来的 projects.json；文章 / 资源数跟着各自的预览数据一起到货。
+   提交信息不放这里 —— 完整记录在「更新日志」里，到货一项填一项，全空时不占位。 */
 interface StatsView {
   projects?: number;
   posts?: number;
   resources?: number;
-  total?: number;
-  latest?: { title: string; date: string };
 }
 
 const statsView: StatsView = { projects: (projects as Project[]).length };
-
-function relativeDay(iso: string): string {
-  const days = Math.floor((Date.now() - Date.parse(iso)) / 86400000);
-  if (days <= 0) return '今天';
-  if (days === 1) return '昨天';
-  if (days < 30) return `${days} 天前`;
-  return iso.slice(0, 10);
-}
 
 function renderSiteStats(): void {
   const host = document.getElementById('siteStats');
@@ -340,38 +329,13 @@ function renderSiteStats(): void {
   if (v.projects !== undefined) counts.push(`<b>${v.projects}</b> 个项目`);
   if (v.posts !== undefined) counts.push(`<b>${v.posts}</b> 篇文章`);
   if (v.resources !== undefined) counts.push(`<b>${v.resources}</b> 个资源`);
-  if (v.total !== undefined) counts.push(`<b>${v.total}</b> 次提交`);
+  // 提交信息不放这里：完整记录在「更新日志」里，速览条只报内容规模。
   const dot = ' <span class="footer-dot" aria-hidden="true">·</span> ';
-  const bits = counts.join(dot);
-  let recent = '';
-  if (v.latest) {
-    // 截断交给 CSS 的省略号：DOM 里留全量文本，悬浮/复制都不丢。
-    // 分隔点跟着 recent 走（它被 margin-left 推到右端），避免孤零零悬在中间；
-    // 也让屏幕阅读器读成「…次提交 · 最近提交…」而不是两个词黏在一起。
-    const sep = bits ? '· ' : '';
-    recent = `<span class="site-stats-recent">${sep}最近提交 ${escapeHtml(
-      relativeDay(v.latest.date)
-    )} · ${escapeHtml(v.latest.title)}</span>`;
-  }
-  host.innerHTML = bits + recent;
+  host.innerHTML = counts.join(dot);
   host.hidden = counts.length === 0;
 }
 
-async function loadSiteStats(): Promise<void> {
-  try {
-    const base = import.meta.env.MODE === 'production' ? './' : '/';
-    const res = await fetch(base + 'site-stats.json', { priority: 'low' });
-    const data: { total: number; latest: { title: string; date: string } | null } =
-      await res.json();
-    statsView.total = data.total;
-    if (data.latest) statsView.latest = data.latest;
-    renderSiteStats();
-  } catch {
-    /* 拿不到就只显示三个数字，不为一行小字报错 */
-  }
-}
 renderSiteStats();
-void loadSiteStats();
 
 // Blog preview on main page
 async function loadBlogPreview(): Promise<void> {

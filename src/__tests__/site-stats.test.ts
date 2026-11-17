@@ -7,8 +7,8 @@ import { describe, expect, it } from 'vite-plus/test';
  *
  * 原来每个 section 上下各 5rem，两个区块内容之间整整 160px 什么都没有
  * （全页 5 处共 800px，占页面高度 18%）。现在收到 4rem（128px），并把其中
- * 一段空白换成一行实信息：「关于」和「项目」之间的站点速览（三个数字 +
- * 最新一条提交），其余区块在标题下各加一行导语。
+ * 一段空白换成一行实信息：「关于」和「项目」之间的站点速览（项目 / 文章 /
+ * 资源三个数），其余区块在标题下各加一行导语。提交信息归更新日志。
  */
 const ROOT = join(import.meta.dirname, '..', '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf-8');
@@ -41,7 +41,7 @@ describe('首页节奏：间距 / 导语 / 站点速览', () => {
     expect(css).toContain('.section-lede');
   });
 
-  it('站点速览卡在关于与项目之间，数据来自三个到货的来源', () => {
+  it('站点速览卡在关于与项目之间，只报项目 / 文章 / 资源三个数', () => {
     expect(html).toContain('id="siteStats"');
     // 位置：紧跟在 #about 的 </section> 之后、#projects 之前
     expect(html.indexOf('id="siteStats"')).toBeLessThan(html.indexOf('id="projects"'));
@@ -51,17 +51,19 @@ describe('首页节奏：间距 / 导语 / 站点速览', () => {
     expect(main).toContain('statsView.posts = data.posts.length');
     expect(main).toContain('statsView.resources = data.resources.length');
     expect(main).toContain('renderSiteStats()');
-    // 截断交给 CSS 省略号，DOM 里保留全量标题
-    expect(css).toContain('.site-stats-recent');
-    expect(css).toContain('text-overflow: ellipsis');
-  });
 
-  it('最新一条提交走几十字节的 site-stats.json，不拉 59KB 的全量记录', () => {
-    expect(siteMeta).toContain('STATS_FILE');
-    expect(siteMeta).toContain('buildSiteStats');
-    // 产物里是拼好的完整标题，前端拿到直接显示
-    expect(siteMeta).toContain("head.scope ? '(' + head.scope + ')' : ''");
-    expect(main).toContain("'site-stats.json'");
-    expect(main).not.toContain("site-stats.json', { cache");
+    // 提交信息归更新日志：速览条的渲染段不显示次数，也不显示最近一条
+    const render = main.slice(
+      main.indexOf('function renderSiteStats'),
+      main.indexOf('renderSiteStats();')
+    );
+    expect(render).not.toContain('次提交');
+    expect(render).not.toContain('最近提交');
+    expect(render).not.toContain('latest');
+    expect(css).not.toContain('.site-stats-recent');
+    // site-stats.json 整条产物链已撤掉，不为一行字多留一个构建产物
+    expect(siteMeta).not.toContain('STATS_FILE');
+    expect(siteMeta).not.toContain('buildSiteStats');
+    expect(main).not.toContain('site-stats.json');
   });
 });

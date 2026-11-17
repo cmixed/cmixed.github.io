@@ -201,8 +201,10 @@
         <section id="contact">
             <div class="section-header">联系</div>
             <div class="contact-container">
-                <!-- 双栏名片：左边是「你是谁、能合作什么」，右边是「怎么找到你」，
-                     结构和关于卡（头像 + 简介/事实）同构，密度才不会比别的区块低一档。 -->
+                <!-- 双栏名片：左「是谁 / 能合作什么」，右「怎么找到你」。
+                     右栏排成两栏网格（邮箱整行打头，GitHub / Gitee 并排），
+                     元信息压在左栏底部 —— 之前左栏只有简介 + 胶囊，比右栏矮一截，
+                     空白全落在左下角。 -->
                 <div class="contact-main">
                     <div class="contact-intro">
                         <p class="contact-lede">
@@ -215,52 +217,51 @@
                             <span class="contact-chip">问题反馈</span>
                             <span class="contact-chip">招聘沟通</span>
                         </div>
+                        <div class="contact-meta">
+                            <span>常驻 <span class="nw">UTC+8</span></span>
+                            <span class="footer-dot" aria-hidden="true">·</span>
+                            <span>邮件为主</span>
+                            <span class="footer-dot" aria-hidden="true">·</span>
+                            <span>欢迎工作机会</span>
+                        </div>
                     </div>
 
                     <div class="contact-channels">
-                        <div class="contact-row">
-                            <span class="contact-row-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                            </span>
-                            <div class="contact-row-body">
+                        <div class="contact-row contact-row--wide">
+                            <div class="contact-row-head">
+                                <span class="contact-row-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                </span>
                                 <span class="contact-row-label">邮箱</span>
-                                <a class="contact-row-value" href="mailto:cmixed@foxmail.com">cmixed@foxmail.com</a>
+                                <button type="button" class="contact-action" data-copy="cmixed@foxmail.com">复制</button>
                             </div>
-                            <button type="button" class="contact-action" data-copy="cmixed@foxmail.com">复制</button>
+                            <a class="contact-row-value" href="mailto:cmixed@foxmail.com">cmixed@foxmail.com</a>
                         </div>
 
                         <div class="contact-row">
                             <!-- GitHub 品牌标识保留实心：线稿版的章鱼猫在 18px 下认不出来 -->
-                            <span class="contact-row-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" class="is-brand"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                            </span>
-                            <div class="contact-row-body">
+                            <div class="contact-row-head">
+                                <span class="contact-row-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" class="is-brand"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                                </span>
                                 <span class="contact-row-label">GitHub</span>
-                                <a class="contact-row-value" href="https://github.com/cmixed" target="_blank" rel="noopener noreferrer">github.com/cmixed</a>
+                                <a class="contact-action" href="https://github.com/cmixed" target="_blank" rel="noopener noreferrer">打开</a>
                             </div>
-                            <a class="contact-action" href="https://github.com/cmixed" target="_blank" rel="noopener noreferrer">打开</a>
+                            <a class="contact-row-value" href="https://github.com/cmixed" target="_blank" rel="noopener noreferrer">github.com/cmixed</a>
                         </div>
 
                         <div class="contact-row">
                             <!-- Gitee 同为品牌标识，和章鱼猫一样保留实心 -->
-                            <span class="contact-row-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" class="is-brand"><path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.982 0 1.778-.796 1.778-1.778v-.296a.593.593 0 0 0-.592-.593h-4.15a.592.592 0 0 1-.592-.592v-1.482a.593.593 0 0 1 .593-.592h6.815c.327 0 .593.265.593.592v3.408a4 4 0 0 1-4 4H5.926a.593.593 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h8.296Z"/></svg>
-                            </span>
-                            <div class="contact-row-body">
+                            <div class="contact-row-head">
+                                <span class="contact-row-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" class="is-brand"><path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.982 0 1.778-.796 1.778-1.778v-.296a.593.593 0 0 0-.592-.593h-4.15a.592.592 0 0 1-.592-.592v-1.482a.593.593 0 0 1 .593-.592h6.815c.327 0 .593.265.593.592v3.408a4 4 0 0 1-4 4H5.926a.593.593 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h8.296Z"/></svg>
+                                </span>
                                 <span class="contact-row-label">Gitee</span>
-                                <a class="contact-row-value" href="https://gitee.com/cmixed" target="_blank" rel="noopener noreferrer">gitee.com/cmixed</a>
+                                <a class="contact-action" href="https://gitee.com/cmixed" target="_blank" rel="noopener noreferrer">打开</a>
                             </div>
-                            <a class="contact-action" href="https://gitee.com/cmixed" target="_blank" rel="noopener noreferrer">打开</a>
+                            <a class="contact-row-value" href="https://gitee.com/cmixed" target="_blank" rel="noopener noreferrer">gitee.com/cmixed</a>
                         </div>
                     </div>
-                </div>
-
-                <div class="contact-meta">
-                    <span>常驻 <span class="nw">UTC+8</span></span>
-                    <span class="footer-dot" aria-hidden="true">·</span>
-                    <span>邮件为主</span>
-                    <span class="footer-dot" aria-hidden="true">·</span>
-                    <span>欢迎工作机会</span>
                 </div>
             </div>
         </section>

@@ -34,10 +34,6 @@ const SUMMARIES_PATH = join(ROOT, 'src', 'data', 'quarter-summaries.json');
 /** 产物文件名。首页按相对路径 fetch（生产 `./xxx.json`、开发 `/xxx.json`）。 */
 export const ABOUT_FILE = 'site-about.json';
 export const COMMITS_FILE = 'site-commits.json';
-/** 首页「站点速览」只要最新一条提交：单独一份几十字节的产物，
- *  免得为一行字去拉 COMMITS_FILE 那 59KB（gzip 后仍有 15KB）。 */
-export const STATS_FILE = 'site-stats.json';
-
 /** 最多带多少条提交。一次带全，前端「展开更多」只是在本地多渲染一段，不用再请求。
  *  400 已经吃到上限（当前 398 条）：再多两条提交，最早那几条就会被截掉，
  *  26Q2 那类早期季度的指纹随之变化、CI 误报「总结待复核」。先放到 800。 */
@@ -517,7 +513,6 @@ export function siteMeta(): Plugin {
       const producers: Record<string, () => Promise<unknown>> = {
         [`/${ABOUT_FILE}`]: () => buildAbout(),
         [`/${COMMITS_FILE}`]: () => Promise.resolve(buildCommits()),
-        [`/${STATS_FILE}`]: () => Promise.resolve(buildSiteStats()),
       };
       server.middlewares.use((req, res, next) => {
         const produce = producers[(req.url || '').split('?')[0]];
@@ -538,33 +533,10 @@ export function siteMeta(): Plugin {
       const files: Array<[string, unknown]> = [
         [ABOUT_FILE, await buildAbout()],
         [COMMITS_FILE, buildCommits()],
-        [STATS_FILE, buildSiteStats()],
       ];
       for (const [fileName, data] of files) {
         this.emitFile({ type: 'asset', fileName, source: JSON.stringify(data) });
       }
     },
-  };
-}
-
-/** 首页「站点速览」用的最小产物：提交总数 + 最新一条提交。
- *  只有几十字节 —— 为一行字去拉 59KB 的 COMMITS_FILE 不值。
- *  title 已经拼成约定式提交的完整标题（type(scope): subject），前端拿到直接显示。 */
-export interface SiteStats {
-  total: number;
-  latest: { title: string; date: string } | null;
-}
-
-export function buildSiteStats(): SiteStats {
-  const { changelog, total } = readCommits();
-  const head = changelog[0];
-  return {
-    total,
-    latest: head
-      ? {
-          title: `${head.type}${head.scope ? '(' + head.scope + ')' : ''}: ${head.subject}`,
-          date: head.date,
-        }
-      : null,
   };
 }
