@@ -62,9 +62,12 @@ describe('首页节奏：间距 / 导语 / 站点速览', () => {
     expect(main).toContain('statsView.resources = data.resources.length');
     expect(main).toContain('renderSiteStats()');
     // 标签说清「数的是什么」：置顶项目 / 博客文章 / 个人资源
-    expect(main).toContain('</b> 个置顶项目');
-    expect(main).toContain('</b> 篇博客文章');
-    expect(main).toContain('</b> 个个人资源');
+    expect(main).toContain('</b> 置顶项目');
+    expect(main).toContain('</b> 博客文章');
+    expect(main).toContain('</b> 个人资源');
+    // 量词已去掉：三条统一成「数字 + 名词」，胶囊更短、窄屏余量更大
+    expect(main).not.toContain('</b> 个置顶项目');
+    expect(main).not.toContain('</b> 篇博客文章');
 
     // 提交信息归更新日志：速览条的渲染段不显示次数，也不显示最近一条
     const render = main.slice(

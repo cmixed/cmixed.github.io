@@ -326,9 +326,9 @@ function renderSiteStats(): void {
   if (!host) return;
   const v = statsView;
   const counts: string[] = [];
-  if (v.projects !== undefined) counts.push(`<b>${v.projects}</b> 个置顶项目`);
-  if (v.posts !== undefined) counts.push(`<b>${v.posts}</b> 篇博客文章`);
-  if (v.resources !== undefined) counts.push(`<b>${v.resources}</b> 个个人资源`);
+  if (v.projects !== undefined) counts.push(`<b>${v.projects}</b> 置顶项目`);
+  if (v.posts !== undefined) counts.push(`<b>${v.posts}</b> 博客文章`);
+  if (v.resources !== undefined) counts.push(`<b>${v.resources}</b> 个人资源`);
   // 提交信息不放这里：完整记录在「更新日志」里，速览条只报内容规模。
   const dot = ' <span class="footer-dot" aria-hidden="true">·</span> ';
   host.innerHTML = counts.join(dot);
