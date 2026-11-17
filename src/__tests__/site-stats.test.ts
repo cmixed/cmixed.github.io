@@ -41,11 +41,21 @@ describe('首页节奏：间距 / 导语 / 站点速览', () => {
     expect(css).toContain('.section-lede');
   });
 
-  it('站点速览卡在关于与项目之间，只报项目 / 文章 / 资源三个数', () => {
+  it('站点速览跟在关于标题右侧，只报项目 / 文章 / 资源三个数', () => {
     expect(html).toContain('id="siteStats"');
-    // 位置：紧跟在 #about 的 </section> 之后、#projects 之前
-    expect(html.indexOf('id="siteStats"')).toBeLessThan(html.indexOf('id="projects"'));
-    expect(html.indexOf('id="siteStats"')).toBeGreaterThan(html.indexOf('id="about"'));
+    // 位置：在 #about 的 .section-header 里，且早于 about-card
+    const about = html.slice(
+      html.indexOf('<section id="about">'),
+      html.indexOf('<section id="projects">')
+    );
+    const headerEnd = about.indexOf('</div>', about.indexOf('<div class="section-header">'));
+    expect(about.indexOf('id="siteStats"')).toBeGreaterThan(-1);
+    expect(about.indexOf('id="siteStats"')).toBeLessThan(headerEnd);
+    expect(about.indexOf('id="siteStats"')).toBeLessThan(about.indexOf('about-card'));
+    // 和「查看全部」共用 order 2 槽位，横线夹在标题与它之间
+    expect(css).toMatch(/\.site-stats \{[^}]*order: 2;/);
+    expect(css).toMatch(/\.section-header::after \{[^}]*order: 1;/);
+    expect(css).toContain('var(--primary-glow) 0%');
 
     // 项目数来自打包进来的 projects.json；文章 / 资源跟着预览数据到货
     expect(main).toContain('statsView.posts = data.posts.length');

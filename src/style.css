@@ -919,12 +919,21 @@ html.fab-measuring section {
 
 .section-header::after {
     content: '';
-    /* 标题（order 0）→ 装饰线（1）→ 「查看全部」（2）：线永远夹在两者之间，
-       并吃掉剩余宽度，所以按钮天然靠右，不需要另加一层 wrapper。 */
+    /* 标题（order 0）→ 装饰线（1）→ 右侧元素（2：查看全部 / 站点速览）：
+       线永远夹在两者之间，并吃掉剩余宽度，右侧元素天然靠右，不需要 wrapper。
+       亮度从 var(--border) 提到下方三档叠加：靠标题的一端用 --primary-glow 打底，
+       中段 --border 保持材质，尾端仍淡出。原来纯 --border→transparent 在深浅两主题
+       都太暗，几乎读不出「标题后面有线」。 */
     order: 1;
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
+    background: linear-gradient(
+        90deg,
+        var(--primary-glow) 0%,
+        var(--border) 42%,
+        var(--border) 70%,
+        transparent 100%
+    );
 }
 
 /* 区块导语：一行小字说清这块是什么。标题与导语之间只留一线，下方间距给卡片 ——
@@ -942,21 +951,31 @@ html.fab-measuring section {
     line-height: 1.7;
 }
 
-/* 站点速览：卡在「关于」和「项目」之间的那段留白里，把空白换成一行实信息。
-   和联系卡底部的元信息同一套语言（等宽小字 + · 分隔），不引入第三种排版。
-   负 margin 吃进两侧 section 的 padding —— 它自己不额外撑高页面。 */
+/* 站点速览：跟「关于」标题同一行、靠右对齐，和「查看全部」共用 order 2 槽位。
+   做成和 .section-more 同族的胶囊（同样的 chip 底 / 边框 / 圆角 / 高度），
+   标题行右侧不会一边是胶囊、一边是一行裸字。等宽小字 + · 分隔延续元信息语言。 */
 .site-stats {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.45rem 0.7rem;
-    max-width: 960px;
-    margin: -1.25rem auto;
-    padding: 0 2rem;
+    order: 2;
+    flex-shrink: 0;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.2rem;
+    height: calc(var(--section-header-size) * var(--section-header-line));
+    padding: 0 0.8rem;
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    background: var(--chip-fill);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: max(0.68rem, calc(var(--section-header-size) * 0.44));
+    font-weight: 500;
     letter-spacing: 0.03em;
     color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.site-stats[hidden] {
+    display: none;
 }
 
 .site-stats b {
@@ -2772,10 +2791,11 @@ html.modal-open .page-scrollbar-thumb {
         padding: 2.5rem 1.5rem;
     }
 
-    /* 窄屏速览条整行换行，最近提交另起一行并吃满宽度 */
+    /* 窄屏标题行放不下长胶囊：收紧字号与内边距，保住「关于 + 线 + 数字」同一行 */
     .site-stats {
-        margin: -0.75rem auto;
-        padding: 0 1.5rem;
+        padding: 0 0.5rem;
+        font-size: 0.62rem;
+        letter-spacing: 0;
     }
 
     :root {

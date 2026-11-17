@@ -117,7 +117,12 @@
         </section>
 
         <section id="about">
-            <div class="section-header">关于</div>
+            <div class="section-header">
+                关于
+                <!-- 站点速览跟标题同一行，靠右对齐；数字由 main.ts 按到货顺序填
+                     （项目来自 projects.json，文章 / 资源跟着各自的预览数据到货）。 -->
+                <div class="site-stats" id="siteStats" aria-label="站点速览"></div>
+            </div>
             <div class="about-card">
                 <div class="about-main">
                     <div class="about-avatar">
@@ -168,11 +173,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- 站点速览：数字由 main.ts 按到货顺序填（项目来自打包进来的 projects.json，
-             文章 / 资源跟着各自的预览数据一起到，最新一条提交来自 site-stats.json）。
-             它卡在「关于」和「项目」之间的那段留白里，空白不再是一段没人用的空地。 -->
-        <div class="site-stats" id="siteStats" aria-label="站点速览"></div>
 
         <section id="projects">
             <div class="section-header">项目</div>
