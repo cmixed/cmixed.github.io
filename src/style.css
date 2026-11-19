@@ -907,13 +907,6 @@ section {
     content-visibility: visible;
 }
 
-/* 「直达底部」量真实高度的那一瞬间（见 src/client/fab.ts）：
-   虚拟化区块全部展开，scrollHeight 才包含真实高度；量完立刻移除，
-   虚拟化照旧。只在这一帧生效，不影响平时的布局与渲染。 */
-html.fab-measuring section {
-    content-visibility: visible !important;
-}
-
 .section-header {
     /* 字号与行盒由同一对变量管：区块标题要和右侧「查看全部」胶囊等高，
        两者都从这里推导，改一个数就同时跟着变（窄屏只覆盖字号）。
@@ -5032,39 +5025,45 @@ footer.edge-bounce {
 
 /* ===== 右下角浮动操作 =====
    fab（ui.js）在主页、博客（列表 / 文章）、资源小窝（列表 / 详情）注入同一组按钮：
-   回上级 + 回到顶部 + 直达底部。样式只写这一份，页面里不再各存一套。
-   材质沿用交互元素的 --mica-raised + --border：静止时是一列安静的玻璃片，
-   hover / 键盘聚焦才亮 accent，不和正文抢注意力。
-   首屏整组透明（滚过可滚距离的 15%，夹在 120～400px，才加 .visible），
-   避免右下角凭空多出三个方块。 */
+   底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部。样式只写这一份。
+   首屏整组透明（滚过可滚距离的 15%，夹在 120～400px，才加 .visible）——
+   常驻会盖住首屏的简介第二段与事实区横线，必须滚过再浮出。 */
 .fab-group {
     position: fixed;
-    right: 2rem;
-    bottom: 2rem;
+    left: 50%;
+    /* -50% 是居中，8px 是浮出前的下沉 —— 两者必须写在同一个 transform 里：
+       visible 态要同时保留 -50%，只写 translateY(0) 会让坞跳到屏幕右边。 */
+    transform: translate(-50%, 8px);
+    bottom: 1.75rem;
     z-index: 50;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 0.2rem;
-    padding: 0.35rem;
-    /* 玻璃层放在胶囊容器上而不是每颗按钮各糊一次 —— 三颗相邻的按钮各自
-       backdrop-filter 会在接缝处看到三块透明度叠加的暗带。 */
+    padding: 0.4rem 0.5rem;
+    /* 玻璃层放在胶囊容器上而不是每颗按钮各糊一次 —— 四颗相邻的按钮各自
+       backdrop-filter 会在接缝处看到四块透明度叠加的暗带。 */
     background: var(--mica-chrome);
     -webkit-backdrop-filter: var(--mica-nav-glass);
     backdrop-filter: var(--mica-nav-glass);
     border: 1px solid var(--border);
     border-radius: 999px;
-    box-shadow: var(--mica-elev-2);
+    /* 质感三件事：受光顶边（inset 白线）+ 内侧厚边（暗线）+ 贴地双层阴影。
+       居中后坞浮在内容上而不是靠屏幕边缘立住，比右下角更需要这三层。 */
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.10),
+        var(--mica-elev-2),
+        0 18px 48px -20px rgba(0, 0, 0, 0.55);
     opacity: 0;
     pointer-events: none;
-    transform: translateY(8px);
     transition: opacity var(--transition-speed), transform var(--transition-speed);
 }
 
 .fab-group.visible {
     opacity: 1;
     pointer-events: auto;
-    transform: none;
+    transform: translate(-50%, 0);
 }
 
 .fab-btn {
@@ -5124,11 +5123,11 @@ footer.edge-bounce {
    独立 class，不复用 .fab-btn：后者还挂在文章 / 列表页导航的
    「缩进 / 目录 / 搜索 / 筛选」上，尺寸是 26/32px。改它会连带改导航。
    胶囊按钮做成透明的：玻璃底由 .fab-group 统一提供，按钮只在 hover / 聚焦时
-   叠一层淡青，三颗看起来是同一条玻璃上的三个区，而不是三块独立贴片。 */
+   叠一层淡青，四颗看起来是同一条玻璃上的四个区，而不是四块独立贴片。 */
 .fab-dock-btn {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5144,23 +5143,49 @@ footer.edge-bounce {
         transform 180ms var(--spring-press);
 }
 
-/* 相邻按钮之间一道细分隔线，替代原来 0.5rem 的间隙 —— 胶囊里靠线分区，
-   靠间隙只是三颗散点。用 ::before 画，不占布局宽度。 */
+/* 相邻按钮之间一道细分隔线，替代间隙 —— 坞里靠线分区，靠间隙只是四颗散点。
+   渐变两端淡出：实线会把玻璃胶囊切成四段色块，两端渐隐才像同一块材质上的压痕。 */
 .fab-dock-btn + .fab-dock-btn::before {
     content: '';
     position: absolute;
     left: -0.1rem;
     top: 50%;
     width: 1px;
-    height: 18px;
+    height: 20px;
     transform: translateY(-50%);
-    background: var(--border);
+    background: linear-gradient(to bottom, transparent, var(--border) 30%, var(--border) 70%, transparent);
+}
+
+/* 当前所在页：底色用 primary-dim、文字用 primary-text，不另描边 ——
+   描边会和后一颗的分隔线挨在一起显脏。aria-current 由 fab.ts 同步标。 */
+.fab-dock-btn.is-current {
+    background: var(--primary-dim);
+    color: var(--primary-text);
+}
+
+.fab-dock-btn.is-current::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%);
+    box-shadow: 0 0 6px var(--primary-glow);
 }
 
 .fab-dock-btn:hover,
 .fab-dock-btn:focus-visible {
     background: var(--chip-fill-hover);
     color: var(--primary-text);
+}
+
+/* 当前页 + hover：hover 底覆盖高亮底，回到顶部后再由 .is-current 接回来 */
+.fab-dock-btn.is-current:hover,
+.fab-dock-btn.is-current:focus-visible {
+    background: var(--primary-dim-hover);
 }
 
 /* 键盘焦点：与全站 .btn / skill-chip 同一套轮廓，不用浏览器默认黑框 */
@@ -5181,11 +5206,24 @@ footer.edge-bounce {
 }
 
 .fab-dock-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 21px;
+    height: 21px;
     display: block;
     /* 只描边、不填色：站内这套图标是开放路径，填色会糊成色块。 */
     fill: none;
+    /* 图标单独放大，按钮盒子不动 —— 直接 scale 按钮会连带移动分隔线和标签 */
+    transition: transform 180ms var(--spring-press);
+}
+
+.fab-dock-btn:hover svg,
+.fab-dock-btn:focus-visible svg {
+    transform: scale(1.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fab-dock-btn svg { transition: none; }
+    .fab-dock-btn:hover svg,
+    .fab-dock-btn:focus-visible svg { transform: none; }
 }
 
 /* hover / 聚焦时在按钮上方弹出文字标签。原 design 是三个无字方块，
@@ -5221,7 +5259,18 @@ footer.edge-bounce {
 
 @media (max-width: 600px) {
     .fab-group {
-        right: 1rem;
+        /* 居中靠 left:50%，这里只收底部留白；四颗 × 42px 在 320px 下仍放得下 */
         bottom: 1rem;
+        padding: 0.35rem 0.4rem;
+    }
+
+    .fab-dock-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .fab-dock-btn svg {
+        width: 19px;
+        height: 19px;
     }
 }
