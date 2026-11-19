@@ -6,6 +6,10 @@
  * `<script defer src="…/ui.js">` 引入 —— 各页各写一份内联脚本，迟早会漂成三种样式、
  * 三种显隐阈值。markup 也由脚本注入，页面里不再有重复的 <div class="fab-group">。
  *
+ * 右下角三个操作现在收在一条横向的 Liquid Glass 胶囊里（.fab-group 是胶囊容器）。
+ * 胶囊内的按钮用独立的 .fab-dock-btn，不复用 .fab-btn —— 后者还挂在文章 / 列表页
+ * 导航的「缩进 / 目录 / 搜索 / 筛选」上，改它的尺寸会把导航一起改掉。
+ *
  * 第一个按钮的落点是算出来的，不靠每页写 data 属性：
  *   /             → 站点主页本身没有「上一级」，这一颗省略（只剩 ↑ / ↓）
  *   /blog/        → 站点主页
@@ -259,10 +263,12 @@
   function actionButton(label: string, name: IconName, onClick: () => void): HTMLButtonElement {
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = 'fab-btn';
+    el.className = 'fab-dock-btn';
     el.title = label;
     el.setAttribute('aria-label', label);
-    el.innerHTML = svg(name);
+    // 标签同时写进 DOM：桌面 hover 时用 CSS 弹出气泡，键盘聚焦可读，
+    // 屏幕阅读器也靠 aria-label 得到同样的名字。
+    el.innerHTML = svg(name) + `<span class="fab-dock-label">${label}</span>`;
     el.addEventListener('click', onClick);
     return el;
   }
@@ -297,11 +303,11 @@
   const up = upTarget();
   if (up) {
     const link = document.createElement('a');
-    link.className = 'fab-btn';
+    link.className = 'fab-dock-btn';
     link.href = up.href;
     link.title = up.label;
     link.setAttribute('aria-label', up.label);
-    link.innerHTML = svg(up.icon);
+    link.innerHTML = svg(up.icon) + `<span class="fab-dock-label">${up.label}</span>`;
     group.appendChild(link);
   }
 

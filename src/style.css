@@ -5043,16 +5043,28 @@ footer.edge-bounce {
     bottom: 2rem;
     z-index: 50;
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.35rem;
+    /* 玻璃层放在胶囊容器上而不是每颗按钮各糊一次 —— 三颗相邻的按钮各自
+       backdrop-filter 会在接缝处看到三块透明度叠加的暗带。 */
+    background: var(--mica-chrome);
+    -webkit-backdrop-filter: var(--mica-nav-glass);
+    backdrop-filter: var(--mica-nav-glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--mica-elev-2);
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--transition-speed);
+    transform: translateY(8px);
+    transition: opacity var(--transition-speed), transform var(--transition-speed);
 }
 
 .fab-group.visible {
     opacity: 1;
     pointer-events: auto;
+    transform: none;
 }
 
 .fab-btn {
@@ -5062,9 +5074,9 @@ footer.edge-bounce {
     align-items: center;
     justify-content: center;
     /* 与导航同一层材质：--mica-chrome 是「标题栏层」，比卡片的抬升层（--mica-raised）更实。
-       导航降到 0.66 的透明度之后，光有颜色不够 —— 底下的卡片会直接印在按钮上，
-       三颗按钮看着比导航「硬」。所以右下角这一组补同一套玻璃模糊（见下方 .fab-group .fab-btn），
-       让它们和导航一起透、一起糊。 */
+       导航降到 0.66 的透明度之后，光有颜色不够 —— 底下的卡片会直接印在按钮上。
+       这组按钮只服务于文章 / 列表页导航（缩进 / 目录 / 搜索 / 筛选），
+       右下角那组已改用 .fab-dock-btn，玻璃由胶囊容器 .fab-group 统一提供。 */
     background: var(--mica-chrome);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -5088,52 +5100,123 @@ footer.edge-bounce {
     .fab-btn:active { transform: none; }
 }
 
-/* 只有右下角这组常驻按钮跟着导航做玻璃：文章页导航里那两颗 26px 的按钮本来就在
-   导航条内部（已有一层模糊），再叠一层只会多付一次重绘。
-   另加一层贴地阴影：导航是通栏，靠上下边缘就能立住；40px 的小方块在半透明之后
-   会和浅色页面糊在一起，需要一点投影才看得见是颗按钮。 */
-.fab-group .fab-btn {
-    -webkit-backdrop-filter: var(--mica-nav-glass);
-    backdrop-filter: var(--mica-nav-glass);
-    box-shadow: var(--mica-elev-1);
-}
-
-/* 图标是内联 SVG（ui.js 里），尺寸跟 40px 的方片成比例；
-   文章页导航里的「首行缩进 / 目录」两颗仍是字符，所以上面保留了 font-size */
-.fab-btn svg {
-    /* 40px 按钮里留 10px 边：18px 时图标四周空得发虚，20px 才撑得住这颗玻璃方块 */
-    width: 20px;
-    height: 20px;
-    display: block;
-    /* 只描边、不填色：这套图标是开放路径（房顶 + 三面墙、单独的箭头线），
-       填色会把它们糊成色块。镂空本身正是站内的图标语言。
-       「填充」交给按钮：hover 时底色与描边一起变亮，反馈更干净。 */
-    fill: none;
-}
-
+/* 导航里的 .fab-btn 仍走自己的 hover / 聚焦 / 激活反馈（胶囊按钮用下面的
+   .fab-dock-btn，两套不共用）。底色保持 chrome，只叠一层淡青。 */
 .fab-btn:hover,
 .fab-btn:focus-visible {
-    /* 底色保持 chrome（不换底，否则三颗按钮会和导航脱开），
-       只在上面叠一层淡青 —— 用 background-image 叠层，不是改 background-color */
     background-image: linear-gradient(var(--chip-fill-hover), var(--chip-fill-hover));
     border-color: var(--primary);
     color: var(--primary-text);
 }
 
-/* 键盘焦点：和 .btn / skill-chip 同一套轮廓，不用浏览器默认的黑框 */
 .fab-btn:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
-}
-
-.fab-btn:active {
-    transform: scale(0.94);
 }
 
 .fab-btn.active {
     background: var(--primary-dim);
     border-color: var(--primary);
     color: var(--primary-text);
+}
+
+/* ===== 胶囊内的操作按钮 =====
+   独立 class，不复用 .fab-btn：后者还挂在文章 / 列表页导航的
+   「缩进 / 目录 / 搜索 / 筛选」上，尺寸是 26/32px。改它会连带改导航。
+   胶囊按钮做成透明的：玻璃底由 .fab-group 统一提供，按钮只在 hover / 聚焦时
+   叠一层淡青，三颗看起来是同一条玻璃上的三个区，而不是三块独立贴片。 */
+.fab-dock-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-dim);
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background var(--transition-speed), color var(--transition-speed),
+        transform 180ms var(--spring-press);
+}
+
+/* 相邻按钮之间一道细分隔线，替代原来 0.5rem 的间隙 —— 胶囊里靠线分区，
+   靠间隙只是三颗散点。用 ::before 画，不占布局宽度。 */
+.fab-dock-btn + .fab-dock-btn::before {
+    content: '';
+    position: absolute;
+    left: -0.1rem;
+    top: 50%;
+    width: 1px;
+    height: 18px;
+    transform: translateY(-50%);
+    background: var(--border);
+}
+
+.fab-dock-btn:hover,
+.fab-dock-btn:focus-visible {
+    background: var(--chip-fill-hover);
+    color: var(--primary-text);
+}
+
+/* 键盘焦点：与全站 .btn / skill-chip 同一套轮廓，不用浏览器默认黑框 */
+.fab-dock-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    /* 焦点环向胶囊内收：outline-offset 为正时，环会撞上相邻按钮的分隔线，
+       胶囊本身又没给环留额外 padding。 */
+    outline-offset: -2px;
+}
+
+.fab-dock-btn:active {
+    transform: scale(0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fab-dock-btn { transition: background var(--transition-speed), color var(--transition-speed); }
+    .fab-dock-btn:active { transform: none; }
+}
+
+.fab-dock-btn svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    /* 只描边、不填色：站内这套图标是开放路径，填色会糊成色块。 */
+    fill: none;
+}
+
+/* hover / 聚焦时在按钮上方弹出文字标签。原 design 是三个无字方块，
+   图标得靠猜；这里把 title 的文字同时画出来，鼠标和键盘都能读到。
+   标签不占布局（absolute），显隐只动 opacity / transform，不会挤动胶囊。 */
+.fab-dock-label {
+    position: absolute;
+    bottom: calc(100% + 0.6rem);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.3rem 0.65rem;
+    background: var(--mica-chrome);
+    -webkit-backdrop-filter: var(--mica-nav-glass);
+    backdrop-filter: var(--mica-nav-glass);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--mica-elev-1);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: bottom center;
+    transition: opacity 160ms ease;
+    z-index: 1;
+}
+
+.fab-dock-btn:hover .fab-dock-label,
+.fab-dock-btn:focus-visible .fab-dock-label {
+    opacity: 1;
 }
 
 @media (max-width: 600px) {
