@@ -395,10 +395,15 @@ async function loadBlogPreview(): Promise<void> {
           .map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`)
           .join('');
         const pinMark = p.pinned ? pinBadge() : '';
+        /* 右上角属性位与列表页同一套 cardAttribute：博客没有 language / platform，
+           只传标签按「首标签」回退。带语言标记的（C++ / Rust）出品牌图标，
+           其余出通用标签图标 —— 与项目卡、资源卡右上角结构一致。 */
+        const attr = cardAttribute({ tags: p.tags, withLabel: false });
         return `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}" data-card>
                 <div class="blog-preview-card-head">
                     <div class="blog-preview-card-title">${pinMark}${escapeHtml(p.title)}</div>
+                    ${attr ? cardAttrBadge(attr) : ''}
                 </div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
@@ -468,7 +473,7 @@ async function loadNookPreview(): Promise<void> {
                 <div class="nook-preview-card-header">
                     <div class="nook-preview-card-title">${pinMark}${escapeHtml(r.title)}</div>
                     ${attr ? cardAttrBadge(attr) : ''}
-                    <span class="nook-preview-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
+                    <span class="card-attr card-attr--category" title="${catName}" aria-label="${catName}">${catIcon}</span>
                 </div>
                 <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>
                 <div class="nook-preview-card-footer">

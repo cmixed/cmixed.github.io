@@ -172,6 +172,10 @@ export function languageBrand(name: string | undefined): { key: BrandKey; versio
   if (v === 'go' || v.startsWith('golang')) return hit('go', tail(/^golang|^go/i));
   if (v.startsWith('bash') || v.startsWith('shell')) return hit('bash');
   if (v.startsWith('cmake')) return hit('cmake');
+  /* git 归在「语言 / 工具链」这一类里不是因为它是语言，而是因为它是**可识别的
+     技术栈名**，出现在博客标签的首位（`[Git, 提交规范, 开发工具]`）。
+     归一化只认 `git` 开头：`github` 会一起命中，那是同一家的标识，语义上也对。 */
+  if (v.startsWith('git')) return hit('git');
   return null;
 }
 
@@ -206,11 +210,16 @@ export interface CardAttr {
 /**
  * 算出卡片右上角该显示哪一条属性。
  *
- * 优先级：语言 → 平台 → 回退首个标签。
+ * 优先级：语言 → 平台 → **首个标签里能认出的语言 / 平台** → 通用标签图标。
  * - **项目卡**：图标 + 只画版本号。`C++23` 读作「C++ 的标志 + 23」，
  *   品牌已在图标里，再把 `C++` 写成字是重复。没有版本号的语言（Python / Rust）
  *   就只剩图标 —— 这也是它们本来就该有的样子。
- * - **资源卡**：只出图标，不画任何文字（按需求「文字不要」）；全称进 title。
+ * - **资源卡 / 博客卡**：只出图标，不画任何文字；全称进 title。
+ *
+ * 第三档是 2026-11-20 补的：博客没有 `language` / `platform` 字段，它的技术栈
+ * 只写在标签里（`tags: [C++, 代码规范]`）。早先这里直接跳到第四档，于是
+ * 「C++ API 设计」这张卡右上角画的是通用的标签轮廓，而它明明有 C++ 的品牌标识。
+ * 现在先把首个标签过一遍语言 / 平台归一化，认得出来就用品牌图标。
  */
 export function cardAttribute(opts: {
   language?: string;
@@ -242,7 +251,28 @@ export function cardAttribute(opts: {
   }
   const first = opts.tags?.[0];
   if (first) {
-    // 语言 / 平台都没写时才回退；标签本身没有专属图标，用通用的 tag
+    /* 首个标签可能就是个技术栈名（博客的 tags 大多如此）。认得出来就出品牌图标，
+       认不出来（`PC工具` / `代码规范` 这类）才退到通用标签图标。 */
+    const tagLang = languageBrand(first);
+    if (tagLang) {
+      return {
+        brand: tagLang.key,
+        fallbackIcon: 'code',
+        text: first,
+        label: opts.withLabel ? tagLang.version : '',
+        kind: 'language',
+      };
+    }
+    const tagPlat = platformBrand(first);
+    if (tagPlat) {
+      return {
+        brand: tagPlat,
+        fallbackIcon: 'website',
+        text: first,
+        label: opts.withLabel ? first : '',
+        kind: 'platform',
+      };
+    }
     return {
       brand: null,
       fallbackIcon: 'tag',

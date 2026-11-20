@@ -26,7 +26,7 @@ import {
   renderTemplate,
   toYmd,
 } from '../src/lib/build-utils';
-import { pinBadge, replaceIcons } from '../src/lib/icons';
+import { cardAttrBadge, cardAttribute, pinBadge, replaceIcons } from '../src/lib/icons';
 import { chipCols } from '../src/lib/chip-width';
 
 const execFileAsync = promisify(execFile);
@@ -634,10 +634,17 @@ ${sitemapUrls}
         .map((t) => `<span style="--chip-cols:${chipCols(t)}">${escapeXml(t)}</span>`)
         .join('');
       const metaHtml = `阅读约 ${p.readTime}\u00a0分钟\u00a0· 创建于\u00a0${escapeXml(p.date)}\u00a0· 更新于\u00a0${escapeXml(p.updated)}\u00a0· ${p.wordCount}\u00a0字\u00a0· ${p.imageCount}\u00a0张图片`;
+      /* 右上角属性位：与项目卡 / 资源卡走同一条 cardAttribute —— 博客没有
+         language / platform 字段，所以只传标签，让它按「首标签」回退。
+         带实际语言标记时（C++ / Rust / TypeScript）出品牌图标，其余出通用
+         标签图标：三类卡片右上角因此都有东西，头部结构一致。
+         纯图标（withLabel: false）—— 博客头只有一行，塞不下文字。 */
+      const attr = cardAttribute({ tags: p.tags, withLabel: false });
       return `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-card data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="blog-page-card-head">
                 <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
+                ${attr ? cardAttrBadge(attr) : ''}
             </div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-footer">

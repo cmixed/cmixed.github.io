@@ -265,7 +265,7 @@ function renderResources(resources: ResourceData[]): string {
             <div class="nook-card-header">
                 <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
                 ${attr ? cardAttrBadge(attr) : ''}
-                <span class="nook-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
+                <span class="card-attr card-attr--category" title="${escapeXml(catName)}" aria-label="${escapeXml(catName)}">${catIcon}</span>
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
             <div class="nook-card-footer">

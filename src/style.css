@@ -385,7 +385,10 @@ body::before {
 /* 具体的胶囊样式在下方「图标型导航项」一节 —— 这里只留一条占位说明，
    避免又出现第二份 gap / padding 与本文件后半段的定义打架。 */
 
-/* 导航项：主页 .nav-links a 与子页 .xxx-nav-title 共用同一套尺度与状态 */
+/* 导航项：主页 .nav-links a 与子页 .xxx-nav-title 共用同一套尺度与状态。
+   左组是 URL slug 的全大写形态（BLOG / NOOK）：与 latin 的 cmixed 同一脚本，
+   大写让它们读起来像「栏目代号」而不是小写的普通单词。
+   全大写自带一点松垮 —— 补 0.06em 字距把字母拉开，与品牌名的小写字距呼应。 */
 .nav-links a,
 .nav-title,
 .blog-nav-title, .nook-nav-title, .nook-detail-nav-title {
@@ -393,6 +396,7 @@ body::before {
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
+    letter-spacing: 0.06em;
     transition: color 0.3s;
     padding: 0.25rem 0;
     position: relative;
@@ -1556,11 +1560,8 @@ section {
     text-overflow: ellipsis;
 }
 
-.project-status {
-    flex: 0 0 auto;
-    font-weight: 600;
-    white-space: nowrap;
-}
+/* .project-status 已删：项目卡的语言改由 .card-attr 承担（图标 + 版本文字），
+   这个类不再由任何模板输出。 */
 
 .project-desc {
     color: var(--text-dim);
@@ -1772,18 +1773,8 @@ section {
     text-overflow: ellipsis;
 }
 
-.nook-preview-card-category {
-    display: inline-flex;
-    align-items: center;
-    flex: 0 0 auto;
-    gap: 0.3rem;
-    font-size: 0.75rem;
-    padding: 0.15rem 0.45rem;
-    white-space: nowrap;
-}
-
-.nook-preview-card-category svg,
-.nook-card-category svg,
+/* 详情页的分类仍是带文字的小标签（那里空间够、且只有它一个），
+   列表卡 / 预览卡的分类已改用 .card-attr--category。 */
 .nook-detail-category svg {
     width: 1em;
     height: 1em;
@@ -4459,6 +4450,20 @@ html[data-pin-hidden] .pin-mark {
     fill: none;
 }
 
+/* 资源卡右上角的**分类**：与语言 / 平台属性共用这一个方块。
+   原来是另一个类（.nook-card-category），走小标签那套 --mica-chip 材质、
+   还带「网站 / 工具 / 代码」的文字 —— 并排放在语言徽标旁边时，两块颜色不同、
+   形状不同，卡片右上角读起来是散的。现在它退成纯图标，材质与尺寸直接继承
+   .card-attr 的纯图标形态（正方、--chip-fill 底、同一档圆角）。
+   全称走 title / aria-label，读屏与 hover 都拿得到。
+   详情页的分类仍是带文字的小标签（那里空间够，且只有一个）。 */
+.card-attr--category svg {
+    /* 分类走的是站内线稿图标（1em 填 25.6px 方框偏小），补到与语言图标同一档 */
+    width: 1.15em;
+    height: 1.15em;
+    stroke-width: 1.8;
+}
+
 /* 品牌标识：实心填充。这里**不能**被上面那条 fill: none 命中，
    否则 Python 的蛇、C++ 的圆环会整块消失，只剩一个空框。
    尺寸给到 1.15em：品牌 glyph 的墨迹通常比同高的线稿更"缩"（自带留白），
@@ -4498,14 +4503,11 @@ html[data-pin-hidden] .pin-mark {
 }
 
 .tech-tag,
-.project-status,
-.nook-preview-card-category,
 .blog-preview-card-tags span,
 .nook-preview-card-tags span,
 .blog-page-card-tags span,
 .nook-card-tags span,
 .card-popover-tags span,
-.nook-card-category,
 .nook-detail-tags span,
 .nook-detail-category,
 .blog-article-tags .tag {

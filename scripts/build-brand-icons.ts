@@ -37,11 +37,15 @@ const OUT = join(ROOT, 'src', 'lib', 'brand-icons.ts');
  *  加一门语言 / 一个平台 = 在下面加一行 + `pnpm brand-icons`。
  *  `languageBrand()` 会检查 key 是否真的生成过，缺失时安全回退到标签。 */
 const SOURCES: Array<{ key: string; from: 'si' | 'logos'; name: string }> = [
-  // ---- 语言 ----
+  // ---- 语言 / 工具链 ----
   { key: 'python', from: 'si', name: 'python' },
   { key: 'cpp', from: 'si', name: 'cplusplus' },
   { key: 'rust', from: 'si', name: 'rust' },
   { key: 'typescript', from: 'si', name: 'typescript' },
+  /* git 是为博客卡加的：博客没有 language 字段，技术栈只写在 tags 里，
+     `[Git, 提交规范, 开发工具]` 这条的首标签是货真价实的品牌标识 ——
+     没有它，那张卡右上角只能画一个通用的标签轮廓。约 +1.5kB raw / 0.6kB gzip。 */
+  { key: 'git', from: 'si', name: 'git' },
   // ---- 平台 ----
   { key: 'windows', from: 'logos', name: 'microsoft-windows-icon' },
   { key: 'web', from: 'si', name: 'googlechrome' },

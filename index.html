@@ -64,16 +64,18 @@
         <!-- 左组：站点标识 + 两个栏目入口。三处导航同构，左组都从同一条竖线起排。 -->
         <div class="nav-left">
             <div class="logo">cmixed</div>
-            <!-- 两个入口写 URL slug（blog / nook），不写中文：
+            <!-- 两个入口写 URL slug 的**大写**形态（BLOG / NOOK），不写中文：
                  ① 和地址栏里的 /blog/、/nook/ 完全一致，认字就是认路；
-                 ② 与 latin 的 logo 同一脚本，`cmixed │ blog nook` 读成一家人；
+                 ② 与 latin 的 logo 同一脚本；大写让它们读起来像「栏目代号」，
+                    小写的 blognook 挤在一起时更像两个没写完的单词；
                  ③ 比「个人博客 / 资源小窝」窄 54px —— 390px 那行要塞下胶囊、
                     汉堡和三颗工具钮，这点宽度很关键。
                  中文全称（个人博客 / 资源小窝）下沉到底部坞的标签与 aria-label，
                  读屏用户拿到的是完整名字，视觉上是短 slug。容器边界由 CSS 的
-                 竖线画（.logo + .nav-title::before），不用额外标签。 -->
-            <a href="blog/" class="nav-title">blog</a>
-            <a href="nook/" class="nav-title">nook</a>
+                 竖线画（`.logo + a::before`，写 `a` 而不是 `.nav-title` ——
+                 四个页面的类名各不相同），不用额外标签。 -->
+            <a href="blog/" class="nav-title">BLOG</a>
+            <a href="nook/" class="nav-title">NOOK</a>
         </div>
         <div class="nav-right">
             <!-- 右组全是「在本页里走」的锚点。≤768px 整体收进汉堡菜单。

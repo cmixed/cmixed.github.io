@@ -77,12 +77,8 @@
             font-weight: 700; font-size: 1.1rem; color: var(--text);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .nook-card-category {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            flex: 0 0 auto;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        /* 分类已改用 .card-attr--category（与语言 / 平台徽标共用同一个方块），
+           旧的 .nook-card-category 规则随之删除。 */
         .nook-card-desc {
             color: var(--text-dim); font-size: 0.85rem; line-height: 1.6;
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
@@ -181,8 +177,8 @@
     <nav class="nook-nav">
         <div class="nook-nav-left">
             <a href="../" class="logo">cmixed</a>
-            <a href="../blog/" class="nook-nav-title">blog</a>
-            <a href="./" class="nook-nav-title nook-nav-active">nook</a>
+            <a href="../blog/" class="nook-nav-title">BLOG</a>
+            <a href="./" class="nook-nav-title nook-nav-active">NOOK</a>
         </div>
 
         <div class="nav-search" id="navSearch" role="search">

@@ -38,9 +38,9 @@ describe('导航栏胶囊分段控件', () => {
     expect(body).toContain('background: var(--chip-fill)');
     expect(body).toContain('border: 1px solid var(--chip-border)');
 
-    // 左组是 URL slug，不是中文（和地址栏同形，也省 54px 宽度）
-    expect(html).toContain('<a href="blog/" class="nav-title">blog</a>');
-    expect(html).toContain('<a href="nook/" class="nav-title">nook</a>');
+    // 左组是 URL slug 的**大写**形态，不是中文（和地址栏同形，也省 54px 宽度）
+    expect(html).toContain('<a href="blog/" class="nav-title">BLOG</a>');
+    expect(html).toContain('<a href="nook/" class="nav-title">NOOK</a>');
     expect(html).not.toContain('nav-title-icon');
     // 两个箭头已撤：靠「两页 logo 天然同宽」对齐，不再用占位符。
     // 只看 nav-left 内部 —— hero 按钮里的 &larr; 是另一回事
@@ -59,8 +59,8 @@ describe('导航栏胶囊分段控件', () => {
        给完整中文名对读屏用户更有用。两边都被钉住，谁被改回去都会报错。 */
     for (const f of ['blog/index.html', 'nook/index.html']) {
       const s = read(f);
-      expect(s, `${f} 左组应为 slug`).toMatch(
-        /class="(?:blog|nook)-nav-title[^"]*">(?:blog|nook)<\/a>/
+      expect(s, `${f} 左组应为大写 slug`).toMatch(
+        /class="(?:blog|nook)-nav-title[^"]*">(?:BLOG|NOOK)<\/a>/
       );
       expect(s, `${f} 不该再出现中文左组`).not.toMatch(
         /class="(?:blog|nook)-nav-title[^"]*">(?:个人博客|资源小窝)<\/a>/
