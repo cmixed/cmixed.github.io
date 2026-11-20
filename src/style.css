@@ -425,18 +425,17 @@ body::before {
 }
 
 /* ===== 图标型导航项（胶囊分段控件）=====
-   左组「个人博客 / 资源小窝」与右组五个本页锚点都是图标：左组管跨页、右组管本页。
-   2026-11-20 从「五个 32px 方块 + 2rem 间距」改成**两条胶囊分段控件**：
-   原来节距 64px（图标 32 + 间距 32），间距等于图标本身，五个按钮像撒在导航里、
-   彼此毫无关系；现在装进浅底胶囊、间距收到 2px，成组地读成「一个控件里的五格」。
+   右组五个本页锚点是图标。2026-11-20 从「五个 32px 方块 + 2rem 间距」改成
+   **一条胶囊分段控件**：原来节距 64px（图标 32 + 间距 32），间距等于图标本身，
+   五个按钮像撒在导航里、彼此毫无关系；现在装进浅底胶囊、间距收到 2px，
+   成组地读成「一个控件里的五格」，并配一条**滑块**：当前所在区块的淡青底由
+   ::before 画，滚动时从一格滑到下一格（left / width 过渡），比「每格各自亮一下」
+   更能读出「这五格是一条线上的位置」。
 
-   两组的容器共用一套 token（浅底 + 细描边 + 3px 内边距 + 999px 圆角），
-   所以左右一眼是亲戚。右组多一条**滑块**：当前所在区块的淡青底由 ::before 画，
-   滚动时从一格滑到下一格（left / width 过渡），比「每格各自亮一下」更能读出
-   「这五格是一条线上的位置」。左组只有两个互斥入口，当前页用同一档淡青底直接画在
-   链接上 —— 它不会在停留期间变化，加滑块只是多一层没人看见的复杂度。 */
-.nav-links,
-.nav-pages {
+   左组（个人博客 / 资源小窝）是**文字**，不套胶囊：那两个中文词读得比图形快，
+   而且只有两个 —— 组不组队都不影响理解。跨页的图形入口在底部坞里，
+   两处分工不重复。 */
+.nav-links {
     position: relative;
     display: flex;
     align-items: center;
@@ -445,7 +444,6 @@ body::before {
     border: 1px solid var(--chip-border);
     border-radius: 999px;
     background: var(--chip-fill);
-    /* 列表的默认样式（左组是 div，右组是 ul）：这里一并抹掉 */
     list-style: none;
     margin: 0;
 }
@@ -479,7 +477,6 @@ body::before {
     opacity: 0;
 }
 
-.nav-title-icon,
 .nav-icon-link {
     display: inline-flex;
     align-items: center;
@@ -489,19 +486,17 @@ body::before {
     width: 36px;
     height: 30px;
     border-radius: 999px;
-    /* 右组的选中底由滑块画，这里不能自己再加一层，否则叠成两倍深的色块 */
+    /* 选中底由滑块画，这里不能自己再加一层，否则叠成两倍深的色块 */
     background: transparent;
     z-index: 1;
     transition: color 0.25s, background 0.25s;
 }
 
-.nav-title-icon::after,
 .nav-icon-link::after {
     /* 图标项不画那条文字下划线（它按文字宽度算，套在方图标下像条残线） */
     content: none;
 }
 
-.nav-title-icon svg,
 .nav-icon-link svg {
     width: 17px;
     height: 17px;
@@ -510,35 +505,22 @@ body::before {
 }
 
 /* hover：只给非当前项一层更浅的底，当前项的底留给滑块 */
-.nav-icon-link:hover:not(.is-active),
-.nav-title-icon:hover:not([class*='-active']) {
+.nav-icon-link:hover:not(.is-active) {
     color: var(--primary-text);
     background: var(--chip-fill-hover);
 }
 
-/* 左组当前栏目：直接画同档淡青底（见上方说明），不参与滑块 */
-.nav-title-icon.blog-nav-active,
-.nav-title-icon.nook-nav-active,
-.nav-title-icon.nook-detail-nav-active {
-    color: var(--primary-text);
-    background: var(--primary-dim);
-}
-
-/* 右组当前区块：文字提亮，底色交给滑块 */
+/* 当前区块：文字提亮，底色交给滑块 */
 .nav-icon-link.is-active {
     color: var(--primary-text);
 }
 
-.nav-icon-link.is-active::after,
-.nav-title-icon.blog-nav-active::after,
-.nav-title-icon.nook-nav-active::after,
-.nav-title-icon.nook-detail-nav-active::after {
+.nav-icon-link.is-active::after {
     content: none;
 }
 
 /* 图标项的视觉隐藏文字仍占一个 inline 盒，会把 36×30 的 flex 内容挤歪；
-   它们本身就是 1px 的裁剪盒，这里让它彻底退出布局即可。 */
-.nav-title-icon .sr-only,
+   它本身就是 1px 的裁剪盒，这里让它彻底退出布局即可。 */
 .nav-icon-link .sr-only {
     position: absolute;
 }
@@ -550,8 +532,7 @@ body::before {
 /* 焦点环向格内收：全局规则是 outline-offset: 2px，而格与格之间只有 2px，
    外向环会压到邻格上、看着像「两个都选中了」。内收 2px 让它贴着自己这一格画，
    与坞内 .fab-dock-btn 的处理同一套理由（那里也是 -2px）。 */
-.nav-icon-link:focus-visible,
-.nav-title-icon:focus-visible {
+.nav-icon-link:focus-visible {
     outline-offset: -2px;
 }
 
@@ -3435,10 +3416,10 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: flex; justify-content: space-between; align-items: center;
     transition: background var(--transition-speed), border-color var(--transition-speed);
 }
-/* 左组：logo + 两个跨页入口。两个入口装进胶囊之后，logo 与它之间不必留 1.5rem ——
-   胶囊自己的描边就是边界，0.75rem 足够读出「右边这组是另一个控件」。 */
+/* 左组：logo + 两个跨页入口（文字）。恢复到 1.5rem —— 文字之间没有容器描边
+   当边界，靠留白分组才读得出「logo 是身份、右边两个是去处」。 */
 .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left {
-    display: flex; align-items: center; gap: 0.75rem;
+    display: flex; align-items: center; gap: 1.5rem;
 }
 
 /* 主页 logo 后面跟一个灰色 `→`：与子页的 `←` 同字符集、同宽度，切页时左组不会横移。
@@ -3499,21 +3480,28 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 1.5rem; }
 }
 @media (max-width: 480px) {
-    nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 0.85rem; }
+    nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 0.7rem; }
     :root { --nav-logo-size: 1rem; }
-    .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.6rem; }
-    .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.5rem; }
-    .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.85rem; }
-    /* 窄屏一行要塞下 logo + 胶囊 + 汉堡 + 三颗工具钮（坞 / 置顶 / 主题）。
+    /* 左组是文字（个人博客 / 资源小窝）而不是胶囊里的图标，比图标宽约 30px。
+       390px 这一行要塞下 logo + 两个入口 + 胶囊 + 汉堡 + 三颗工具钮，
+       收到 gap 0.35rem、字号 0.82rem 之后两组之间才留得出空隙（实测约 9px），
+       否则左右两端会贴在一起，读起来像一长条。 */
+    .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.35rem; }
+    .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.35rem; }
+    .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.82rem; }
+    /* 工具钮（坞开关 / 置顶）在窄屏收回 32px：触屏那条 `(pointer: coarse)` 把它
+       放到 36px 是给图标时代算的，现在左组多了约 26px 的文字宽度，
+       这一行必须从工具钮里省回来。写在这里（更靠后）即可覆盖那条媒体查询。 */
+    .dock-toggle { width: 32px; height: 32px; }
+    .dock-toggle svg { width: 16px; height: 16px; }
+    /* 窄屏一行要塞下 logo + 两个文字入口 + 胶囊 + 汉堡 + 三颗工具钮（坞 / 置顶 / 主题）。
        393px 实测刚好卡满、一点余量都没有，所以这里把胶囊再收半档：
        格 34×28、图标 16px，胶囊整宽 176 → 实测多出约 10px 余量。 */
-    .nav-title-icon,
     .nav-icon-link {
         width: 34px;
         height: 28px;
     }
 
-    .nav-title-icon svg,
     .nav-icon-link svg {
         width: 16px;
         height: 16px;
@@ -5688,7 +5676,9 @@ html.card-preview-mode [data-card] {
 
 @media (max-width: 600px) {
     .fab-group {
-        /* 居中靠 left:50%，这里只收底部留白；七颗 × 38px ≈ 296px，360px 起放得下 */
+        /* 居中靠 left:50%，这里只收底部留白。
+           最满的是文章页：跨页三颗 + 回顶 / 回底 + 缩进 / 目录 + 帮助 = 8 颗，
+           38px 一档实测 339px，390px 下两侧各余 26px。 */
         bottom: 1rem;
         padding: 0.35rem 0.4rem;
     }
@@ -5704,9 +5694,9 @@ html.card-preview-mode [data-card] {
     }
 }
 
-/* 极窄屏（320px）：文章页坞里是八颗（多一颗目录），38px 一档算下来约 339px，
-   会顶出屏幕。收到 32px、间隙减半，八颗约 278px —— 仍留得下两侧留白。
-   只在 ≤360px 生效，正常手机（390px+）保持 38px 的手感。 */
+/* 极窄屏（≤360px）：文章页那 8 颗在 38px 一档要 339px，320px 下会顶出屏幕。
+   收到 32px、间隙减半 —— 实测 279px，两侧各余 21px。只在 ≤360px 生效，
+   正常手机（390px+）保持 38px 的手感。 */
 @media (max-width: 360px) {
     .fab-group {
         gap: 0.1rem;

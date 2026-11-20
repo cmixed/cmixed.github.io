@@ -8,7 +8,8 @@ import { describe, expect, it } from 'vite-plus/test';
  * 关键约束一：.fab-btn 还挂在文章 / 列表页导航的「缩进 / 搜索 / 筛选」上，
  * 坞内按钮必须用独立 class，否则改尺寸会把导航一起改掉。
  * 关键约束二：坞常驻显示，显隐交给导航栏的 .dock-toggle（.is-off），不再滚动淡入。
- * 关键约束三：坞只放「本页工具」，跨页三颗已交回导航栏左组的图标。
+ * 关键约束三：坞装跨页三颗（主页 / 博客 / 资源小窝）+ 本页工具。
+ *   导航栏左组用文字（个人博客 / 资源小窝），坞这一侧用图标 —— 两处不重复。
  * 关键约束四：主题钮留在导航栏最右端，帮助调 window.siteKeys.toggleHelp。
  */
 const ROOT = join(import.meta.dirname, '..', '..');
@@ -16,11 +17,16 @@ const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const fab = readFileSync(join(ROOT, 'src', 'client', 'fab.ts'), 'utf-8');
 
 describe('底部居中导航坞', () => {
-  it('坞只放本页工具：回顶 / 回底 / 缩进 / 目录 / 筛选 / 帮助', () => {
-    // 跨页三颗已撤：栏目入口改由导航栏左组的图标承担
-    for (const gone of ["label: '主页'", "'资源小窝'", 'aria-current', 'is-current']) {
-      expect(fab, `坞里不该再有 ${gone}`).not.toContain(gone);
+  it('跨页三颗 + 本页工具：主页 / 博客 / 小窝 / 回顶 / 回底 / 缩进 / 目录 / 筛选 / 帮助', () => {
+    for (const label of ['主页', '博客', '资源小窝']) {
+      expect(fab, `缺少入口 ${label}`).toContain(`label: '${label}'`);
     }
+    // 当前页高亮：aria-current 同步标给辅助技术
+    expect(fab).toContain("aria-current', 'page'");
+    expect(css).toContain('.fab-dock-btn.is-current');
+    // href 按当前目录推算，不写死站点根
+    expect(fab).toContain("new URL('.', location.href).pathname");
+    expect(fab).toContain("dir === '/blog/' ? 'blog'");
     // 回顶 / 回底 / 帮助是按钮不是链接，走 actionButton 的 label 参数
     expect(fab).toContain("actionButton('回到顶部', 'up'");
     expect(fab).toContain("actionButton('直达底部', 'down'");
