@@ -593,8 +593,12 @@ body.nav-open::before {
     background: rgba(0, 0, 0, 0.5);
     z-index: 150;
     animation: fade-in 0.2s ease;
-    /* 本伪元素平时是点阵层（body::before），这里必须显式取消它的渐隐遮罩，
-       否则遮罩会跟着「向下渐隐」把抽屉下方的压暗一起淡掉 */
+    /* 本伪元素平时是点阵层（body::before），那一条带 pointer-events: none ——
+       不在这里恢复成 auto，遮罩就是个「看得见摸不着」的壳：点空白会穿透到
+       下面的卡片和链接上，轻则没反应、重则直接跳走。恢复之后点哪里都落在
+       遮罩上，再交给 main.ts 的委托统一关闭。 */
+    pointer-events: auto;
+    /* 同理必须显式取消渐隐遮罩，否则抽屉下方的压暗会跟着「向下渐隐」淡掉 */
     -webkit-mask-image: none;
     mask-image: none;
 }
@@ -602,6 +606,15 @@ body.nav-open::before {
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* 抽屉必须真正浮在遮罩之上，否则它只是个「看得见、点不到」的图：
+   nav 自己带 z-index:100，已经形成层叠上下文 —— 抽屉写 z-index:200 也只能
+   在这个上下文内部垫高，整个 nav 子树仍然整块压在遮罩(150)下面。实测点击
+   面板里的锚点，事件落在遮罩上，结果是把抽屉关掉、锚点根本没生效。
+   把 nav 抬到 160（>150）即可：抽屉随之上浮，汉堡也重新可点。 */
+body.nav-open nav {
+    z-index: 160;
 }
 
 /* Theme toggle：一颗圆钮，太阳和月亮在原地交叉 —— 不再有左右滑的滑块。
@@ -2891,8 +2904,14 @@ html.modal-open .page-scrollbar-thumb {
         position: fixed;
         top: 0;
         right: -100%;
-        width: 75%;
-        max-width: 320px;
+        /* 宽度按「一颗 52px 方块 + 两侧呼吸」给，不按屏宽百分比：
+           75% 在 390px 上是 292px，五颗图标摊在近三百宽的面板里，右边三分之一
+           全是空的，看着像没画完。收到 ~190px（半个屏宽）之后面板更接近一条
+           「工具栏」，左侧留给遮罩的空白也更多 —— 而空白现在点一下就关，
+           误触的代价从「跳走 / 没反应」变成了「收起」，宽一点不再危险。 */
+        width: 50vw;
+        min-width: 164px;
+        max-width: 190px;
         height: 100vh;
         height: 100dvh;
         background: var(--mica-chrome);

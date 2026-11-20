@@ -186,18 +186,40 @@ if (prefersReduced.matches) {
 const hamburger = document.getElementById('hamburger') as HTMLButtonElement;
 const navLinks = document.querySelector('.nav-links') as HTMLElement;
 
+/* 抽屉开合只有这一个出入口：三个 class 必须同步切，否则汉堡会停成 ×、
+   或者 body 还锁着滚动。 */
+function setNavOpen(open: boolean): void {
+  hamburger.classList.toggle('active', open);
+  navLinks.classList.toggle('active', open);
+  document.body.classList.toggle('nav-open', open);
+  hamburger.setAttribute('aria-expanded', String(open));
+}
+
 hamburger.addEventListener('click', () => {
-  hamburger.classList.toggle('active');
-  navLinks.classList.toggle('active');
-  document.body.classList.toggle('nav-open');
+  setNavOpen(!document.body.classList.contains('nav-open'));
+});
+
+/* 点抽屉外面任意一处就关 —— 遮罩是 body::before 画的伪元素，没有自己的节点，
+   点上去事件 target 是 body，所以只能在 document 上做委托、用「没点进抽屉」判定。
+   误触的代价应当等于「关掉」，而不是「什么都没发生」。
+   汉堡那颗单独判断：它在遮罩之上（见 CSS 的 body.nav-open nav），click 命中的
+   是它自己 —— 先 toggle 成关闭，冒泡到这里时 nav-open 已是 false，直接返回，
+   不会关两遍。 */
+document.addEventListener('click', (e) => {
+  if (!document.body.classList.contains('nav-open')) return;
+  const target = e.target as Node | null;
+  if (target && (navLinks.contains(target) || hamburger.contains(target))) return;
+  setNavOpen(false);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || !document.body.classList.contains('nav-open')) return;
+  setNavOpen(false);
+  hamburger.focus();
 });
 
 document.querySelectorAll('.nav-links a').forEach((link) => {
-  link.addEventListener('click', () => {
-    hamburger.classList.remove('active');
-    navLinks.classList.remove('active');
-    document.body.classList.remove('nav-open');
-  });
+  link.addEventListener('click', () => setNavOpen(false));
 });
 
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
