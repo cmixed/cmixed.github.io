@@ -5199,6 +5199,14 @@ footer.edge-bounce {
     box-shadow: 0 0 6px var(--primary-glow);
 }
 
+/* 目录面板开着：和「当前页」同一档底色，但不画那颗小圆点 ——
+   圆点是「你在这一页」，目录开着只是「这一层展开了」，两者语义不同。
+   .active 由文章页内联脚本自己切（它原本在导航里就靠这个类）。 */
+.fab-dock-btn.active {
+    background: var(--primary-dim);
+    color: var(--primary-text);
+}
+
 .fab-dock-btn:hover,
 .fab-dock-btn:focus-visible {
     background: var(--chip-fill-hover);
@@ -5359,7 +5367,7 @@ html.card-preview-mode [data-card] {
 
 @media (max-width: 600px) {
     .fab-group {
-        /* 居中靠 left:50%，这里只收底部留白；六颗 × 38px + 间隙 ≈257px，320px 下放得下 */
+        /* 居中靠 left:50%，这里只收底部留白；七颗 × 38px ≈ 296px，360px 起放得下 */
         bottom: 1rem;
         padding: 0.35rem 0.4rem;
     }
@@ -5372,5 +5380,25 @@ html.card-preview-mode [data-card] {
     .fab-dock-btn svg {
         width: 19px;
         height: 19px;
+    }
+}
+
+/* 极窄屏（320px）：文章页坞里是八颗（多一颗目录），38px 一档算下来约 339px，
+   会顶出屏幕。收到 32px、间隙减半，八颗约 278px —— 仍留得下两侧留白。
+   只在 ≤360px 生效，正常手机（390px+）保持 38px 的手感。 */
+@media (max-width: 360px) {
+    .fab-group {
+        gap: 0.1rem;
+        padding: 0.3rem 0.35rem;
+    }
+
+    .fab-dock-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .fab-dock-btn svg {
+        width: 17px;
+        height: 17px;
     }
 }

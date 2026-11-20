@@ -15,26 +15,40 @@ const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const fab = readFileSync(join(ROOT, 'src', 'client', 'fab.ts'), 'utf-8');
 
 describe('底部居中导航坞', () => {
-  it('六颗固定入口：主页 / 博客 / 资源小窝 / 回到顶部 / 深浅模式 / 帮助', () => {
+  it('固定入口：主页 / 博客 / 小窝 / 回顶 / 回底 / 目录 / 深浅模式 / 帮助', () => {
     for (const label of ['主页', '博客', '资源小窝']) {
       expect(fab, `缺少入口 ${label}`).toContain(`label: '${label}'`);
     }
-    // 回顶 / 帮助是按钮不是链接，走 actionButton 的 label 参数
+    // 回顶 / 回底 / 帮助是按钮不是链接，走 actionButton 的 label 参数
     expect(fab).toContain("actionButton('回到顶部', 'up'");
+    expect(fab).toContain("actionButton('直达底部', 'down'");
     expect(fab).toContain("actionButton('帮助', 'help'");
-    // 主题钮是移动现成的 #themeToggle，不是另造一颗
+    // 回底要现算目标高度：页面还会变长（图片 / 预览卡），必须校准
+    expect(fab).toContain('scrollHeight - window.innerHeight');
+    expect(fab).toContain('function scrollToBottom');
+    /* 连点回底再回顶时，回底那次 1s 后的补滚会抢写 scrollTo ——
+       必须有「新跳转中止旧动画 + 校准按序号作废」这条，否则回顶会没反应。 */
+    expect(fab).toContain('let navSeq = 0');
+    expect(fab).toContain('if (runningStop) runningStop()');
+    expect(fab).toContain('if (seq !== navSeq || passes >= 2) return');
+    expect(fab).toContain('stop(false)');
+    // 目录 / 主题都是「移动」现成节点，不是另造一颗
+    expect(fab).toContain("getElementById('tocToggle')");
+    expect(fab).toContain("tocToggle.classList.add('fab-dock-btn')");
+    // 目录搬进坞时摘掉 .fab-btn，否则 40px 与导航的 26px 两套尺寸打架
+    expect(fab).toContain("tocToggle.classList.remove('fab-btn')");
     expect(fab).toContain("getElementById('themeToggle')");
     expect(fab).toContain("themeToggle.classList.add('fab-dock-btn')");
     // 帮助复用快捷键面板
     expect(fab).toContain('window.siteKeys?.toggleHelp()');
-    // 回上级 / 直达底部的旧机制已彻底删掉
-    expect(fab).not.toContain('toBottom');
-    expect(fab).not.toContain('settleAtBottom');
+    // 回上级与旧的虚拟化量高机制已彻底删掉
     expect(fab).not.toContain('fab-measuring');
     expect(css).not.toContain('html.fab-measuring');
     // 当前页高亮：aria-current 同步标给辅助技术
     expect(fab).toContain("aria-current', 'page'");
     expect(css).toContain('.fab-dock-btn.is-current');
+    // 目录面板开着时 .active 由内联脚本切，坞里要有同色规则
+    expect(css).toContain('.fab-dock-btn.active');
   });
 
   it('坞居中显示，两态都保留 -50%', () => {
@@ -49,7 +63,7 @@ describe('底部居中导航坞', () => {
   });
 
   it('坞内按钮用独立 class，不复用导航的 .fab-btn', () => {
-    // 注入的四颗按钮都走 .fab-dock-btn
+    // 注入的每颗按钮都走 .fab-dock-btn
     expect(fab).toContain("className = 'fab-dock-btn'");
     expect(fab).toContain("link.className = 'fab-dock-btn'");
     expect(fab).not.toContain("el.className = 'fab-btn'");
@@ -75,6 +89,14 @@ describe('底部居中导航坞', () => {
     expect(css).toContain('.fab-dock-btn:focus-visible .fab-dock-label');
     // 键盘焦点环向胶囊内收，不撞相邻按钮
     expect(css).toMatch(/\.fab-dock-btn:focus-visible\s*\{[^}]*outline-offset: -2px/);
+  });
+
+  it('极窄屏收一档尺寸：文章页八颗不能顶出 320px', () => {
+    // 38px × 8 + 间隙已超过 320，必须有 ≤360px 的更小一档
+    const narrow = css.slice(css.lastIndexOf('@media (max-width: 360px)'));
+    expect(narrow).toContain('.fab-dock-btn');
+    expect(narrow).toMatch(/\.fab-dock-btn \{\s*width: 32px;\s*height: 32px;/);
+    expect(narrow).toContain('gap: 0.1rem');
   });
 
   it('常驻显示，显隐交给导航栏开关并持久化', () => {

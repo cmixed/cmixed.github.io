@@ -1,15 +1,16 @@
 /**
- * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 深浅模式 / 帮助。
+ * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 直达底部 / 目录 / 深浅模式 / 帮助。
  *
  * 它和顶部导航刻意错位：顶部管「本页锚点」（关于 / 项目 / 博客预览 / 联系），
- * 坞管「跨页入口 + 回顶 + 两个全站工具」，六颗在每页都一样，当前所在页高亮。
- * 原先的「回上级 / 直达底部」已撤 —— 前者是层级概念、和固定几颗冲突，
- * 后者的虚拟化精确量高机制随按钮一起删掉。
+ * 坞管「跨页入口 + 上下跳转 + 本页工具」。前五颗每页都一样（回顶 / 回底成对），
+ * 目录只出现在博客文章页（那颗 #tocToggle 从这里搬进来），当前所在页高亮。
+ * 「回上级」不做 —— 层级概念和固定几颗冲突，面包屑已在导航里。
  *
  * 承载页面：主页、博客（列表 + 文章）、资源小窝（列表 + 详情）。由页面统一
  * `<script defer src="…/ui.js">` 引入；markup 由脚本注入，页面里不再各存一份 div。
  * 坞内按钮用独立 class .fab-dock-btn，不复用 .fab-btn —— 后者还挂在文章 / 列表页
- * 导航的「缩进 / 目录 / 搜索 / 筛选」上，改它的尺寸会把导航一起改掉。
+ * 导航的「缩进 / 搜索 / 筛选」上，改它的尺寸会把导航一起改掉。
+ * （目录原本也是 .fab-btn，搬进坞时摘掉换成 .fab-dock-btn，见下方注释。）
  *
  * 路径按当前目录推算，不写死站点根：GitHub Pages 用户站点挂在根，但同样的产物
  * 放到项目路径下也能用。dir 只有 '/'、'/blog/'、'/nook/' 三种取值。
@@ -37,6 +38,8 @@
     blog: '<path d="M7.4 4.6h6.4l3.2 3.2v11.6H7.4Z"/><path d="M13.8 4.6v3.2h3.2"/><path d="M9.8 12.2h5.4M9.8 15.2h3.8"/>',
     nook: '<path d="M12 5 18.6 8.4v7.2L12 19l-6.6-3.4V8.4Z"/><path d="M5.4 8.4 12 11.8l6.6-3.4M12 11.8V19"/>',
     up: '<path d="M12 18.8V5.4"/><path d="m6.4 11 5.6-5.6 5.6 5.6"/>',
+    /* 直达底部：和 up 同一几何、方向相反，成对出现才读得出「这是一对跳转」 */
+    down: '<path d="M12 5.2v13.4"/><path d="m6.4 13 5.6 5.6 5.6-5.6"/>',
     /* 帮助：圆圈 + 问号，和快捷键帮助面板（keys.js 的 F1 / ?）同一件事。
        坞里最后一颗，用「?」比文字更省宽度，标签气泡补全称。 */
     help: '<circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2-2.6 3.8"/><path d="M12 17.2h.01"/>',
@@ -86,7 +89,18 @@
    * 解析式求值和一次 scrollTo，不读布局、不碰别的属性，主线程成本可以忽略。
    * u(t) 是归一化到 [0,1] 的位移；ζ<1 时中后段会略过 1，边界那一下回弹就是它。
    */
+  /* 每一段程序化滚动递增一次序号；延迟校准用「自己那次」的序号判断是否还该继续。
+     没有它，连点「直达底部」再点「回到顶部」时，前者 1s 后那次补滚会回来抢
+     scrollTo，页面停在不该停的地方 —— 实测就是「点回顶没反应」。 */
+  let navSeq = 0;
+  /** 正在跑的动画的中止函数：新跳转必须先掐掉旧的，否则两段动画逐帧互相覆盖 */
+  let runningStop: ((interrupted?: boolean) => void) | null = null;
+
   function springScrollTo(target: number): void {
+    // 中止上一段（算「被新动作打断」，会让旧校准失效）
+    if (runningStop) runningStop();
+    navSeq += 1;
+
     if (reducedMotion()) {
       window.scrollTo(0, target);
       return;
@@ -107,16 +121,25 @@
     let raf = 0;
     let done = false;
 
-    const stop = (): void => {
+    /* interrupted 区分两种收尾：用户自己滚/按方向键打断（true，需让校准失效）
+       和动画正常走到终点（false，不能误伤刚发起的校准）。 */
+    const stop = (interrupted = true): void => {
+      if (done) return;
       done = true;
+      if (interrupted) navSeq += 1;
       cancelAnimationFrame(raf);
-      window.removeEventListener('wheel', stop);
-      window.removeEventListener('touchstart', stop);
-      window.removeEventListener('keydown', stop);
+      window.removeEventListener('wheel', onInterrupt);
+      window.removeEventListener('touchstart', onInterrupt);
+      window.removeEventListener('keydown', onInterrupt);
+      if (runningStop === stop) runningStop = null;
     };
-    window.addEventListener('wheel', stop, { passive: true });
-    window.addEventListener('touchstart', stop, { passive: true });
-    window.addEventListener('keydown', stop);
+    /* stop 带参数，不能直接当 EventListener（签名对不上），包一层零参的。
+       事件触发即「用户自己动了手」，一律算打断。 */
+    const onInterrupt = (): void => stop();
+    runningStop = stop;
+    window.addEventListener('wheel', onInterrupt, { passive: true });
+    window.addEventListener('touchstart', onInterrupt, { passive: true });
+    window.addEventListener('keydown', onInterrupt);
 
     const step = (): void => {
       if (done) return;
@@ -127,7 +150,7 @@
       // 收敛就收手：等满 1.1s 会在目标位置空转，滚动事件也跟着多响几百帧
       if (Math.abs(1 - u) < 0.002 || t >= 0.9) {
         window.scrollTo(0, target);
-        stop();
+        stop(false);
         bounceAtEdge(target);
         return;
       }
@@ -202,6 +225,32 @@
     { passive: true }
   );
 
+  /**
+   * 直达底部。
+   *
+   * 目标高度要现算：页面在滚动中可能继续变长（图片解码、预览卡 fetch 回来、
+   * 小窝列表插入），点下去那一刻的 scrollHeight 未必是终点。所以滚到底之后
+   * 再校准 —— 只补两次，且已经到位就不再动，避免长页面里反复重启动画。
+   */
+  function scrollToBottom(): void {
+    const bottom = (): number => document.documentElement.scrollHeight - window.innerHeight;
+    springScrollTo(bottom());
+    // 自己这一代的序号：期间用户点了别的跳转（navSeq 变了）就放弃校准
+    let seq = navSeq;
+    let passes = 0;
+    const settle = (): void => {
+      if (seq !== navSeq || passes >= 2) return;
+      passes += 1;
+      const max = bottom();
+      // 已经贴底就收手；弹簧本身会调 bounceAtEdge，不用再补一次回弹
+      if (window.scrollY >= max - 2) return;
+      springScrollTo(max);
+      seq = navSeq;
+      window.setTimeout(settle, 1000);
+    };
+    window.setTimeout(settle, 1000);
+  }
+
   function actionButton(label: string, name: IconName, onClick: () => void): HTMLButtonElement {
     const el = document.createElement('button');
     el.type = 'button';
@@ -264,6 +313,9 @@
     })
   );
 
+  /* 回顶 / 回底成对：只有回顶的话，长文读到一半想直接看结尾就只能一路滑。 */
+  group.appendChild(actionButton('直达底部', 'down', scrollToBottom));
+
   /* 深浅模式：把导航栏里那颗现成的 #themeToggle 搬进坞，不另造按钮。
      页面上散落的内联 click 绑定（列表 / 文章 / 404 页）、theme.js 的揭示圆心、
      keys.js 的 aria-keyshortcuts 都按这个 id 找人；DOM 移动不会丢事件监听器，
@@ -284,6 +336,23 @@
   toggle.innerHTML = svg('dock');
   if (themeToggle) navRight?.insertBefore(toggle, themeToggle);
   else navRight?.appendChild(toggle);
+
+  /* 目录：文章页导航里那颗 #tocToggle 同样「搬」进来，不另建。内联脚本给它的
+     click 绑定、syncTocHeight / syncTocFade 都按这个 id 找人，DOM 移动不丢；
+     它的 .active（目录面板开着）由内联脚本自己切，坞里补一条同色规则即可。
+     只有博客文章页有这个元素 —— 别的页坞里自然少一颗，顺序不受影响。
+     排在主题 / 帮助之前：目录属于「这篇内容怎么读」，和深浅模式不是一类。 */
+  const tocToggle = document.getElementById('tocToggle');
+  if (tocToggle) {
+    tocToggle.classList.remove('fab-btn');
+    tocToggle.classList.add('fab-dock-btn');
+    tocToggle.setAttribute('aria-label', '目录');
+    const label = document.createElement('span');
+    label.className = 'fab-dock-label';
+    label.textContent = '目录';
+    tocToggle.appendChild(label);
+    group.appendChild(tocToggle);
+  }
 
   if (themeToggle) {
     themeToggle.classList.add('fab-dock-btn');
