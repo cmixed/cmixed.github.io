@@ -193,9 +193,22 @@ hero 按钮的宽度不再跟着打字机走：`.hero` 是 flex 行容器，`.he
 **语言 / 平台从标签里拆出来成为卡片属性**（`.card-attr`，2026-11-20）。此前它们混在 `tags` 里（`Python`、`Windows`、`C++23`…），和「LLM / RAG / Graph」这类主题标签排在一起，读者要先读完一排标签才知道「这是用什么写的、跑在哪」。现在：
 
 - **数据侧**是显式字段：`projects.json` 的 `status` 改名为 `language` 并补 `platform`；资源 frontmatter 加 `language` / `platform`，对应项从 `tags` 里删掉。刻意不做「关键词猜语言」——新增技术栈要补映射表，漏掉的会静默退化成普通标签，而这正是要消除的形态。
-- **优先级**：语言 → 平台 → 回退首个标签。项目卡带文字（C++20 与 C++23 共用一颗图标，没文字分不出来），资源卡**只出图标**、全称塞进 `title` / `aria-label`。回退时用通用的 `tag` 图标，再淡一档。
-- **图标**：语言是字母线稿（`langPy` P、`langCpp` C + 两个小十字、`langRs` R、`langTs` T、`langJs` J、`langGo` G、`langAsm` A），平台是可辨图形（`platWin` 透视四格、`website` 地球、`platLinux` 企鹅轮廓、`platMac` 苹果轮廓）。不画品牌 logo：它们几乎都是实心色块，塞进 1.7px 开放路径会糊成一团（和撤掉实心 pushpin 同一个理由）。
-- 归一化按**前缀**匹配（`C++20` / `C++23` / `cpp` 同族），`C` 单独一次精确判断 —— 否则 `css` 会被误命中。`src/__tests__/card-attr.test.ts` 钉住这些规则。
+- **优先级**：语言 → 平台 → 回退首个标签。**项目卡只画版本号**（`C++23` 读作「C++ 的标志 + 23」——品牌已在图标里，再把 `C++` 写成字是重复；Python / Rust 没有版本就只剩图标）；资源卡**只出图标**，全称塞进 `title` / `aria-label`。回退时用界面图标 `tag`，再淡一档。
+- **图标来自官方图标库，不是手绘**（2026-11-20 二次修正）。第一版是手写的字母线稿（P / R / T 加几笔轮廓），问题不是好不好看，而是**不可辨识** —— 描边的 Python 认不出是 Python，`C` 加两个十字也只是个抽象符号。现在从两个权威来源取：
+
+  | 来源 | 授权 | 用于 |
+  | --- | --- | --- |
+  | [`simple-icons`](https://simpleicons.org) | CC0-1.0 | Python / C++ / Rust / TypeScript |
+  | [`@iconify-json/logos`](https://icon-sets.iconify.design/logos/) | 各品牌方授权 | Windows（simple-icons 因商标下架，这个集合还留着官方四格窗） |
+
+  两者都是 `devDependency`，由 `scripts/build-brand-icons.ts` 在**手动**跑的 `pnpm brand-icons` 里提取路径、生成 `src/lib/brand-icons.ts`（来源与版本可追溯，产物提交进仓库）。三条约定：
+  1. **只生成当前用到的**。品牌路径动辄几千字符（Linux 一条 5.3 kB、Rust 4.1 kB），全量预置把首屏 JS 从 30 kB 推到 49 kB，其中一半没人看；精简到实际用到的六个后回落到 37.6 kB。加语言 = `SOURCES` 加一行 + 重跑，映射表与素材表因此是**两层**：`languageBrand()` 认得十来种，但只有生成过 glyph 的才返回 key，否则安全回退到标签（不会渲染空盒子）。
+  2. **一律 `fill: currentColor`**。品牌原色是硬编码的（`#3776AB` 蓝、`#0078d4` 蓝…），全彩塞进这条青绿主题里立刻变成花花绿绿。形状已足够辨识，颜色交给主题。
+  3. **品牌标识是实心的**，与全站「描边图标」的约定并列而不冲突 —— 界面图标表达动作/类别（线稿家族），品牌标识表达「这是哪门技术」（原生形状）。CSS 里因此有两条互斥规则：`.card-attr svg:not(.card-attr-glyph)` 描边、`.card-attr-glyph` 实心。踩过的坑：前者的 `fill: none` 若不加 `:not()`，会把品牌 logo 整块抹掉、只剩四个窗格的边框。
+
+  生成脚本顺带剥掉 `simple-icons` 每个文件里的 `<title>`（徽标已有 `aria-label`，重复一层会让读屏念两遍）。
+- 归一化按**前缀**匹配（`C++20` / `C++23` / `cpp` 同族），`C` 单独一次精确判断 —— 否则 `css` 会被误命中；版本号用「品牌名之后剩下的数字/点号」摘出（`C++23` → `23`、`Python 3.12` → `3.12`）。`src/__tests__/card-attr.test.ts` 钉住这些规则。
+- 实测尺寸：图标 14.9px、属性盒 25.6px（图标占 58%）；纯图标（资源卡）是 25.6 的正方，带版本号的项目卡宽 47.3px。
 - 右上角属性盒的整高沿用 `--attr-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px)`，与分类胶囊共一条上下边线（原来这个公式叫 `--pin-box`，随置顶改 emoji 一起改名）。
 
 **首页资源预览卡曾经整批回退到「首个标签」**：`nook/build.ts` 写 `data.json` 时漏了 `platform` / `language`，而列表页是构建期直出、字段齐全 —— 同一个资源在两处显示不同的右上角属性。补上后两处一致。
