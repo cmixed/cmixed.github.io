@@ -454,9 +454,15 @@ async function build(): Promise<void> {
     closeTo(0);
 
     // Prepend article title as first TOC item (scrolls to top)
+    /* 用真链接而不是 `onclick` + `cursor:pointer` 的 div：
+       `href="#top"` 是 HTML 规范里的魔法片段（页面没有 id="top" 时滚到文档顶部），
+       键盘可聚焦、读屏会念成链接，也让 post.html 里「点目录项就收起抽屉」那段
+       委托（closest('a, .toc-title')）自然覆盖到它 —— 之前它只挂了内联 onclick，
+       跳转后抽屉关不掉，正是那个 bug 的来源。
+       单引号写成转义的 `&#39;` 无必要：这里不用单引号拼属性。 */
     const titleText = escapeXml(meta.title || info.slug);
     tocHtml =
-      `<div class="toc-item toc-title" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer"><span>${titleText}</span></div>` +
+      `<div class="toc-item toc-title"><a href="#top"><span>${titleText}</span></a></div>` +
       tocHtml;
 
     postHtmlMap.set(info.slug, {
