@@ -637,12 +637,15 @@ body.nav-open::before {
     text-align: center;
     position: relative;
     z-index: 1;
-    /* hero 用 align-items:center 把整块放在垂直中心，但签名 + 打字机 + 按钮
-       的视觉重心偏下（按钮下面还有 2.5rem 的 margin-bottom），看上图像是
-       整体沉在下半部。上移 24px 让重心回到几何中心；用 transform 而不是
-       改 padding / align-items —— 后者会连带改 hero 的可视高度，把下方
-       「关于」卡片的折线一起推走。入场动画挂在子元素上，不与这里冲突。 */
-    transform: translateY(-24px);
+    /* 不做垂直微调：hero 的 align-items:center 已把整块放在几何中心，
+       实测 1440×900 下上下留白均为 142px（导航底→状态条顶 / 按钮底→hero 底）。
+       早期这里是 translateY(-24px)（想让「视觉重心」上移），但那个前提是
+       hero 高度用 85svh 时算的；fold 点改成 calc(100svh - 319px) 之后，
+       -24px 变成纯粹的「整体偏上」—— 实测上方 118px、下方 166px，
+       签名看着吊在半空。归零即恢复对称。
+       要微调仍用 transform 而不是 padding / align-items：后者会改 hero
+       的可视高度，把下方「关于」卡片的折线一起推走。 */
+    transform: translateY(0);
 }
 
 /* Hero entrance animation */
