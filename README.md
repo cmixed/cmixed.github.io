@@ -410,7 +410,7 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 
 32px 位图 favicon（`site-wf-32x32.png` / `blog-32x32.png` / `nook-32x32.png`）已全部删除：首页、列表页、**文章模板（`blog/template/post.html`、`nook/template/detail.html`）**与各 404 的 `rel="icon"` 一律改指对应 `*.svg`。曾经文章模板漏改、还在引用已删除的 `*-32x32.png`，favicon 404 后浏览器回退旧缓存图标，标签页和列表页就不统一了 —— `src/__tests__/icon-links.test.ts` 现在钉死「引用必须指向存在的文件」。
 
-底部导航坞（`.fab-group`）六颗固定入口，**每页都一样**，当前所在页高亮。前三颗是跨页入口，后三颗是全站工具：
+底部导航坞（`.fab-group`）固定入口：**跨页三颗 + 上下跳转两颗 + 本页工具**，当前所在页高亮。文章页多一颗「目录」，其它页没有（那颗按钮本来就只存在于文章页）。
 
 | 入口 | 图标 | 主页 `/` 的 href | `/blog/` 的 href | `/nook/` 的 href |
 | --- | --- | --- | --- | --- |
@@ -418,10 +418,16 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 | 博客 | 折角稿纸（`blog`） | `blog/` | `./` | `../blog/` |
 | 资源小窝 | 等距收纳盒（`nook`） | `nook/` | `../nook/` | `./` |
 | 回到顶部 | 上箭头（`up`） | 按钮 | 按钮 | 按钮 |
+| 直达底部 | 下箭头（`down`） | 按钮 | 按钮 | 按钮 |
+| 目录 | 三横线（`menu`） | — | 按钮（仅文章页） | — |
 | 深浅模式 | 太阳 / 月亮（`theme`） | 按钮（原 `#themeToggle`） | 同 | 同 |
 | 帮助 | 圆圈问号（`help`） | 按钮 | 按钮 | 按钮 |
 
+**回顶 / 回底成对**：只有回顶的话，长文读到一半想看结尾只能一路滑。回底的目标高度是现算的（`scrollHeight - innerHeight`），滚到底后再校准最多两次 —— 页面会在滚动中继续变长（图片解码、预览卡 fetch），点下去那一刻的高度未必是终点。校准带序号：中途用户点了别的跳转就直接作废，否则「点回底 → 立刻点回顶」会互相抢 `scrollTo`，表现为回顶没反应。`springScrollTo` 也会先中止上一段动画（`runningStop`），两段动画不会逐帧互相覆盖。
+
 坞**常驻显示**，不再随滚动淡入；显隐交给导航栏右上角那颗 `.dock-toggle`（占主题钮腾出的位置），状态存 `localStorage` 的 `dock` 键、默认开，关掉时整组加 `.is-off` 淡出 + `inert`，刷新后仍记得。
+
+「目录」同样不是另造一颗：fab.ts 把文章页导航里的 `#tocToggle` **移动**进坞（摘掉 `.fab-btn` 换 `.fab-dock-btn`，否则 40px 与导航的 26px 两套尺寸打架）。内联脚本的 click 绑定、`syncTocHeight` / `syncTocFade`、`.active`（目录面板开着）都按这个 id 与类名找人，移动后一处都不用改；坞内补一条 `.fab-dock-btn.active` 给同色底，但不画「当前页」那颗小圆点 —— 圆点是「你在这一页」，目录开着只是「这一层展开了」。窄屏（≤360px）文章页是八颗，`38px` 一档约 339px 会顶出 320px 屏幕，所以极窄屏收到 `32px`、间隙减半（约 278px）。
 
 深浅模式不是另造一颗按钮：fab.ts 把导航栏里现成的 `#themeToggle` **移动**进坞。各页的内联 click 绑定、`theme.js` 的圆形揭示圆心、`keys.js` 的 `aria-keyshortcuts` 都按这个 id 找人，DOM 移动不会丢监听器，一处都不用改；坞内再加一条 `.fab-group .theme-toggle { overflow: visible }` 放开圆形钮的裁切，否则 hover 气泡会被裁掉。帮助复用 `keys.js` 的 `window.siteKeys.toggleHelp()`（`?` / `F1` 同一面板），坞在 `keys.ts` 之前加载但回调到点击时才执行，时序无害。
 
