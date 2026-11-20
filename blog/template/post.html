@@ -243,6 +243,21 @@
             display: block;
         }
 
+        /* 标题项是「回到顶部」的真链接（href="#top"）：抹掉链接默认样式，
+           视觉上仍是标题那一行，但可聚焦、可键盘激活。 */
+        .toc-item.toc-title a {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .toc-item.toc-title a:hover,
+        .toc-item.toc-title a:focus-visible {
+            background: var(--chip-fill-hover);
+            color: var(--primary-text);
+        }
+
         /* Group & children — collapsible */
         .toc-group {
             margin-bottom: 0.25rem;
@@ -601,8 +616,8 @@
     <nav class="blog-nav">
         <div class="blog-nav-left">
             <a href="../" class="logo">cmixed &larr;</a>
-            <a href="./" class="blog-nav-title blog-nav-active">个人博客</a>
-            <a href="../nook/" class="blog-nav-title">资源小窝</a>
+            <a href="./" class="blog-nav-title nav-title-icon blog-nav-active" aria-label="个人博客" title="个人博客">{{icon:blog}}<span class="sr-only">个人博客</span></a>
+            <a href="../nook/" class="blog-nav-title nav-title-icon" aria-label="资源小窝" title="资源小窝">{{icon:nook}}<span class="sr-only">资源小窝</span></a>
         </div>
         <div class="blog-nav-right">
             <a href="feed.xml" title="RSS 订阅" class="blog-nav-rss">{{icon:rss}}</a>
@@ -861,29 +876,63 @@
             // TOC toggle
             var tocBtn = document.getElementById('tocToggle');
             var tocOverlay = document.getElementById('tocOverlay');
-            var savedToc = localStorage.getItem('toc-open');
-            if (savedToc === 'true' || (savedToc === null && window.innerWidth >= 1024)) {
-                document.body.classList.add('toc-open');
-                tocBtn.classList.add('active');
-            }
-            tocBtn.addEventListener('click', function () {
-                document.body.classList.toggle('toc-open');
-                tocBtn.classList.toggle('active', document.body.classList.contains('toc-open'));
-                localStorage.setItem('toc-open', document.body.classList.contains('toc-open'));
+            var tocLinks = document.getElementById('tocLinks');
+            var desktopToc = window.matchMedia('(min-width: 1024px)');
+
+            /* 打开 / 关闭只走这一个函数 —— 之前「点目录链接」「点标题项」「点遮罩」
+               各写了一遍移除逻辑，漏掉一处就会卡在打开状态出不来（就是实测到的
+               「跳转后点空白取消不掉」）。现在所有路径都调它。 */
+            function setTocOpen(open) {
+                document.body.classList.toggle('toc-open', open);
+                tocBtn.classList.toggle('active', open);
+                /* 只在桌面记住展开态：手机上目录是全屏抽屉，把「上次开着」记下来
+                   会让下次进文章页时一上来就盖住正文，那个状态没人想要。 */
+                if (desktopToc.matches) {
+                    try {
+                        localStorage.setItem('toc-open', String(open));
+                    } catch (e) { }
+                } else {
+                    try {
+                        localStorage.removeItem('toc-open');
+                    } catch (e) { }
+                }
                 syncTocHeight();
                 syncTocFade();
+            }
+
+            /* 初始状态：桌面按记忆恢复（默认展开），手机一律收起。 */
+            var savedToc = null;
+            try {
+                savedToc = localStorage.getItem('toc-open');
+            } catch (e) { }
+            if (desktopToc.matches && savedToc !== 'false') setTocOpen(true);
+            else setTocOpen(false);
+
+            tocBtn.addEventListener('click', function () {
+                setTocOpen(!document.body.classList.contains('toc-open'));
             });
             tocOverlay.addEventListener('click', function () {
-                document.body.classList.remove('toc-open');
-                tocBtn.classList.remove('active');
-                localStorage.setItem('toc-open', 'false');
+                setTocOpen(false);
             });
-            // Close mobile TOC via event delegation (click on link text, not arrow)
-            document.getElementById('tocLinks').addEventListener('click', function (e) {
-                if (window.innerWidth < 1024 && e.target.tagName === 'A' && !e.target.closest('.toc-arrow')) {
-                    document.body.classList.remove('toc-open');
-                    tocBtn.classList.remove('active');
-                    localStorage.setItem('toc-open', 'false');
+
+            /* 手机端：点目录里的任何一项跳转后收起抽屉。
+               判据从 `e.target.tagName === 'A'` 换成 `closest('a, .toc-title')`——
+               标题文字里若嵌了 <strong> / <code>，target 是内层元素，旧判据会漏；
+               文章标题那一项（.toc-title）是「回到顶部」的跳转，旧逻辑同样漏掉，
+               正是「跳转后抽屉关不掉」的直接原因。 */
+            tocLinks.addEventListener('click', function (e) {
+                if (desktopToc.matches) return;
+                var target = e.target instanceof Element ? e.target : null;
+                if (!target) return;
+                // 展开 / 收起子目录的箭头不算跳转，别顺手把抽屉关了
+                if (target.closest('.toc-arrow')) return;
+                if (target.closest('a, .toc-title')) setTocOpen(false);
+            });
+
+            /* 抽屉是覆盖式界面，Esc 必须能退出（桌面 / 外接键盘 / 折叠屏都走这条）。 */
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && document.body.classList.contains('toc-open') && !desktopToc.matches) {
+                    setTocOpen(false);
                 }
             });
 

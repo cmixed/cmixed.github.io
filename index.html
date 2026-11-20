@@ -66,18 +66,27 @@
         <div class="nav-left">
             <div class="logo">cmixed <span class="logo-arrow" aria-hidden="true">&rarr;</span></div>
             <!-- 左组全是「去别的页面」的链接：与列表页的 cmixed ← + 两个入口完全同构。
-                 这里只有 cmixed 不可点（已经在主站了），所以后面留出箭头位置的空位。 -->
-            <a href="blog/" class="nav-title">个人博客</a>
-            <a href="nook/" class="nav-title">资源小窝</a>
+                 这里只有 cmixed 不可点（已经在主站了），所以后面留出箭头位置的空位。
+                 两个跨页入口用图标而不写字：文字留给右组的本页锚点，左组只表达
+                 「哪两个栏目」—— 图形与两处 favicon 同构，认一次就够。
+                 可读名称走 aria-label + sr-only，纯图标不会让屏幕阅读器失去语义。 -->
+            <a href="blog/" class="nav-title nav-title-icon" aria-label="个人博客" title="个人博客">
+                {{icon:blog}}<span class="sr-only">个人博客</span>
+            </a>
+            <a href="nook/" class="nav-title nav-title-icon" aria-label="资源小窝" title="资源小窝">
+                {{icon:nook}}<span class="sr-only">资源小窝</span>
+            </a>
         </div>
         <div class="nav-right">
-            <!-- 右组全是「在本页里走」的锚点。≤768px 整体收进汉堡菜单。 -->
+            <!-- 右组全是「在本页里走」的锚点。≤768px 整体收进汉堡菜单。
+                 文字同样换成图标，与左组分工一致：左组=跨页，右组=本页。
+                 图标顺序与下方区块一一对应，滚动到哪块哪颗亮（main.ts 的滚动监听）。 -->
             <ul class="nav-links">
-                <li><a href="#about">关于</a></li>
-                <li><a href="#projects">项目</a></li>
-                <li><a href="#blog-preview">博客</a></li>
-                <li><a href="#nook-preview">资源</a></li>
-                <li><a href="#contact">联系</a></li>
+                <li><a href="#about" class="nav-icon-link" data-section-link="about" aria-label="关于" title="关于">{{icon:user}}</a></li>
+                <li><a href="#projects" class="nav-icon-link" data-section-link="projects" aria-label="项目" title="项目">{{icon:folder}}</a></li>
+                <li><a href="#blog-preview" class="nav-icon-link" data-section-link="blog" aria-label="博客" title="博客">{{icon:blog}}</a></li>
+                <li><a href="#nook-preview" class="nav-icon-link" data-section-link="nook" aria-label="资源" title="资源">{{icon:nook}}</a></li>
+                <li><a href="#contact" class="nav-icon-link" data-section-link="contact" aria-label="联系" title="联系">{{icon:mail}}</a></li>
             </ul>
             <button class="hamburger" id="hamburger" aria-label="菜单">
                 <span></span>
@@ -118,7 +127,9 @@
 
         <section id="about">
             <div class="section-header">
-                关于
+                <span class="section-heading">
+                    <span class="section-icon">{{icon:user}}</span>关于
+                </span>
                 <!-- 站点速览跟标题同一行，靠右对齐；数字由 main.ts 按到货顺序填
                      （项目来自 projects.json，文章 / 资源跟着各自的预览数据到货）。 -->
                 <div class="site-stats" id="siteStats" aria-label="站点速览"></div>
@@ -175,14 +186,20 @@
         </section>
 
         <section id="projects">
-            <div class="section-header">项目</div>
+            <div class="section-header">
+                <span class="section-heading">
+                    <span class="section-icon">{{icon:folder}}</span>项目
+                </span>
+            </div>
             <p class="section-lede">C++ 库、小工具与实验项目</p>
             <div class="projects-grid" id="projectsGrid"></div>
         </section>
 
         <section id="blog-preview">
             <div class="section-header">
-                博客
+                <span class="section-heading">
+                    <span class="section-icon">{{icon:blog}}</span>博客
+                </span>
                 <a href="blog/" class="section-more">查看全部 <span aria-hidden="true">&rarr;</span></a>
             </div>
             <p class="section-lede">学习笔记、工程规范与上手指南</p>
@@ -191,7 +208,9 @@
 
         <section id="nook-preview">
             <div class="section-header">
-                资源
+                <span class="section-heading">
+                    <span class="section-icon">{{icon:nook}}</span>资源
+                </span>
                 <a href="nook/" class="section-more">查看全部 <span aria-hidden="true">&rarr;</span></a>
             </div>
             <p class="section-lede">常用工具、配置包与资料</p>
@@ -199,7 +218,11 @@
         </section>
 
         <section id="contact">
-            <div class="section-header">联系</div>
+            <div class="section-header">
+                <span class="section-heading">
+                    <span class="section-icon">{{icon:mail}}</span>联系
+                </span>
+            </div>
             <div class="contact-container">
                 <!-- 双栏名片：左「是谁 / 能合作什么」，右「怎么找到你」。
                      右栏排成两栏网格（邮箱整行打头，GitHub / Gitee 并排），

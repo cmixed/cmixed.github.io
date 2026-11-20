@@ -1280,3 +1280,81 @@ document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((button) => 
     });
   });
 });
+
+/* ===== 导航栏图标 / 区块标题图标的滚动联动 =====
+   右组五个锚点与五个区块标题各配一颗图标，滚到哪一块，那两颗一起点亮。
+   判据用「区块顶边越过视口上方 32%」而不是 IntersectionObserver 的比例阈值：
+   五个区块高度差很大（联系区只有一屏多一点，项目区能到三屏），
+   按可见面积算会在长区块里提前切走、在短区块里闪过去。
+   取「最后一个顶边已经过线的区块」最接近人眼判断，且不需要维护 observer。
+
+   只在主页跑：main.ts 只被 index.html 引入。rAF 合并滚动事件，
+   每帧只有 5 次 getBoundingClientRect（不读写样式），开销可以忽略。 */
+function initSectionSpy(): void {
+  const links = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>('[data-section-link]').forEach((link) => {
+    links.set(link.dataset.sectionLink ?? '', link);
+  });
+
+  const icons = new Map<string, HTMLElement>();
+  document.querySelectorAll<HTMLElement>('section[id] .section-icon').forEach((el) => {
+    const section = el.closest('section[id]');
+    if (section) icons.set(section.id, el);
+  });
+
+  if (links.size === 0) return;
+
+  /* 区块 id → 导航里的 data-section-link 值。区块 id 用页面锚点（blog-preview /
+     nook-preview），导航用短名（blog / nook）：映射只写这一处，两边不必互相将就。 */
+  const KEY: Record<string, string> = {
+    about: 'about',
+    projects: 'projects',
+    'blog-preview': 'blog',
+    'nook-preview': 'nook',
+    contact: 'contact',
+  };
+
+  const sections = Object.keys(KEY)
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if (sections.length === 0) return;
+
+  let current = '';
+  let queued = false;
+
+  function sync(): void {
+    queued = false;
+    // 视口上方 32% 处那条判定线：区块顶边越过它就算「正在读这一块」
+    const line = window.innerHeight * 0.32;
+    let picked = sections[0];
+    for (const section of sections) {
+      if (section.getBoundingClientRect().top <= line) picked = section;
+    }
+    // 滚到最底时，最后一个区块可能顶边仍在线下（它太矮）；此时直接选它
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+      picked = sections[sections.length - 1];
+    }
+
+    const key = KEY[picked.id] ?? '';
+    if (key === current) return;
+    current = key;
+
+    for (const [name, link] of links) link.classList.toggle('is-active', name === key);
+    for (const [id, icon] of icons) icon.classList.toggle('is-active', id === picked.id);
+  }
+
+  function schedule(): void {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(sync);
+  }
+
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  // 图片 / 预览卡到货会改页面高度，落点跟着变
+  if ('ResizeObserver' in window) new ResizeObserver(schedule).observe(document.body);
+  schedule();
+}
+
+initSectionSpy();

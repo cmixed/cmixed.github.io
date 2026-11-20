@@ -424,6 +424,69 @@ body::before {
     transform: scaleX(1);
 }
 
+/* ===== 图标型导航项 =====
+   左组「个人博客 / 资源小窝」与右组五个本页锚点都改成了图标：
+   左组管跨页、右组管本页，文字让位给图形，同一个 24×24 线稿家族认一次就够。
+   图标项不再用那条 1.5px 下划线（它按文字宽度画，套在方图标下面像条残线），
+   改成「方框底色 + 描边」表达状态 —— 与 .fab-btn 的交互语言一致。
+   可点区域按 32×32 走，比图形本身大一圈，触屏和鼠标都好按。 */
+.nav-title-icon,
+.nav-icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 覆盖文字项的 padding：图标项靠宽高给点击区，不再需要行内上下留白 */
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    transition: color 0.25s, background 0.25s;
+}
+
+.nav-title-icon::after,
+.nav-icon-link::after {
+    /* 方图标下面不画下划线（见上） */
+    content: none;
+}
+
+.nav-title-icon svg,
+.nav-icon-link svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    stroke-width: 1.8;
+}
+
+.nav-title-icon:hover,
+.nav-icon-link:hover {
+    color: var(--primary-text);
+    background: var(--chip-fill-hover);
+}
+
+/* 右组当前所在区块：底色常亮 + accent 字，滚动时由 main.ts 切 .is-active。
+   左组的「当前栏目」用各页原有的 -active 类，语义与样式都对得上。 */
+.nav-icon-link.is-active,
+.nav-title-icon.blog-nav-active,
+.nav-title-icon.nook-nav-active,
+.nav-title-icon.nook-detail-nav-active {
+    color: var(--primary-text);
+    background: var(--primary-dim);
+}
+
+.nav-icon-link.is-active::after,
+.nav-title-icon.blog-nav-active::after,
+.nav-title-icon.nook-nav-active::after,
+.nav-title-icon.nook-detail-nav-active::after {
+    content: none;
+}
+
+/* 图标项的视觉隐藏文字仍占一个 inline 盒，会把 32×32 的 flex 内容挤歪；
+   它们本身就是 1px 的裁剪盒，这里让它彻底退出布局即可。 */
+.nav-title-icon .sr-only,
+.nav-icon-link .sr-only {
+    position: absolute;
+}
+
 /* Hamburger (mobile only) */
 .hamburger {
     display: none;
@@ -967,6 +1030,44 @@ section {
         var(--border) 70%,
         transparent 100%
     );
+}
+
+/* 区块标题的「图标 + 文字」是一个整体：两者之间只隔 0.55rem，
+   与右侧装饰线之间仍走 .section-header 的 1rem gap。
+   曾经直接把图标放进 .section-header，图标和文字会被 1rem 的 gap 拉开，
+   读起来像「一个图标 + 另一个东西」。 */
+.section-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    /* order 0：和原来的裸文字占同一个槽位（标题 → 装饰线 → 右侧元素） */
+    order: 0;
+    min-width: 0;
+}
+
+/* 区块图标：默认压一档（--text-muted），所在区块进入视口时点亮成 accent。
+   尺寸吃 1em，跟着 --section-header-size 一起缩放，窄屏不会出现「大图标配小标题」。 */
+.section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    color: var(--text-muted);
+    transition: color 0.35s ease, filter 0.35s ease, transform 0.35s var(--spring-press);
+}
+
+.section-icon svg {
+    width: 1em;
+    height: 1em;
+    display: block;
+    stroke-width: 1.85;
+}
+
+/* 点亮态：颜色提亮 + 一圈极淡的辉光，不做放大 —— 标题行里放大图标会把行高顶开。
+   由 main.ts 的滚动同步切 .is-active，与导航栏那颗同名同源。 */
+.section-icon.is-active {
+    color: var(--primary-text);
+    filter: drop-shadow(0 0 6px var(--primary-glow));
 }
 
 /* 区块导语：一行小字说清这块是什么。标题与导语之间只留一线，下方间距给卡片 ——
@@ -2735,8 +2836,34 @@ html.modal-open .page-scrollbar-thumb {
         transition: right 0.3s, visibility 0s;
     }
 
+    /* 抽屉里现在是五颗图标，不再是五行文字：纵向单列读起来像一个启动器面板。
+       每颗给 52×52 的方块（触控目标远大于 44px 的底线），底色与描边沿用
+       小标签那一套，中间夹 1.5rem —— 原来 3rem 的间距是按文字行高定的，
+       套在方块上会散成五个孤点。 */
+    .nav-links {
+        gap: 1.5rem;
+    }
+
     .nav-links a {
-        font-size: 1.1rem;
+        font-size: 1rem;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: var(--chip-fill);
+        border: 1px solid var(--chip-border);
+    }
+
+    .nav-links a svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 1.7;
+    }
+
+    /* 展开态的强调跟着方块走：浅底换成 accent 淡填 + accent 描边 */
+    .nav-links a.is-active,
+    .nav-links a:hover {
+        background: var(--primary-dim);
+        border-color: var(--primary);
     }
 
     .about-card {
@@ -5313,33 +5440,13 @@ footer.edge-bounce {
 
 /* ===== 手机版卡片预览模式 =====
    小屏没有 hover，五类卡片的浮窗在 @media (hover:none) 下被关掉（见上面），
-   被省略的标题 / 摘要 / 标签就没处看。这颗按钮给一个显式入口：默认隐藏，
-   只在「有卡片 + 无 hover」时出现；点开后卡片点击改为弹 <dialog> 看完整内容。
-   位置贴在导航坞上方居中，和坞同材质，不额外占屏幕横向空间。 */
+   被省略的标题 / 摘要 / 标签就没处看。这颗按钮给一个显式入口：
+   它现在是坞内的一颗普通按钮（.fab-dock-btn 提供尺寸 / 玻璃 / 分隔线 / 焦点环 /
+   气泡标签），这里只负责两件事 —— 显隐条件、以及「开着」时的强调。
+   显隐只有一条规则：没有 hover 且本页真的有卡片（html[data-has-cards]）。
+   不满足时 display: none，坞的 flex 布局直接跳过它，不会留空位。 */
 .card-preview-toggle {
     display: none;
-    position: fixed;
-    left: 50%;
-    bottom: calc(1.75rem + 3.4rem);
-    transform: translateX(-50%);
-    z-index: 50;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.85rem;
-    background: var(--mica-chrome);
-    -webkit-backdrop-filter: var(--mica-nav-glass);
-    backdrop-filter: var(--mica-nav-glass);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    box-shadow: var(--mica-elev-2);
-    color: var(--text-dim);
-    font: inherit;
-    font-size: 0.78rem;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    white-space: nowrap;
-    transition: color var(--transition-speed), border-color var(--transition-speed),
-        background var(--transition-speed);
 }
 
 /* 无 hover 且页面有卡片才露出：两个条件缺一不可。宽屏触屏（平板）也命中，
@@ -5347,21 +5454,11 @@ footer.edge-bounce {
 @media (hover: none) {
     html[data-has-cards] .card-preview-toggle { display: flex; }
 }
-/* 小屏的坞 bottom 收到 1rem，按钮跟着上移，别压到坞上 */
-@media (hover: none) and (max-width: 600px) {
-    .card-preview-toggle { bottom: calc(1rem + 3.4rem); }
-}
 
-.card-preview-toggle svg {
-    width: 17px;
-    height: 17px;
-    display: block;
-    stroke-width: 1.8;
-}
-
+/* 预览模式开着：底色用 primary-dim、字用 primary-text —— 与「当前页」「目录开着」
+   同一套强调语言，但不画那颗小圆点（圆点专表「你在这一页」）。 */
 .card-preview-toggle[aria-pressed="true"] {
     color: var(--primary-text);
-    border-color: var(--primary);
     background: var(--primary-dim);
 }
 
