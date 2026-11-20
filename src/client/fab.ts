@@ -1,10 +1,11 @@
 /**
- * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 直达底部 / 首行缩进 / 目录 / 筛选 / 帮助。
+ * 底部居中的导航坞：回到顶部 / 直达底部 / 卡片预览 / 首行缩进 / 目录 / 筛选 / 帮助。
  *
- * 它和顶部导航刻意错位：顶部管「本页锚点」（关于 / 项目 / 博客预览 / 联系），
- * 坞管「跨页入口 + 上下跳转 + 本页工具」。跨页三颗与上下两颗每页都一样（回顶 /
- * 回底成对），首行缩进与目录只出现在博客文章页，筛选只出现在博客 / 小窝列表页，
- * 当前所在页高亮。「回上级」不做 —— 层级概念和固定几颗冲突，面包屑已在导航里。
+ * 语义是「本页能做的事」，跨页入口不在坞里 —— 主页 / 博客 / 资源小窝交回导航栏
+ * 左组的图标承担（图形与两处 favicon 同构）。两者因此分工干净：导航栏管「去哪个
+ * 栏目 + 本页哪一节」，坞管「在本页里怎么动、把本页的开关放哪」。
+ * 上下跳转每页都有（回顶 / 回底成对）；首行缩进与目录只在博客文章页，筛选只在
+ * 博客 / 小窝列表页，卡片预览只在「有卡片 + 无 hover」的设备上显示。
  * 深浅模式**不在坞内**：它留在导航栏最右端（见下方注释）。
  *
  * 承载页面：主页、博客（列表 + 文章）、资源小窝（列表 + 详情）。由页面统一
@@ -12,9 +13,6 @@
  * 坞内按钮用独立 class .fab-dock-btn，不复用 .fab-btn —— 后者还挂在列表页导航的
  * 「搜索 / 筛选」上，改它的尺寸会把导航一起改掉。
  * （缩进与目录原本也是 .fab-btn，搬进坞时摘掉换成 .fab-dock-btn，见下方注释。）
- *
- * 路径按当前目录推算，不写死站点根：GitHub Pages 用户站点挂在根，但同样的产物
- * 放到项目路径下也能用。dir 只有 '/'、'/blog/'、'/nook/' 三种取值。
  *
  * 常驻显示，不再随滚动淡入：显隐交给导航栏右上角那颗开关，状态存 localStorage，
  * 默认开。开关按钮插在主题钮之前 —— 各页模板不用各写一份。
@@ -39,13 +37,8 @@
  */
 (() => {
   const ICONS = {
-    /* 全部走站内同一套线形图标：24×24、1.8px 描边、圆头、currentColor，
-       与导航里的 RSS / 主题 / 搜索同源。blog / nook 与两处 favicon 同构 ——
-       折角稿纸、等距收纳盒 —— 「点它就回那个栏目」由图形本身说明。 */
-    /* 门洞跟着 tag 孔洞一起放大：3.6 宽、5.0 高的拱门在 20px 里才读得出「是扇门」 */
-    home: '<path d="M4.4 11.3 12 5.1l7.6 6.2"/><path d="M6.7 9.9v9.2h10.6V9.9"/><path d="M10.2 19.1v-3.2a1.8 1.8 0 0 1 3.6 0v3.2"/>',
-    blog: '<path d="M7.4 4.6h6.4l3.2 3.2v11.6H7.4Z"/><path d="M13.8 4.6v3.2h3.2"/><path d="M9.8 12.2h5.4M9.8 15.2h3.8"/>',
-    nook: '<path d="M12 5 18.6 8.4v7.2L12 19l-6.6-3.4V8.4Z"/><path d="M5.4 8.4 12 11.8l6.6-3.4M12 11.8V19"/>',
+    /* 坞内只剩四类图形（跨页三颗已交回导航栏，几何在 src/lib/icons.ts）：
+       全部走站内同一套线形图标 —— 24×24、1.8px 描边、圆头、currentColor。 */
     up: '<path d="M12 18.8V5.4"/><path d="m6.4 11 5.6-5.6 5.6 5.6"/>',
     /* 直达底部：和 up 同一几何、方向相反，成对出现才读得出「这是一对跳转」 */
     down: '<path d="M12 5.2v13.4"/><path d="m6.4 13 5.6 5.6 5.6-5.6"/>',
@@ -273,49 +266,14 @@
     return el;
   }
 
-  /** 当前页所在栏目：'home' | 'blog' | 'nook'。dir 只有三种取值，见文件头注释。 */
-  const dir = new URL('.', location.href).pathname;
-  const section: 'home' | 'blog' | 'nook' =
-    dir === '/blog/' ? 'blog' : dir === '/nook/' ? 'nook' : 'home';
-
-  /* 三颗跨页入口的 href 按当前目录算，不用绝对路径：
-     主页用 'blog/' / 'nook/'，子页用 '../' 或 './'，产物挂到任意路径都能用。 */
-  const pages: Array<{ key: typeof section; label: string; icon: IconName; href: string }> = [
-    { key: 'home', label: '主页', icon: 'home', href: section === 'home' ? './' : '../' },
-    {
-      key: 'blog',
-      label: '博客',
-      icon: 'blog',
-      href: section === 'home' ? 'blog/' : section === 'blog' ? './' : '../blog/',
-    },
-    {
-      key: 'nook',
-      label: '资源小窝',
-      icon: 'nook',
-      href: section === 'home' ? 'nook/' : section === 'nook' ? './' : '../nook/',
-    },
-  ];
-
   const group = document.createElement('div');
   group.className = 'fab-group';
   group.setAttribute('role', 'group');
-  group.setAttribute('aria-label', '站点导航');
+  group.setAttribute('aria-label', '本页工具');
 
-  for (const page of pages) {
-    const link = document.createElement('a');
-    link.className = 'fab-dock-btn';
-    link.href = page.href;
-    link.title = page.label;
-    link.setAttribute('aria-label', page.label);
-    if (page.key === section) {
-      link.classList.add('is-current');
-      // 当前页的链接可点（刷新用），但语义上标出来给辅助技术
-      link.setAttribute('aria-current', 'page');
-    }
-    link.innerHTML = svg(page.icon) + `<span class="fab-dock-label">${page.label}</span>`;
-    group.appendChild(link);
-  }
-
+  /* 坞里不再放「主页 / 博客 / 资源小窝」三颗跨页入口 —— 那三个栏目现在由导航栏
+     左组的图标承担（图形与两处 favicon 同构）。坞因此只留「本页能做的事」：
+     上下跳转 + 本页开关 + 帮助，语义比之前更纯，也不必再按当前目录推算 href。 */
   group.appendChild(
     actionButton('回到顶部', 'up', () => {
       springScrollTo(0);

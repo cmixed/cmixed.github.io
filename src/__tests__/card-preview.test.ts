@@ -36,7 +36,7 @@ describe('手机版卡片预览模式', () => {
     expect(css).toContain('.site-modal::backdrop');
   });
 
-  it('按钮仅无 hover + 有卡片时出现，且贴在坞上方', () => {
+  it('按钮并进坞里，仅无 hover + 有卡片时出现', () => {
     expect(script).toContain("root.setAttribute('data-has-cards', '')");
     expect(script).toContain("root.removeAttribute('data-has-cards')");
     // 三处检测：同步渲染 / 首页 fetch / 异步网格
@@ -48,13 +48,18 @@ describe('手机版卡片预览模式', () => {
     expect(css).toMatch(
       /@media \(hover: none\)\s*\{\s*html\[data-has-cards\] \.card-preview-toggle \{ display: flex; \}/
     );
-    expect(css).toContain('.card-preview-toggle');
-    expect(css).toMatch(/\.card-preview-toggle \{[^}]*position: fixed/);
+    // 它现在是坞内一颗普通按钮：长成 .fab-dock-btn，插在坞的最后一颗之前
+    expect(script).toContain("'card-preview-toggle fab-dock-btn'");
+    expect(script).toContain("document.querySelector<HTMLElement>('.fab-group')");
+    expect(script).toContain('dock.insertBefore(btn, last)');
+    // 不再自己定位成浮层（那条 position: fixed 已经删掉）
+    expect(css).not.toMatch(/\.card-preview-toggle \{[^}]*position: fixed/);
   });
 
-  it('预览模式是显式开关，aria-pressed 与文案同步，退模式关弹窗', () => {
+  it('预览模式是显式开关，aria-pressed 与气泡标签同步，退模式关弹窗', () => {
     expect(script).toContain("setAttribute('aria-pressed', String(on))");
-    expect(script).toContain("text.textContent = on ? '退出预览' : '卡片预览'");
+    expect(script).toContain("const label = on ? '退出预览' : '卡片预览'");
+    expect(script).toContain("btn.querySelector('.fab-dock-label')");
     expect(script).toContain('if (!on && dialog?.open) dialog.close()');
     expect(script).toContain("root.classList.toggle('card-preview-mode', on)");
     expect(css).toContain('html.card-preview-mode [data-card]');

@@ -30,22 +30,36 @@
   let dialog: HTMLDialogElement | null = null;
   let active = false;
 
-  /* 有卡片才显示按钮：banner 图标 + 文字，文案随状态切换。
-     aria-pressed 让辅助技术读出「开 / 关」，同时是样式高亮的钩子。 */
+  /* 卡片预览是「本页能做的一件事」，和缩进 / 目录 / 筛选同类，所以它就该在坞里 ——
+     早先做成坞外的一颗独立浮层按钮，理由是「模式开关要和导航动作分开」，
+     但结果是手机上同时飘着两个控件，且它的位置还要手工算在坞上方。
+     现在（2026-11-20）并进坞：按钮直接长成 .fab-dock-btn 的样子，
+     坞的玻璃、分隔线、焦点环、气泡标签全部继承，自己只剩「显隐条件」这一件事。
+     fab 先于本文件执行、坞一定已存在；找不到坞才退回 body（防御性分支，
+     正常产物走不到）。插在坞的最后一颗（帮助）之前，保持「帮助永远在最右」。 */
   function ensureToggle(): HTMLButtonElement {
     if (toggle) return toggle;
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'card-preview-toggle';
+    btn.className = 'card-preview-toggle fab-dock-btn';
     btn.id = 'cardPreviewToggle';
     btn.setAttribute('aria-pressed', 'false');
     btn.setAttribute('aria-label', '开启卡片预览');
+    btn.title = '卡片预览';
     btn.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
-      '<path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>' +
-      '<span class="card-preview-toggle-text">卡片预览</span>';
+      '<path d="M2.6 12S6.1 5.8 12 5.8 21.4 12 21.4 12 17.9 18.2 12 18.2 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.7"/></svg>' +
+      '<span class="fab-dock-label">卡片预览</span>';
     btn.addEventListener('click', () => setMode(!active));
-    document.body.appendChild(btn);
+    const dock = document.querySelector<HTMLElement>('.fab-group');
+    if (dock) {
+      // 插在最后一颗（帮助）之前；坞为空时 appendChild 等价
+      const last = dock.lastElementChild;
+      if (last) dock.insertBefore(btn, last);
+      else dock.appendChild(btn);
+    } else {
+      document.body.appendChild(btn);
+    }
     toggle = btn;
     return btn;
   }
@@ -82,10 +96,13 @@
     active = on;
     root.classList.toggle('card-preview-mode', on);
     const btn = ensureToggle();
+    const label = on ? '退出预览' : '卡片预览';
     btn.setAttribute('aria-pressed', String(on));
     btn.setAttribute('aria-label', on ? '退出卡片预览' : '开启卡片预览');
-    const text = btn.querySelector('.card-preview-toggle-text');
-    if (text) text.textContent = on ? '退出预览' : '卡片预览';
+    btn.title = label;
+    // 坞内气泡标签跟着状态改词，和邻座的「回到顶部」一样是名词性的短标签
+    const text = btn.querySelector('.fab-dock-label');
+    if (text) text.textContent = label;
     if (!on && dialog?.open) dialog.close();
   }
 
