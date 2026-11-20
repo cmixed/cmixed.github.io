@@ -19,10 +19,14 @@
  * 默认开。开关按钮是在把主题钮接进坞时、插进它腾出的导航位置 —— 所以各页模板
  * 不用各写一份。
  *
- * 主题钮是「移动」不是「另建」：每页导航栏里原本就有 #themeToggle，页面上散落的
- * 内联 click 绑定、theme.js 的圆形揭示圆心、keys.js 的 aria-keyshortcuts 都认这个
- * id。append 到坞里，监听器跟着节点走，一处都不用改；再给它补 .fab-dock-btn，
- * 尺寸 / 分隔线 / 焦点环就和邻座完全一致。
+ * 主题钮与目录是「借」不是「另建」：每页导航栏里原本就有 #themeToggle（目录只在
+ * 文章页有 #tocToggle），页面上散落的内联 click 绑定、theme.js 的圆形揭示圆心、
+ * keys.js 的 aria-keyshortcuts 都认这些 id。移到坞里，监听器跟着节点走，一处都
+ * 不用改；再补 .fab-dock-btn，尺寸 / 分隔线 / 焦点环就和邻座完全一致。
+ *
+ * 借来的钮必须能还：坞一关，它们回填导航栏原位（否则关掉坞就再没有入口点深浅
+ * 模式）。搬走前在原位插一条注释锚点，回填时插到它后面；锚点一直留着，反复开关
+ * 也不会越积越多。回填同时把类名还原（目录补回 .fab-btn）并把坞内气泡标签收起。
  *
  * 图标用内联 SVG 而不是字符：系统字体缺字时会把 U+2302（⌂）画成方框，
  * 和主题色只靠 currentColor 联系，深浅色切换不用另写一套。
@@ -337,40 +341,81 @@
   if (themeToggle) navRight?.insertBefore(toggle, themeToggle);
   else navRight?.appendChild(toggle);
 
-  /* 目录：文章页导航里那颗 #tocToggle 同样「搬」进来，不另建。内联脚本给它的
+  /* 帮助放坞最右：复用 keys.js 的快捷键面板（? / F1），点一下就开。
+     fab.ts 在 ui.js 里先于 keys.ts 跑，但回调要等到点击时才执行，那时
+     window.siteKeys 已经挂上了。
+     先建它再搬下面两颗：它是坞内的插入锚点（insertBefore(helpBtn)）。 */
+  const helpBtn = actionButton('帮助', 'help', () => {
+    window.siteKeys?.toggleHelp();
+  });
+  group.appendChild(helpBtn);
+
+  /* ===== 借来的按钮：坞关掉时回填导航栏 =====
+     目录 / 深浅模式本来就活在导航栏里，坞只是借用。坞一关，它们必须回原位 ——
+     否则关掉坞就再没有入口点深浅模式（手机上没有第二条路）。
+     做法：搬走之前先在原位插一条注释锚点，回填时插到锚点之后；锚点一直留着，
+     反复开关不会越积越多（一条 el 只对应一条锚点）。 */
+  interface Borrowed {
+    el: HTMLElement;
+    /** 导航栏里的原位标记（注释节点，不渲染、不改布局） */
+    anchor: Comment;
+    /** 坞内气泡标签，回填时收起 —— 它是绝对定位，留在导航钮里会飘在按钮上方 */
+    label: HTMLElement;
+    /** 回填时要补回的类（目录原本是 .fab-btn）；主题钮的 .theme-toggle 从没摘过 */
+    restoreClass: string | null;
+  }
+  const borrowed: Borrowed[] = [];
+
+  function borrow(el: HTMLElement, name: string, restoreClass: string | null): void {
+    const parent = el.parentNode;
+    if (!parent) return;
+    const anchor = document.createComment('dock-home');
+    parent.insertBefore(anchor, el);
+    const label = document.createElement('span');
+    label.className = 'fab-dock-label';
+    label.textContent = name;
+    el.appendChild(label);
+    borrowed.push({ el, anchor, label, restoreClass });
+  }
+
+  /* 目录：文章页导航里那颗 #tocToggle 直接借过来，不另建。内联脚本给它的
      click 绑定、syncTocHeight / syncTocFade 都按这个 id 找人，DOM 移动不丢；
      它的 .active（目录面板开着）由内联脚本自己切，坞里补一条同色规则即可。
      只有博客文章页有这个元素 —— 别的页坞里自然少一颗，顺序不受影响。
-     排在主题 / 帮助之前：目录属于「这篇内容怎么读」，和深浅模式不是一类。 */
+     排在主题之前：目录属于「这篇内容怎么读」，和深浅模式不是一类。 */
   const tocToggle = document.getElementById('tocToggle');
   if (tocToggle) {
-    tocToggle.classList.remove('fab-btn');
-    tocToggle.classList.add('fab-dock-btn');
     tocToggle.setAttribute('aria-label', '目录');
-    const label = document.createElement('span');
-    label.className = 'fab-dock-label';
-    label.textContent = '目录';
-    tocToggle.appendChild(label);
-    group.appendChild(tocToggle);
+    borrow(tocToggle, '目录', 'fab-btn');
   }
 
-  if (themeToggle) {
-    themeToggle.classList.add('fab-dock-btn');
-    const label = document.createElement('span');
-    label.className = 'fab-dock-label';
-    label.textContent = '切换深浅模式';
-    themeToggle.appendChild(label);
-    group.appendChild(themeToggle);
+  /* 深浅模式：把导航栏里那颗现成的 #themeToggle 借过来。
+     页面上散落的内联 click 绑定（列表 / 文章 / 404 页）、theme.js 的揭示圆心、
+     keys.js 的 aria-keyshortcuts 都按这个 id 找人；DOM 移动不会丢事件监听器，
+     所以一处都不用改。补 .fab-dock-btn 让它继承分隔线、焦点环与 hover 标签。 */
+  if (themeToggle) borrow(themeToggle, '切换深浅模式', null);
+
+  /** 搬进坞：按 borrowed 的顺序插在帮助之前（目录 → 主题 → 帮助） */
+  function moveToDock(): void {
+    for (const item of borrowed) {
+      item.el.classList.remove('fab-btn');
+      item.el.classList.add('fab-dock-btn');
+      item.label.hidden = false;
+      group.insertBefore(item.el, helpBtn);
+    }
   }
 
-  /* 帮助放坞最右：复用 keys.js 的快捷键面板（? / F1），点一下就开。
-     fab.ts 在 ui.js 里先于 keys.ts 跑，但回调要等到点击时才执行，那时
-     window.siteKeys 已经挂上了。 */
-  group.appendChild(
-    actionButton('帮助', 'help', () => {
-      window.siteKeys?.toggleHelp();
-    })
-  );
+  /** 回填原位：还原类名与外观，标签收起 */
+  function moveHome(): void {
+    for (const item of borrowed) {
+      item.el.classList.remove('fab-dock-btn');
+      if (item.restoreClass) item.el.classList.add(item.restoreClass);
+      item.label.hidden = true;
+      // 坞初始就是关的：元素从没离开原位，锚点后面就是它自己，跳过即可
+      if (item.el.previousSibling === item.anchor) continue;
+      item.anchor.parentNode?.insertBefore(item.el, item.anchor.nextSibling);
+    }
+  }
 
   document.body.appendChild(group);
 
@@ -380,6 +425,9 @@
   const DOCK_KEY = 'dock';
 
   function applyDock(on: boolean): void {
+    // 借来的按钮跟着坞走：开就搬进来，关就回填导航栏
+    if (on) moveToDock();
+    else moveHome();
     group.classList.toggle('is-off', !on);
     group.toggleAttribute('inert', !on);
     toggle.setAttribute('aria-pressed', String(on));

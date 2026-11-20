@@ -32,13 +32,12 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain('if (runningStop) runningStop()');
     expect(fab).toContain('if (seq !== navSeq || passes >= 2) return');
     expect(fab).toContain('stop(false)');
-    // 目录 / 主题都是「移动」现成节点，不是另造一颗
+    // 目录 / 主题都是「借」现成节点，不是另造一颗
     expect(fab).toContain("getElementById('tocToggle')");
-    expect(fab).toContain("tocToggle.classList.add('fab-dock-btn')");
-    // 目录搬进坞时摘掉 .fab-btn，否则 40px 与导航的 26px 两套尺寸打架
-    expect(fab).toContain("tocToggle.classList.remove('fab-btn')");
     expect(fab).toContain("getElementById('themeToggle')");
-    expect(fab).toContain("themeToggle.classList.add('fab-dock-btn')");
+    // 搬进坞时统一摘 .fab-btn 挂 .fab-dock-btn（目录原先是 40px，会和导航的 26px 打架）
+    expect(fab).toContain("item.el.classList.remove('fab-btn')");
+    expect(fab).toContain("item.el.classList.add('fab-dock-btn')");
     // 帮助复用快捷键面板
     expect(fab).toContain('window.siteKeys?.toggleHelp()');
     // 回上级与旧的虚拟化量高机制已彻底删掉
@@ -97,6 +96,25 @@ describe('底部居中导航坞', () => {
     expect(narrow).toContain('.fab-dock-btn');
     expect(narrow).toMatch(/\.fab-dock-btn \{\s*width: 32px;\s*height: 32px;/);
     expect(narrow).toContain('gap: 0.1rem');
+  });
+
+  it('关掉坞时把借来的按钮回填导航栏原位', () => {
+    // 借 = 原位插注释锚点，回填插到锚点后面
+    expect(fab).toContain("document.createComment('dock-home')");
+    expect(fab).toContain('parent.insertBefore(anchor, el)');
+    expect(fab).toContain('item.anchor.parentNode?.insertBefore(item.el, item.anchor.nextSibling)');
+    // 回填要还原类名与外观：目录补回 .fab-btn、气泡标签收起
+    expect(fab).toContain('if (item.restoreClass) item.el.classList.add(item.restoreClass)');
+    expect(fab).toContain('item.label.hidden = true');
+    expect(fab).toContain('item.label.hidden = false');
+    expect(css).toContain('.fab-dock-label[hidden]');
+    // 坞初始就是关的：元素没离开过原位，锚点后面就是它自己，必须跳过
+    expect(fab).toContain('if (item.el.previousSibling === item.anchor) continue');
+    // 开关驱动搬入 / 回填
+    expect(fab).toMatch(/if \(on\) moveToDock\(\);\s*\n\s*else moveHome\(\);/);
+    // 目录与主题都走 borrow，保持「借」而不是各自 append
+    expect(fab).toContain("borrow(tocToggle, '目录', 'fab-btn')");
+    expect(fab).toContain("borrow(themeToggle, '切换深浅模式', null)");
   });
 
   it('常驻显示，显隐交给导航栏开关并持久化', () => {

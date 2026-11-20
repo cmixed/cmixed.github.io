@@ -5298,6 +5298,13 @@ footer.edge-bounce {
     opacity: 1;
 }
 
+/* 坞关掉时，借来的目录 / 主题钮回填导航栏，气泡标签要收起来（它是绝对定位，
+   留在 32px 的导航钮里会飘到按钮上方）。UA 的 [hidden] 已给 display: none，
+   这里显式钉一遍 —— 将来若给 .fab-dock-label 加 display 也不会漏。 */
+.fab-dock-label[hidden] {
+    display: none;
+}
+
 /* ===== 手机版卡片预览模式 =====
    小屏没有 hover，五类卡片的浮窗在 @media (hover:none) 下被关掉（见上面），
    被省略的标题 / 摘要 / 标签就没处看。这颗按钮给一个显式入口：默认隐藏，
