@@ -1346,6 +1346,28 @@ function initSectionSpy(): void {
   let current = '';
   let queued = false;
 
+  /* ===== 滑块定位 =====
+     右组五个图标装在一条浅底胶囊里，当前区块的淡青底由容器的 ::before 画（见
+     style.css 的 .nav-links::before）。这里把当前项的位置换算成 CSS 变量：
+     相对于容器的 **padding box**（绝对定位元素的包含块就是它），
+     所以要先减掉边框宽度，否则每一格都偏 1px。
+     宽度直接取元素实测宽度 —— 五格是定宽的，但将来若某格换成长图标也不会错位。 */
+  const strip = document.querySelector<HTMLElement>('.nav-links');
+
+  function slideTo(link: HTMLElement | null): void {
+    if (!strip) return;
+    if (!link) {
+      // 没有当前项（理论上不会发生）：让滑块淡出，而不是停在上一格假装选中
+      strip.style.setProperty('--slider-w', '0px');
+      return;
+    }
+    const box = strip.getBoundingClientRect();
+    const item = link.getBoundingClientRect();
+    const border = parseFloat(getComputedStyle(strip).borderLeftWidth) || 0;
+    strip.style.setProperty('--slider-x', `${item.left - box.left - border}px`);
+    strip.style.setProperty('--slider-w', `${item.width}px`);
+  }
+
   function sync(): void {
     queued = false;
     // 视口上方 32% 处那条判定线：区块顶边越过它就算「正在读这一块」
@@ -1365,6 +1387,13 @@ function initSectionSpy(): void {
 
     for (const [name, link] of links) link.classList.toggle('is-active', name === key);
     for (const [id, icon] of icons) icon.classList.toggle('is-active', id === picked.id);
+    slideTo(links.get(key) ?? null);
+  }
+
+  /* 首次定位与断点切换后都要重算：窗口变宽时五格的绝对位置会变，
+     而 sync() 因为 key 没变会提前 return，滑块就会停在旧坐标上。 */
+  function relayout(): void {
+    slideTo(links.get(current) ?? null);
   }
 
   function schedule(): void {
@@ -1374,7 +1403,12 @@ function initSectionSpy(): void {
   }
 
   window.addEventListener('scroll', schedule, { passive: true });
-  window.addEventListener('resize', schedule, { passive: true });
+  window.addEventListener('resize', () => {
+    schedule();
+    relayout();
+    // 字体 / 缩放变化会让格子宽度差个零点几像素，下一帧再校一次
+    requestAnimationFrame(relayout);
+  });
   // 图片 / 预览卡到货会改页面高度，落点跟着变
   if ('ResizeObserver' in window) new ResizeObserver(schedule).observe(document.body);
   schedule();

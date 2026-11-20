@@ -376,14 +376,14 @@ body::before {
 .nav-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    /* 胶囊本身已经有一圈描边 + 3px 内边距当留白，工具钮（坞 / 置顶 / 主题）
+       与它之间不需要原来那么大的缝；0.75rem 让「导航项组」和「工具钮组」分开
+       但不同志割裂。 */
+    gap: 0.75rem;
 }
 
-.nav-links {
-    display: flex;
-    gap: 2rem;
-    list-style: none;
-}
+/* 具体的胶囊样式在下方「图标型导航项」一节 —— 这里只留一条占位说明，
+   避免又出现第二份 gap / padding 与本文件后半段的定义打架。 */
 
 /* 导航项：主页 .nav-links a 与子页 .xxx-nav-title 共用同一套尺度与状态 */
 .nav-links a,
@@ -424,53 +424,109 @@ body::before {
     transform: scaleX(1);
 }
 
-/* ===== 图标型导航项 =====
-   左组「个人博客 / 资源小窝」与右组五个本页锚点都改成了图标：
-   左组管跨页、右组管本页，文字让位给图形，同一个 24×24 线稿家族认一次就够。
-   图标项不再用那条 1.5px 下划线（它按文字宽度画，套在方图标下面像条残线），
-   改成「方框底色 + 描边」表达状态 —— 与 .fab-btn 的交互语言一致。
-   可点区域按 32×32 走，比图形本身大一圈，触屏和鼠标都好按。 */
+/* ===== 图标型导航项（胶囊分段控件）=====
+   左组「个人博客 / 资源小窝」与右组五个本页锚点都是图标：左组管跨页、右组管本页。
+   2026-11-20 从「五个 32px 方块 + 2rem 间距」改成**两条胶囊分段控件**：
+   原来节距 64px（图标 32 + 间距 32），间距等于图标本身，五个按钮像撒在导航里、
+   彼此毫无关系；现在装进浅底胶囊、间距收到 2px，成组地读成「一个控件里的五格」。
+
+   两组的容器共用一套 token（浅底 + 细描边 + 3px 内边距 + 999px 圆角），
+   所以左右一眼是亲戚。右组多一条**滑块**：当前所在区块的淡青底由 ::before 画，
+   滚动时从一格滑到下一格（left / width 过渡），比「每格各自亮一下」更能读出
+   「这五格是一条线上的位置」。左组只有两个互斥入口，当前页用同一档淡青底直接画在
+   链接上 —— 它不会在停留期间变化，加滑块只是多一层没人看见的复杂度。 */
+.nav-links,
+.nav-pages {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    background: var(--chip-fill);
+    /* 列表的默认样式（左组是 div，右组是 ul）：这里一并抹掉 */
+    list-style: none;
+    margin: 0;
+}
+
+/* 滑块：位置与宽度由 main.ts 写进 --slider-x / --slider-w（单位 px，
+   相对于容器的 padding box）。默认值指向第一格 —— 首帧脚本还没跑时
+   「关于」本来就是高亮项，写死这个初值可以免掉一次「先无高亮再跳出来」。 */
+.nav-links {
+    --slider-x: 3px;
+    --slider-w: 36px;
+}
+
+.nav-links::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: var(--slider-x);
+    width: var(--slider-w);
+    height: calc(100% - 6px);
+    border-radius: 999px;
+    background: var(--primary-dim);
+    /* 只动 left / width：两者都是布局属性，但容器里只有五个定宽项，
+       重排代价可忽略；用 transform 反而要把宽度变化也做成 scaleX，圆角会变形。 */
+    transition: left 0.28s var(--spring-press), width 0.28s var(--spring-press),
+        opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* 没有当前区块（右组还没同步过）时滑块不显示，避免它停在第一格假装选中 */
+.nav-links:not(:has(.is-active))::before {
+    opacity: 0;
+}
+
 .nav-title-icon,
 .nav-icon-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /* 覆盖文字项的 padding：图标项靠宽高给点击区，不再需要行内上下留白 */
+    /* 覆盖文字项的 padding：图标项靠宽高给点击区 */
     padding: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 36px;
+    height: 30px;
+    border-radius: 999px;
+    /* 右组的选中底由滑块画，这里不能自己再加一层，否则叠成两倍深的色块 */
+    background: transparent;
+    z-index: 1;
     transition: color 0.25s, background 0.25s;
 }
 
 .nav-title-icon::after,
 .nav-icon-link::after {
-    /* 方图标下面不画下划线（见上） */
+    /* 图标项不画那条文字下划线（它按文字宽度算，套在方图标下像条残线） */
     content: none;
 }
 
 .nav-title-icon svg,
 .nav-icon-link svg {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     display: block;
     stroke-width: 1.8;
 }
 
-.nav-title-icon:hover,
-.nav-icon-link:hover {
+/* hover：只给非当前项一层更浅的底，当前项的底留给滑块 */
+.nav-icon-link:hover:not(.is-active),
+.nav-title-icon:hover:not([class*='-active']) {
     color: var(--primary-text);
     background: var(--chip-fill-hover);
 }
 
-/* 右组当前所在区块：底色常亮 + accent 字，滚动时由 main.ts 切 .is-active。
-   左组的「当前栏目」用各页原有的 -active 类，语义与样式都对得上。 */
-.nav-icon-link.is-active,
+/* 左组当前栏目：直接画同档淡青底（见上方说明），不参与滑块 */
 .nav-title-icon.blog-nav-active,
 .nav-title-icon.nook-nav-active,
 .nav-title-icon.nook-detail-nav-active {
     color: var(--primary-text);
     background: var(--primary-dim);
+}
+
+/* 右组当前区块：文字提亮，底色交给滑块 */
+.nav-icon-link.is-active {
+    color: var(--primary-text);
 }
 
 .nav-icon-link.is-active::after,
@@ -480,11 +536,23 @@ body::before {
     content: none;
 }
 
-/* 图标项的视觉隐藏文字仍占一个 inline 盒，会把 32×32 的 flex 内容挤歪；
+/* 图标项的视觉隐藏文字仍占一个 inline 盒，会把 36×30 的 flex 内容挤歪；
    它们本身就是 1px 的裁剪盒，这里让它彻底退出布局即可。 */
 .nav-title-icon .sr-only,
 .nav-icon-link .sr-only {
     position: absolute;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-links::before { transition: none; }
+}
+
+/* 焦点环向格内收：全局规则是 outline-offset: 2px，而格与格之间只有 2px，
+   外向环会压到邻格上、看着像「两个都选中了」。内收 2px 让它贴着自己这一格画，
+   与坞内 .fab-dock-btn 的处理同一套理由（那里也是 -2px）。 */
+.nav-icon-link:focus-visible,
+.nav-title-icon:focus-visible {
+    outline-offset: -2px;
 }
 
 /* Hamburger (mobile only) */
@@ -2816,6 +2884,9 @@ html.modal-open .page-scrollbar-thumb {
         display: flex;
     }
 
+    /* 抽屉覆盖桌面那套「胶囊分段控件」：它不再是一条横排的浅底胶囊，
+       而是一整块全高面板，所以底、描边、内边距、圆角、gap 全部要重置，
+       否则胶囊的样式会跟着跑到抽屉上（变成一条竖着的圆角长条）。 */
     .nav-links {
         position: fixed;
         top: 0;
@@ -2827,7 +2898,10 @@ html.modal-open .page-scrollbar-thumb {
         background: var(--mica-chrome);
         -webkit-backdrop-filter: var(--mica-nav-glass);
         backdrop-filter: var(--mica-nav-glass);
+        border: 0;
         border-left: 1px solid var(--border);
+        border-radius: 0;
+        padding: 0;
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -2840,6 +2914,12 @@ html.modal-open .page-scrollbar-thumb {
         z-index: 200;
         box-shadow: -4px 0 30px var(--shadow);
         padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* 抽屉里没有「当前格」这种横向位置概念，滑块必须彻底消失 ——
+       否则它会以 36px 宽、淡青底的样子横在面板顶部。 */
+    .nav-links::before {
+        content: none;
     }
 
     .nav-links.active {
@@ -3336,8 +3416,10 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: flex; justify-content: space-between; align-items: center;
     transition: background var(--transition-speed), border-color var(--transition-speed);
 }
+/* 左组：logo + 两个跨页入口。两个入口装进胶囊之后，logo 与它之间不必留 1.5rem ——
+   胶囊自己的描边就是边界，0.75rem 足够读出「右边这组是另一个控件」。 */
 .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left {
-    display: flex; align-items: center; gap: 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
 }
 
 /* 主页 logo 后面跟一个灰色 `→`：与子页的 `←` 同字符集、同宽度，切页时左组不会横移。
@@ -3400,18 +3482,40 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 @media (max-width: 480px) {
     nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 0.85rem; }
     :root { --nav-logo-size: 1rem; }
-    .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.6rem; }
-    .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.6rem; }
+    .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.6rem; }
+    .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.5rem; }
     .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.85rem; }
+    /* 窄屏一行要塞下 logo + 胶囊 + 汉堡 + 三颗工具钮（坞 / 置顶 / 主题）。
+       393px 实测刚好卡满、一点余量都没有，所以这里把胶囊再收半档：
+       格 34×28、图标 16px，胶囊整宽 176 → 实测多出约 10px 余量。 */
+    .nav-title-icon,
+    .nav-icon-link {
+        width: 34px;
+        height: 28px;
+    }
+
+    .nav-title-icon svg,
+    .nav-icon-link svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* 滑块初值与实测宽度同步收缩：首帧脚本还没跑时的位置也要对得上 */
+    .nav-links {
+        --slider-w: 34px;
+    }
+
     /* 极窄屏让位：首行缩进开关从导航里撤掉（缩进偏好仍从 localStorage 生效） */
     .blog-nav #indentToggle { display: none; }
 }
 @media (max-width: 360px) {
     /* 再窄就撤掉 RSS 图标，并允许导航换行，
        避免固定高度下内容溢出后被 overflow-x: clip 裁掉。
-       换行后右组单独占一行，margin-left: auto 让它贴右而不是回到开头。 */
+       换行后右组单独占一行，margin-left: auto 让它贴右而不是回到开头 ——
+       主页的 .nav-right 之前漏在这条名单外，换行后整组贴在左边，和左组的 logo
+       挤在同一列起跑线上；补进来之后主页与三个子页的换行行为一致。 */
     .blog-nav-rss, .nook-nav-rss { display: none; }
-    .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { margin-left: auto; }
+    .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { margin-left: auto; }
     nav, .blog-nav, .nook-nav, .nook-detail-nav {
         height: auto; min-height: var(--nav-h); flex-wrap: wrap; row-gap: 0.25rem;
     }
