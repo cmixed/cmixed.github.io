@@ -3416,24 +3416,60 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     display: flex; justify-content: space-between; align-items: center;
     transition: background var(--transition-speed), border-color var(--transition-speed);
 }
-/* 左组：logo + 两个跨页入口（文字）。恢复到 1.5rem —— 文字之间没有容器描边
-   当边界，靠留白分组才读得出「logo 是身份、右边两个是去处」。 */
+/* 左组：logo + 两个栏目入口（URL slug：blog / nook）。
+   间距 20px —— 两个 slug 互相靠近成一组，与 logo 之间由一道竖线切开，
+   自然读成「身份 │ 去处」而不是三个等距的东西。 */
 .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left {
-    display: flex; align-items: center; gap: 1.5rem;
+    display: flex; align-items: center; gap: 1.25rem;
 }
 
-/* 主页 logo 后面跟一个灰色 `→`：与子页的 `←` 同字符集、同宽度，切页时左组不会横移。
-   方向也把语义说清了 —— 主页的箭头朝外（去列表页），子页的箭头朝内（回主页）。 */
-.logo-arrow {
-    color: var(--text-muted);
+/* 竖线分隔：画在第一个入口的左侧空隙里（gap 的一半 = 10px），不加任何标签。
+   选择器用「logo 后面紧跟的任意链接」而不是 `.nav-title` —— 主页那颗叫
+   .nav-title、三个子页叫 .blog-nav-title / .nook-nav-title / .nook-detail-nav-title，
+   写死任一个都会漏掉另一半（第一版就漏了子页，竖线只在主页出现）。
+   为什么不是「再加一个 <span class="sep">」：那要改 7 个模板，而这条线纯粹是
+   装饰（无语义），一个伪元素就够。 */
+.logo + a::before {
+    content: '';
+    position: absolute;
+    right: calc(100% + 9.5px);
+    top: 50%;
+    width: 1px;
+    height: 1.15em;
+    transform: translateY(-50%);
+    background: var(--border);
 }
+
 /* 子页 logo：与主页 .logo 同字号、同字重、同字体栈。必须用 (0,2,0) 选择器，
    否则会被「导航项」里的 .xxx-nav-title 或通用 a 规则压成小字。
    字体栈从 --nav-logo-font 取，不再自带一份后备链 —— 两边各写一份就会在缺字体时分叉。 */
 .blog-nav .logo, .nook-nav .logo, .nook-detail-nav .logo {
+    position: relative;
     font-family: var(--nav-logo-font); font-weight: 700;
     font-size: var(--nav-logo-size); letter-spacing: 1px;
     color: var(--primary-text); text-decoration: none; white-space: nowrap;
+}
+/* 两个箭头（主页的 → / 子页的 ←）撤掉了：它们本来只有「等宽占位」一个功能，
+   去掉之后主页与子页的 logo 天然同宽，「切页左组不横移」自动成立，占位符失去意义。
+   回首页的提示改由 hover 下划线承担 —— 与站内其它文字链接同一套反馈
+   （accent 色 1.5px、从左向右展开），不额外解释「点这里回首页」。
+   注意：主页那个 logo 是 <div>、不可点，所以下面这套只挂在三个子页。 */
+.blog-nav .logo::after, .nook-nav .logo::after, .nook-detail-nav .logo::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+}
+.blog-nav .logo:hover::after,
+.nook-nav .logo:hover::after,
+.nook-detail-nav .logo:hover::after {
+    transform: scaleX(1);
 }
 /* 当前页：与 hover 同一套视觉（亮色 + 加粗 + accent 下划线），不再用 !important */
 .blog-nav-active, .nook-nav-active, .nook-detail-nav-active { color: var(--text); font-weight: 600; }
@@ -3482,18 +3518,13 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 @media (max-width: 480px) {
     nav, .blog-nav, .nook-nav, .nook-detail-nav { padding: 0 0.7rem; }
     :root { --nav-logo-size: 1rem; }
-    /* 左组是文字（个人博客 / 资源小窝）而不是胶囊里的图标，比图标宽约 30px。
-       390px 这一行要塞下 logo + 两个入口 + 胶囊 + 汉堡 + 三颗工具钮，
-       收到 gap 0.35rem、字号 0.82rem 之后两组之间才留得出空隙（实测约 9px），
-       否则左右两端会贴在一起，读起来像一长条。 */
-    .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 0.35rem; }
-    .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.35rem; }
-    .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.82rem; }
-    /* 工具钮（坞开关 / 置顶）在窄屏收回 32px：触屏那条 `(pointer: coarse)` 把它
-       放到 36px 是给图标时代算的，现在左组多了约 26px 的文字宽度，
-       这一行必须从工具钮里省回来。写在这里（更靠后）即可覆盖那条媒体查询。 */
-    .dock-toggle { width: 32px; height: 32px; }
-    .dock-toggle svg { width: 16px; height: 16px; }
+    /* 左组写的是 URL slug（blog / nook），比中文（个人博客 / 资源小窝）窄约 54px，
+       所以这里不必像中文时代那样把间距压到极限：gap 1rem 让竖线两侧仍有
+       各 8px 的呼吸，两个 slug 也不至于黏成 "blognook"。实测 390px 两组之间
+       还有 60px 上下的空隙。字号仍留一档小字，为文章页那串工具钮让位。 */
+    .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 1rem; }
+    .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.4rem; }
+    .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.85rem; }
     /* 窄屏一行要塞下 logo + 两个文字入口 + 胶囊 + 汉堡 + 三颗工具钮（坞 / 置顶 / 主题）。
        393px 实测刚好卡满、一点余量都没有，所以这里把胶囊再收半档：
        格 34×28、图标 16px，胶囊整宽 176 → 实测多出约 10px 余量。 */

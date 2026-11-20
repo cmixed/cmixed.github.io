@@ -61,16 +61,19 @@
 </head>
 <body>
     <nav>
-        <!-- 左组：站点标识 + 两个「本页内」的入口（不跳去列表页）。
-             logo 后面留出与子页箭头等宽的空位，三处导航的左组因此从同一条竖线起排。 -->
+        <!-- 左组：站点标识 + 两个栏目入口。三处导航同构，左组都从同一条竖线起排。 -->
         <div class="nav-left">
-            <div class="logo">cmixed <span class="logo-arrow" aria-hidden="true">&rarr;</span></div>
-            <!-- 左组全是「去别的页面」的链接：与列表页的 cmixed ← + 两个入口完全同构。
-                 这里只有 cmixed 不可点（已经在主站了），所以后面留出箭头位置的空位。
-                 文字而不用图标：这两个栏目是「去哪儿」，一个中文词读得比图形快；
-                 同名的图形入口在底部坞里（主页 / 博客 / 资源小窝），两处不重复。 -->
-            <a href="blog/" class="nav-title">个人博客</a>
-            <a href="nook/" class="nav-title">资源小窝</a>
+            <div class="logo">cmixed</div>
+            <!-- 两个入口写 URL slug（blog / nook），不写中文：
+                 ① 和地址栏里的 /blog/、/nook/ 完全一致，认字就是认路；
+                 ② 与 latin 的 logo 同一脚本，`cmixed │ blog nook` 读成一家人；
+                 ③ 比「个人博客 / 资源小窝」窄 54px —— 390px 那行要塞下胶囊、
+                    汉堡和三颗工具钮，这点宽度很关键。
+                 中文全称（个人博客 / 资源小窝）下沉到底部坞的标签与 aria-label，
+                 读屏用户拿到的是完整名字，视觉上是短 slug。容器边界由 CSS 的
+                 竖线画（.logo + .nav-title::before），不用额外标签。 -->
+            <a href="blog/" class="nav-title">blog</a>
+            <a href="nook/" class="nav-title">nook</a>
         </div>
         <div class="nav-right">
             <!-- 右组全是「在本页里走」的锚点。≤768px 整体收进汉堡菜单。

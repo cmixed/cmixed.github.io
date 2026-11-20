@@ -9,8 +9,9 @@ import { describe, expect, it } from 'vite-plus/test';
  * 五个按钮像撒在导航里、彼此毫无关系。改成装进浅底胶囊（间距 2px）+ 一条跟随当前
  * 区块的滑块之后，成组地读成「一个控件里的五格」。
  *
- * 左组（个人博客 / 资源小窝）是**文字**、不套胶囊：那两个中文词读得比图形快，
- * 而且只有两个。跨页的图形入口在底部坞里（见 fab-dock.test.ts）。
+ * 左组（blog / nook）是**文字**、不套胶囊：两个 URL slug 读得比图形快，也和
+ * 地址栏同形。中文全称（个人博客 / 资源小窝）下沉到底部坞的标签与 aria-label。
+ * 跨页的图形入口也在坞里（见 fab-dock.test.ts）。
  *
  * 四条约束：
  *   1. 右组装进浅底胶囊（细描边 / 3px 内边距 / 999px 圆角）；
@@ -37,10 +38,52 @@ describe('导航栏胶囊分段控件', () => {
     expect(body).toContain('background: var(--chip-fill)');
     expect(body).toContain('border: 1px solid var(--chip-border)');
 
-    // 左组回到文字：主页是两个纯文字链接，没有 aria-label / sr-only
-    expect(html).toContain('<a href="blog/" class="nav-title">个人博客</a>');
-    expect(html).toContain('<a href="nook/" class="nav-title">资源小窝</a>');
+    // 左组是 URL slug，不是中文（和地址栏同形，也省 54px 宽度）
+    expect(html).toContain('<a href="blog/" class="nav-title">blog</a>');
+    expect(html).toContain('<a href="nook/" class="nav-title">nook</a>');
     expect(html).not.toContain('nav-title-icon');
+    // 两个箭头已撤：靠「两页 logo 天然同宽」对齐，不再用占位符。
+    // 只看 nav-left 内部 —— hero 按钮里的 &larr; 是另一回事
+    const navLeft = html.slice(
+      html.indexOf('<div class="nav-left">'),
+      html.indexOf('</div>', html.indexOf('<div class="nav-left">'))
+    );
+    expect(navLeft).not.toContain('logo-arrow');
+    expect(navLeft).not.toContain('&larr;');
+  });
+
+  it('两层命名：导航说 slug，坞说中文全称', () => {
+    /* 这条是「同一个地方两个名字」的防线 —— 刻意分开的两层，不是笔误：
+       导航栏左组常驻可见、要省宽度，所以写 blog / nook（和地址栏同形）；
+       坞里的标签只出现在 hover 气泡与 aria-label，没有宽度压力，
+       给完整中文名对读屏用户更有用。两边都被钉住，谁被改回去都会报错。 */
+    for (const f of ['blog/index.html', 'nook/index.html']) {
+      const s = read(f);
+      expect(s, `${f} 左组应为 slug`).toMatch(
+        /class="(?:blog|nook)-nav-title[^"]*">(?:blog|nook)<\/a>/
+      );
+      expect(s, `${f} 不该再出现中文左组`).not.toMatch(
+        /class="(?:blog|nook)-nav-title[^"]*">(?:个人博客|资源小窝)<\/a>/
+      );
+    }
+    const fabSrc = read('src/client/fab.ts');
+    expect(fabSrc).toContain("label: '个人博客'");
+    expect(fabSrc).toContain("label: '资源小窝'");
+    expect(fabSrc).not.toContain("label: '博客'");
+  });
+
+  it('左组由竖线分隔，logo 与入口之间不再靠箭头占位', () => {
+    /* 选择器必须是 `.logo + a`，不能写死 `.nav-title` —— 主页那颗叫 .nav-title、
+       三个子页叫 .blog-nav-title / .nook-nav-title / .nook-detail-nav-title，
+       写死任一个都会漏掉另一半（第一版就漏了子页，竖线只在主页出现）。 */
+    const block = css.slice(css.indexOf('.logo + a::before {'));
+    const body = block.slice(0, block.indexOf('}'));
+    expect(body).toContain('width: 1px');
+    expect(body).toContain('background: var(--border)');
+    expect(body).toContain('right: calc(100% + 9.5px)');
+    // 间距收成一组：1.25rem，两个 slug 靠近、与 logo 分开
+    const left = css.slice(css.indexOf('.nav-left, .blog-nav-left'));
+    expect(left.slice(0, left.indexOf('}'))).toContain('gap: 1.25rem');
   });
 
   it('格子尺寸统一 36×30、图标 17px', () => {

@@ -293,11 +293,16 @@
   const section: 'home' | 'blog' | 'nook' =
     dir === '/blog/' ? 'blog' : dir === '/nook/' ? 'nook' : 'home';
 
+  /* 标签写中文全称，不写导航里那个 URL slug —— 这是有意分开的两层：
+     导航栏左组（常驻可见）说 blog / nook，与地址栏同形、也省宽度；
+     坞里的标签只出现在 hover 气泡和 aria-label 上，那里没有宽度压力，
+     给完整名字更有用（读屏用户听到的是「个人博客」而不是一个英文单词）。
+     三个入口统一这条规则，所以主页是「主页」而非「home」。 */
   const pages: Array<{ key: typeof section; label: string; icon: IconName; href: string }> = [
     { key: 'home', label: '主页', icon: 'home', href: section === 'home' ? './' : '../' },
     {
       key: 'blog',
-      label: '博客',
+      label: '个人博客',
       icon: 'blog',
       href: section === 'home' ? 'blog/' : section === 'blog' ? './' : '../blog/',
     },
