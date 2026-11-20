@@ -3113,6 +3113,33 @@ html.modal-open .page-scrollbar-thumb {
     section {
         max-width: 1000px;
     }
+
+    /* ===== 桌面档的 fold 点：把「关于」上提到让 dock 骑在事实区横线上 =====
+       需求（2026-11-20）：签名位置一动不动，只把「关于」卡片往上提，使
+       dock 正好压在 `.about-facts` 的 border-top 上；dock 只占中间一段宽度，
+       于是「语言」与「领域」两列在它左右露出，「工程能力」那一列被它投影盖住。
+
+       实现必须成对：hero 矮 40px → 下方「关于」整体上移 40px；同时 hero 用
+       align-items: center，矮 40 会让内容自己上移 20，所以给 .hero-content
+       补 translateY(+20px) 抵回去，签名与打字机的绝对位置保持不变。
+       只给前半段会「About 上移但签名也上移」，只给后半段则签名下移 —— 两处必须同改。
+
+       40px 是实测出来的：1440×900 下 `.about-facts` 横线在 896、dock 占 815–872。
+       上移 40 后横线到 856（落在 dock 覆盖范围内、偏下四分之一），三列事实从
+       872 起排，正好贴着 dock 下沿，**三个小标题与三行值全部完整可见**。
+       上移到 52（横线正对 dock 中心）会让三列标题被切掉约 12px、「语言 / 工程能力 /
+       领域」读不出来 —— 那是反面证据，不要往回调。
+
+       只加在 ≥1024：≤768 那档手机首屏本来就是 hero 独占，About 不在折叠线附近，
+       跟着动只会把签名顶下去。基础规则里的 319 / 335 / 367 保持原样给手机与平板用。 */
+    .hero {
+        min-height: calc(100vh - 359px);
+        min-height: calc(100svh - 359px);
+    }
+
+    .hero-content {
+        transform: translateY(20px);
+    }
 }
 
 /* --- Desktop XL (≥1280px) --- */
@@ -3150,10 +3177,11 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* section 上下从 4rem 涨到 5rem，横线比 1440 档低 16px；
-       hero 多减 16 才能同样切在横线上（319 + 16 = 335）。 */
+       hero 多减 16 才能同样切在横线上（319 + 16 = 335），再叠上 ≥1024 那档
+       统一的 +40 上提量 → 375。translateY 不需要重写：它继承 ≥1024 的 20px。 */
     .hero {
-        min-height: calc(100vh - 335px);
-        min-height: calc(100svh - 335px);
+        min-height: calc(100vh - 375px);
+        min-height: calc(100svh - 375px);
     }
 
     .hero::before {
@@ -3204,10 +3232,11 @@ html.modal-open .page-scrollbar-thumb {
     }
 
     /* 5K 的 section 上下 padding 是 7rem，简介比桌面低 48px，
-       多减 48 才能同样切在第二段末尾（319 + 48 = 367）。 */
+       多减 48 才能同样切在第二段末尾（319 + 48 = 367）；再加 ≥1024 那档
+       统一的 +40 上提量 → 407。 */
     .hero {
-        min-height: calc(100vh - 367px);
-        min-height: calc(100svh - 367px);
+        min-height: calc(100vh - 407px);
+        min-height: calc(100svh - 407px);
     }
 
     .hero::before {
