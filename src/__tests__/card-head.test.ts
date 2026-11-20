@@ -55,48 +55,28 @@ describe('卡片标题：只占一行', () => {
   });
 });
 
-describe('置顶徽标：右上角，排在其他元素前面', () => {
-  it('列表页：徽标在 head / header 里，标题之后', () => {
+describe('置顶标记：emoji，排在标题最前面', () => {
+  it('列表页：📌 在标题行首，不再占右上角', () => {
     const blog = read('blog/build.ts');
-    const blogHead = blog.slice(
-      blog.indexOf('blog-page-card-head'),
-      blog.indexOf('blog-page-card-desc')
-    );
-    expect(blogHead.indexOf('blog-page-card-title')).toBeGreaterThan(-1);
-    expect(blogHead.indexOf('${pinMark}')).toBeGreaterThan(
-      blogHead.indexOf('blog-page-card-title')
-    );
-    // 徽标不许再塞进标题里
-    expect(blog).not.toContain('<div class="blog-page-card-title">${pinMark}');
+    // 标题 div 里 pinMark 紧跟左尖括号，即「标题文字之前」
+    expect(blog).toContain('<div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}');
+    // 旧的「标题之后单独一颗」写法必须消失
+    expect(blog).not.toContain('</div>\n                ${pinMark}');
 
     const nook = read('nook/build.ts');
-    const nookHead = nook.slice(nook.indexOf('nook-card-header'), nook.indexOf('nook-card-desc'));
-    const pinAt = nookHead.indexOf('${pinMark}');
-    expect(pinAt).toBeGreaterThan(nookHead.indexOf('nook-card-title'));
-    // 「其他元素前面」：分类胶囊在徽标之后
-    expect(nookHead.indexOf('nook-card-category')).toBeGreaterThan(pinAt);
-    expect(nook).not.toContain('<div class="nook-card-title">${pinMark}');
+    expect(nook).toContain('<div class="nook-card-title">${pinMark}${escapeXml(r.title)}');
   });
 
-  it('首页预览卡：徽标同样在标题之后、分类之前', () => {
+  it('首页预览卡：📌 同样在标题行首', () => {
     const main = read('src/main.ts');
-    const blogCard = main.slice(
-      main.indexOf('blog-preview-card-head'),
-      main.indexOf('blog-preview-card-desc')
-    );
-    expect(blogCard.indexOf('${pinMark}')).toBeGreaterThan(
-      blogCard.indexOf('blog-preview-card-title')
-    );
-    expect(main).not.toContain('<div class="blog-preview-card-title">${pinMark}');
+    expect(main).toContain('<div class="blog-preview-card-title">${pinMark}${escapeHtml(p.title)}');
+    expect(main).toContain('<div class="nook-preview-card-title">${pinMark}${escapeHtml(r.title)}');
+  });
 
-    const nookCard = main.slice(
-      main.indexOf('nook-preview-card-header'),
-      main.indexOf('nook-preview-card-desc')
-    );
-    const pinAt = nookCard.indexOf('${pinMark}');
-    expect(pinAt).toBeGreaterThan(nookCard.indexOf('nook-preview-card-title'));
-    expect(nookCard.indexOf('nook-preview-card-category')).toBeGreaterThan(pinAt);
-    expect(main).not.toContain('<div class="nook-preview-card-title">${pinMark}');
+  it('详情页标题也复用同一个标记', () => {
+    const nook = read('nook/build.ts');
+    // {{titleHtml}} 由 pinMark + 标题拼成，位置在模板里是 <h1> 内部
+    expect(nook).toContain("replace('{{titleHtml}}', pinMark + escapeXml(r.title))");
   });
 });
 

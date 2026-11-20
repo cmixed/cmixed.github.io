@@ -3,7 +3,8 @@ title: RA2 连点器
 category: tool
 description: 红色警戒2自动连点器，支持自定义点击间隔和热键
 url: https://github.com/cmixed/ra2-clicker/releases
-tags: [Windows, 游戏工具, 红色警戒2]
+tags: [游戏工具, 红色警戒2]
+platform: Windows
 ---
 
 红色警戒2自动连点器，用于自动执行快速点击操作。

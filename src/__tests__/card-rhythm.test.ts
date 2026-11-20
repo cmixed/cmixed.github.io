@@ -88,7 +88,11 @@ describe('只读标签的盒子与卡片信息行同档', () => {
     expect(body).toContain('padding: var(--chip-pad-y) var(--chip-pad-x)');
   });
 
-  it('置顶徽标的高度跟着标签盒子算，改动内边距后仍与分类胶囊共边线', () => {
-    expect(css).toContain('--pin-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px)');
+  it('右上角属性盒的高度跟着标签盒子算，改动内边距后仍与分类胶囊共边线', () => {
+    // 置顶已改成标题前的 emoji，右上角现在由 .card-attr 占据，
+    // 它沿用原来那套「由 --chip-* 推整高」的公式，两个方块才共边线。
+    expect(css).toContain(
+      '--attr-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px)'
+    );
   });
 });

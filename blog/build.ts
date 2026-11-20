@@ -637,8 +637,7 @@ ${sitemapUrls}
       return `
         <a href="./${encodeURIComponent(p.slug)}.html" class="blog-page-card${p.pinned ? ' blog-page-card-pin' : ''}" data-card data-date="${escapeXml(p.date)}" data-updated="${escapeXml(p.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="blog-page-card-head">
-                <div class="blog-page-card-title">${escapeXml(p.title)}</div>
-                ${pinMark}
+                <div class="blog-page-card-title">${pinMark}${escapeXml(p.title)}</div>
             </div>
             <div class="blog-page-card-desc">${escapeXml(p.description)}</div>
             <div class="blog-page-card-footer">

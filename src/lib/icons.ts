@@ -29,7 +29,17 @@ export type IconName =
   | 'user'
   | 'folder'
   | 'mail'
-  | 'eye';
+  | 'eye'
+  | 'langPy'
+  | 'langCpp'
+  | 'langRs'
+  | 'langTs'
+  | 'langJs'
+  | 'langGo'
+  | 'langAsm'
+  | 'platWin'
+  | 'platLinux'
+  | 'platMac';
 
 const ICONS: Record<IconName, string> = {
   // 置顶：图钉线稿（帽 + 身 + 针），和全站其它图标同一套描边。
@@ -74,6 +84,31 @@ const ICONS: Record<IconName, string> = {
   mail: '<rect x="3.2" y="5.4" width="17.6" height="13.2" rx="2.2"/><path d="m4.4 7.4 7.6 5.4 7.6-5.4"/>',
   /** 卡片预览：一只眼睛（看完整内容）。 */
   eye: '<path d="M2.6 12S6.1 5.8 12 5.8 21.4 12 21.4 12 17.9 18.2 12 18.2 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.7"/>',
+
+  /* ===== 语言图标 =====
+     一律是「字母线稿」，不画品牌 logo：品牌标志几乎都是实心色块，
+     塞进这套 1.7px 开放路径里会糊成一团（和当初撤掉实心 pushpin 同一个理由）。
+     字母在 16px 下仍可辨，且项目卡旁边本来就有文字（C++20 / Rust）做二次确认。
+     C++ 用 C 加两个小十字 —— 单看 C 分不出 C 还是 C++。 */
+  langPy: '<path d="M9.4 17V8h3.6a3 3 0 0 1 0 6H9.4"/>',
+  langCpp:
+    '<path d="M14.6 9.6a4 4 0 1 0 0 4.8"/><path d="M17.4 8.6v3M15.9 10.1h3"/><path d="M21 8.6v3M19.5 10.1h3"/>',
+  langRs: '<path d="M9.4 17V8h3.4a2.7 2.7 0 0 1 0 5.4H9.4"/><path d="m12.8 13.4 3.2 3.6"/>',
+  langTs: '<path d="M8 8.6h7.2"/><path d="M11.6 8.6V17"/>',
+  langJs: '<path d="M14.8 8.6V15a2.3 2.3 0 0 1-4.6 0"/>',
+  langGo: '<path d="M15.8 10.2a3.9 3.9 0 1 0 0 3.8h.2v-2.1h-2.3"/>',
+  langAsm: '<path d="M8.6 17 12 8l3.4 9"/><path d="M9.9 14.1h4.2"/>',
+
+  /* ===== 平台图标 =====
+     这四个是「纯图标」场合（资源卡右上角不带文字），所以必须靠形状说话，
+     不能用字母。Windows 用标志性的透视四格，Web 复用已有的地球，
+     Linux / macOS 各自给一只简化轮廓。 */
+  platWin:
+    '<path d="M4 6.6 11 5.6v6H4Z"/><path d="M12.6 5.4 20 4.4v7.2h-7.4Z"/><path d="M4 13.4h7v6L4 18.4Z"/><path d="M12.6 13.4H20v7.2l-7.4-1Z"/>',
+  platLinux:
+    '<path d="M12 3.6a3.1 3.1 0 0 1 3.1 3.1v3c1.6 2 2.5 4.5 2.5 7 0 2.1-2.5 3.3-5.6 3.3S6.4 18.8 6.4 16.7c0-2.5.9-5 2.5-7v-3A3.1 3.1 0 0 1 12 3.6Z"/><path d="M6.6 17.4c-1.3 1-1.9 2-1.5 2.5.5.7 2.4.3 4.2-.8"/><path d="M17.4 17.4c1.3 1 1.9 2 1.5 2.5-.5.7-2.4.3-4.2-.8"/>',
+  platMac:
+    '<path d="M15.3 8.6c-.9 0-1.6.5-2.2.5s-1.3-.5-2.1-.5c-1.9 0-3.7 1.7-3.7 4.3 0 2.8 1.9 6 3.5 6 .7 0 1.2-.5 2.1-.5s1.4.5 2.1.5c1.6 0 3.5-3.2 3.5-6 0-2.6-1.6-4.3-3.2-4.3Z"/><path d="M12.3 8.3c-.2-1.5 1-2.9 2.5-3.1.2 1.5-1 3-2.5 3.1Z"/>',
 };
 
 /** 全部图标统一走描边（fill: none）；置顶也从实心改回线稿，不再有例外。 */
@@ -86,9 +121,7 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   website: 'website',
 };
 
-/* 置顶徽标专用视窗：pin 的墨迹在 24 格里是 x 7.4–16.6 / y 3.2–19，
-   四周留 1 个单位给描边，裁成这个框。见 pinBadge() 的说明。 */
-const PIN_BADGE_VIEWBOX = '6.4 2.2 11.2 17.8';
+/* 置顶标记已改为 emoji（见 pinBadge），不再需要裁紧的视窗常量。 */
 
 export function icon(name: IconName, className?: string, viewBox = '0 0 24 24'): string {
   const cls = className ? ` class="${className}"` : '';
@@ -100,15 +133,109 @@ export function categoryIcon(category: string, className?: string): string {
   return icon(CATEGORY_ICONS[category] ?? 'package', className);
 }
 
-/** 置顶徽标：方片 + pin 图标，和只读标签同一套「信息」语义。
- *
- *  徽标里的 pin 用**裁紧的 viewBox**，不用 24×24 的那份：图钉本体在 24 格里只占
- *  x 7.4–16.6 / y 3.2–19，四周一大圈留白 —— 直接塞进 1em 级的方框里，实际画出来
- *  只有方框的 36% 高，「钉子太小」就是这么来的。这里按墨迹外扩 1px 描边余量裁成
- *  `6.4 2.2 11.2 17.8`，同一个 CSS 尺寸下钉子放大约 1.6 倍，四周还留得住呼吸。
- *  路径本身仍是 ICONS.pin 那一份，几何只有一处来源。 */
+/* ===== 置顶标记 =====
+   2026-11-20 按要求从「方框 + 线稿图钉」改成 emoji 📌，并且移到卡片标题**最前面**。
+   这确实和文档里「不用 emoji：彩色字形跨平台不一致、不跟 currentColor / 主题走」
+   那条约定相反 —— 那次是为了让图标语言统一，这次是为了让置顶在标题行里一眼可见：
+   原来是右上角一个小方框，标题单行省略之后它离标题反而更远。
+   代价是 Windows / macOS / Android 各画一枚略不同的图钉；接受这个代价，
+   因为它的作用是「扫一眼知道这条被置顶」，不需要和线稿图标同构。
+   显隐由导航栏那颗开关控制（`html[data-pin-hidden] .pin-mark`），
+   关掉之后置顶仍然靠卡片顶部的 accent 色带表达，不会失去信息。 */
 export function pinBadge(): string {
-  return `<span class="pin-badge" role="img" aria-label="置顶">${icon('pin', undefined, PIN_BADGE_VIEWBOX)}</span>`;
+  return `<span class="pin-mark" role="img" aria-label="置顶">📌</span>`;
+}
+
+/* ===== 语言 / 平台 → 图标 =====
+   两处数据来源都写成自由字符串（frontmatter 的 `language: C++`、projects.json 的
+   `"language": "C++20"`），所以这里按**归一化前缀**匹配，不做精确相等：
+   C++20 / C++23 / C++ 共用一颗，TypeScript / TS 共用一颗。
+   匹配不上返回 null，由调用方回退（资源卡回退首个标签的 tag 图标）。 */
+function normalize(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, '');
+}
+
+/** 语言名 → 图标。`C` 单独一次精确判断 —— 前缀匹配会让 `css` 误命中。 */
+export function languageIcon(name: string | undefined): IconName | null {
+  if (!name) return null;
+  const v = normalize(name);
+  if (v === 'c' || v.startsWith('c++') || v.startsWith('cpp')) return 'langCpp';
+  if (v.startsWith('python') || v === 'py') return 'langPy';
+  if (v.startsWith('rust') || v === 'rs') return 'langRs';
+  if (v.startsWith('typescript') || v === 'ts') return 'langTs';
+  if (v.startsWith('javascript') || v === 'js' || v.startsWith('node')) return 'langJs';
+  if (v === 'go' || v.startsWith('golang')) return 'langGo';
+  if (v.startsWith('assembly') || v === 'asm' || v.startsWith('x86') || v.startsWith('arm'))
+    return 'langAsm';
+  return null;
+}
+
+/** 平台名 → 图标。Web 复用已有的地球（`website`），不另画一颗。 */
+export function platformIcon(name: string | undefined): IconName | null {
+  if (!name) return null;
+  const v = normalize(name);
+  if (v.startsWith('windows') || v === 'win') return 'platWin';
+  if (v.startsWith('linux')) return 'platLinux';
+  if (v.startsWith('macos') || v === 'mac' || v.startsWith('darwin') || v === 'osx')
+    return 'platMac';
+  if (v === 'web' || v.startsWith('浏览器') || v.startsWith('前端') || v.startsWith('browser'))
+    return 'website';
+  return null;
+}
+
+/** 卡片右上角属性（项目卡：图标 + 文字；资源卡：纯图标）。 */
+export interface CardAttr {
+  icon: IconName;
+  /** 全称（语言名 / 平台名 / 首个标签）。纯图标时它仍要留着做 title 与读屏名 */
+  text: string;
+  /** 是否在图标后画出文字 */
+  withLabel: boolean;
+  kind: 'language' | 'platform' | 'tag';
+}
+
+/**
+ * 算出卡片右上角该显示哪一条属性。
+ *
+ * 优先级：语言 → 平台 → 回退首个标签。
+ * - 项目卡两样都带文字（C++20 与 C++23 必须靠文字区分）；
+ * - 资源卡只出图标（用户明确要求「文字不要」），回退时用 tag 图标 + `title` 补全称。
+ */
+export function cardAttribute(opts: {
+  language?: string;
+  platform?: string;
+  tags?: string[];
+  withLabel: boolean;
+}): CardAttr | null {
+  const langIcon = languageIcon(opts.language);
+  if (langIcon && opts.language) {
+    return { icon: langIcon, text: opts.language, withLabel: opts.withLabel, kind: 'language' };
+  }
+  const platIcon = platformIcon(opts.platform);
+  if (platIcon && opts.platform) {
+    return { icon: platIcon, text: opts.platform, withLabel: opts.withLabel, kind: 'platform' };
+  }
+  const first = opts.tags?.[0];
+  if (first) {
+    // 语言 / 平台都没写时才回退；标签本身没有专属图标，用通用的 tag
+    return { icon: 'tag', text: first, withLabel: opts.withLabel, kind: 'tag' };
+  }
+  return null;
+}
+
+/** 右上角那颗属性的 HTML。纯图标时把全称塞进 title + aria-label。 */
+export function cardAttrBadge(attr: CardAttr): string {
+  const text = escapeAttr(attr.text);
+  const label = attr.withLabel ? `<span class="card-attr-text">${text}</span>` : '';
+  return `<span class="card-attr card-attr--${attr.kind}" title="${text}" aria-label="${text}">${icon(attr.icon)}${label}</span>`;
+}
+
+/** 属性值来自数据文件，可能含引号，进属性前必须转义。 */
+function escapeAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 const ICON_TOKEN = /\{\{icon:([a-z]+)(?::([a-z0-9-]+))?\}\}/g;

@@ -5,6 +5,7 @@ description: 浏览器兼容性查询工具，支持查询各种 Web 技术的�
 url: https://caniuse.com
 pin: true
 tags: [前端, 兼容性, 浏览器]
+platform: Web
 ---
 
 Can I Use 是一个前端开发工具，用于查询 Web 技术（如 HTML、CSS、JavaScript API）在各浏览器中的兼容性。

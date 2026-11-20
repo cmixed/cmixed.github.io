@@ -31,20 +31,14 @@ describe('icon', () => {
     expect(categoryIcon('nope')).not.toMatch(/[\u{1F000}-\u{1FAFF}]/u);
   });
 
-  it('pinBadge 带「置顶」语义标签', () => {
+  it('pinBadge 是 emoji，带「置顶」语义标签', () => {
     const badge = pinBadge();
-    expect(badge).toContain('class="pin-badge"');
+    expect(badge).toContain('class="pin-mark"');
     expect(badge).toContain('aria-label="置顶"');
-    expect(badge).toContain('<svg');
-  });
-
-  it('pinBadge 用裁紧的 viewBox，钉子不再缩在 24 格中间', () => {
-    const badge = pinBadge();
-    // 不再是 0 0 24 24 的整格；墨迹外扩 1 个单位给描边
-    expect(badge).toContain('viewBox="6.4 2.2 11.2 17.8"');
-    expect(badge).not.toContain('viewBox="0 0 24 24"');
-    // 路径仍与 ICONS.pin 同源（几何只有一处定义）
-    expect(badge).toContain('M8 3.2h8');
+    expect(badge).toContain('📌');
+    // 不再是方框 + 内联 SVG（那条约定被明确覆盖，见 icons.ts 的说明）
+    expect(badge).not.toContain('<svg');
+    expect(badge).not.toContain('pin-badge');
   });
 });
 

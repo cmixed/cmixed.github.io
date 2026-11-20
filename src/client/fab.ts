@@ -48,6 +48,9 @@
     /* 导航栏上的坞开关：一块屏幕 + 底部一条胶囊，指向「这条坞」。
        开 / 关两态靠 aria-pressed 与按钮底色区分，不另画第二枚图标。 */
     dock: '<rect x="3.2" y="4.6" width="17.6" height="14.8" rx="2.4"/><rect x="7.4" y="14.6" width="9.2" height="2.6" rx="1.3"/>',
+    /* 置顶开关：线稿图钉（帽 + 身 + 针）。卡片上是 📌，导航里仍用线稿 ——
+       按钮与旁边的坞开关、主题钮并列，emoji 的彩度会从这里跳出来。 */
+    pin: '<path d="M8 3.2h8"/><path d="M9.8 3.2v5.2l-2.4 2.8v2.4h9.2v-2.4L14.2 8.4V3.2"/><path d="M12 13.6v5.4"/>',
   } as const;
 
   type IconName = keyof typeof ICONS;
@@ -310,6 +313,50 @@
   } else {
     navRight?.appendChild(toggle);
   }
+
+  /* ===== 置顶标记显隐开关 =====
+     卡片默认用两种方式表达置顶：标题前的 📌，和卡片顶部那条 accent 色带。
+     有人觉得图钉吵（尤其一次置顶三条），所以给一颗全局开关，状态存 localStorage。
+     关掉只隐藏 📌 —— 色带还在，「这条被置顶」的信息不会丢，只是从「一个图钉」
+     退成「一条颜色」。与坞开关同构：都在导航栏右组、都持久化、都靠 aria-pressed 表状态。
+     插在坞开关之前，两颗工具钮挨着，主题钮仍是最右。
+
+     显隐交给 CSS 的 `html[data-has-cards]`（card-preview.ts 维护的「本页有没有卡片」）：
+     文章页 / 详情页没有卡片，这颗开关就没意义。不在这里查 DOM —— 首页的预览卡是
+     fetch 之后才插进来的，fab.ts 执行那一刻它们还不存在，当场判断会永久漏掉首页。 */
+  const PIN_KEY = 'pins';
+  const pinToggle = document.createElement('button');
+  pinToggle.type = 'button';
+  pinToggle.className = 'dock-toggle pin-toggle';
+  pinToggle.id = 'pinToggle';
+  pinToggle.innerHTML = svg('pin');
+
+  function applyPins(show: boolean): void {
+    document.documentElement.toggleAttribute('data-pin-hidden', !show);
+    pinToggle.setAttribute('aria-pressed', String(show));
+    const label = show ? '隐藏置顶标记' : '显示置顶标记';
+    pinToggle.setAttribute('aria-label', label);
+    pinToggle.title = label;
+  }
+
+  let pinsOn = true;
+  try {
+    pinsOn = localStorage.getItem(PIN_KEY) !== 'off';
+  } catch {
+    // 隐私模式：按默认显示
+  }
+  if (themeToggle) navRight?.insertBefore(pinToggle, toggle);
+  else navRight?.appendChild(pinToggle);
+  applyPins(pinsOn);
+  pinToggle.addEventListener('click', () => {
+    pinsOn = !pinsOn;
+    applyPins(pinsOn);
+    try {
+      localStorage.setItem(PIN_KEY, pinsOn ? 'on' : 'off');
+    } catch {
+      // 同上，写不进去不影响本次会话
+    }
+  });
 
   /* 帮助放坞最右：复用 keys.js 的快捷键面板（? / F1），点一下就开。
      fab.ts 在 ui.js 里先于 keys.ts 跑，但回调要等到点击时才执行，那时

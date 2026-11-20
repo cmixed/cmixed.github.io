@@ -1,7 +1,7 @@
 import projects from './data/projects.json';
 import skills from './data/skills.json';
 import { chipCols } from './lib/chip-width';
-import { categoryIcon, pinBadge } from './lib/icons';
+import { cardAttrBadge, cardAttribute, categoryIcon, pinBadge } from './lib/icons';
 
 interface SkillItem {
   name: string;
@@ -19,7 +19,10 @@ interface Project {
   subtitle: string;
   desc: string;
   url: string;
-  status: string;
+  /** 实现语言，渲染成卡片右上角的图标 + 文字 */
+  language: string;
+  /** 运行平台，可选；有它时语言优先显示，平台退到次位 */
+  platform?: string;
   tags: string[];
 }
 
@@ -48,6 +51,10 @@ interface NookResource {
   size: string;
   date: string;
   tags: string[];
+  /** 运行平台（Windows / Web…），卡片右上角那颗图标的来源 */
+  platform?: string;
+  /** 实现语言，可选；有它时优先于平台 */
+  language?: string;
   description: string;
 }
 
@@ -214,15 +221,23 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 function renderProjects(): void {
   const grid = document.getElementById('projectsGrid') as HTMLElement;
   grid.innerHTML = (projects as Project[])
-    .map(
-      (p) => `
+    .map((p) => {
+      /* 右上角只留一颗属性：语言优先，其次平台，都没有才回退首个标签。
+         项目卡带文字 —— C++20 与 C++23 共用一颗图标，没有文字就分不出来了。 */
+      const attr = cardAttribute({
+        language: p.language,
+        platform: p.platform,
+        tags: p.tags,
+        withLabel: true,
+      });
+      return `
         <a href="${escapeHtml(p.url)}" class="project-card" data-card data-project="${escapeHtml(p.id)}" target="_blank" rel="noopener noreferrer">
             <div class="project-header">
                 <div>
                     <div class="project-title">${escapeHtml(p.title)}</div>
                     <div class="project-subtitle">${escapeHtml(p.subtitle)}</div>
                 </div>
-                <span class="project-status" style="--chip-cols:${chipCols(p.status)}">${escapeHtml(p.status)}</span>
+                ${attr ? cardAttrBadge(attr) : ''}
             </div>
             <div class="project-desc">${escapeHtml(p.desc)}</div>
             <div class="project-tech">
@@ -237,8 +252,8 @@ function renderProjects(): void {
                 </span>
             </span>
         </a>
-    `
-    )
+    `;
+    })
     .join('');
 }
 renderProjects();
@@ -361,8 +376,7 @@ async function loadBlogPreview(): Promise<void> {
         return `
             <a href="blog/${encodeURIComponent(p.slug)}.html" class="blog-preview-card${p.pinned ? ' blog-preview-card-pin' : ''}" data-card>
                 <div class="blog-preview-card-head">
-                    <div class="blog-preview-card-title">${escapeHtml(p.title)}</div>
-                    ${pinMark}
+                    <div class="blog-preview-card-title">${pinMark}${escapeHtml(p.title)}</div>
                 </div>
                 <div class="blog-preview-card-desc">${escapeHtml(p.description)}</div>
                 <div class="blog-preview-card-footer">
@@ -415,14 +429,23 @@ async function loadNookPreview(): Promise<void> {
         const catIcon = categoryIcon(r.category);
         const catName = CATEGORY_NAMES[r.category] || r.category;
         const pinMark = r.pin ? pinBadge() : '';
+        /* 资源卡右上角：平台 / 语言只出图标（用户要求「文字不要」），
+           没有就回退首个标签。分类胶囊仍留在最右，两者并排 —— 纯图标体积小，
+           一个说明「这是什么类型的资源」，一个说明「它跑在哪」，不冲突。 */
+        const attr = cardAttribute({
+          language: r.language,
+          platform: r.platform,
+          tags: r.tags,
+          withLabel: false,
+        });
         const tagsHtml = r.tags
           .map((t: string) => `<span style="--chip-cols:${chipCols(t)}">${escapeHtml(t)}</span>`)
           .join('');
         return `
             <a href="nook/${encodeURIComponent(r.id)}.html" class="nook-preview-card${r.pin ? ' nook-preview-card-pin' : ''}" data-card>
                 <div class="nook-preview-card-header">
-                    <div class="nook-preview-card-title">${escapeHtml(r.title)}</div>
-                    ${pinMark}
+                    <div class="nook-preview-card-title">${pinMark}${escapeHtml(r.title)}</div>
+                    ${attr ? cardAttrBadge(attr) : ''}
                     <span class="nook-preview-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
                 </div>
                 <div class="nook-preview-card-desc">${escapeHtml(r.description)}</div>

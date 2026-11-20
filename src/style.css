@@ -636,6 +636,18 @@ body.nav-open::before {
     .dock-toggle { width: 36px; height: 36px; }
 }
 
+/* 置顶开关只在「本页有卡片」时出现（card-preview.ts 维护 data-has-cards）。
+   文章页 / 详情页没有卡片列表，这颗开关点了也没有对象，直接不显示。
+   与 .dock-toggle 共用外观，这里只接管显隐 —— 顺序放在共用规则之后，
+   否则 display 会被上面的 grid 覆盖回去。 */
+.pin-toggle {
+    display: none;
+}
+
+html[data-has-cards] .pin-toggle {
+    display: grid;
+}
+
 /* ===== HERO ===== */
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
@@ -4215,60 +4227,90 @@ html::after {
    --mica-chip-border / --mica-chip-text，可点走 --chip-fill / --chip-border
    （技能胶囊另有 --skill-fill，避免白卡上的近白芯）。
    只靠「形状 + 状态」区分语义 —— 6px 方片是信息，999px 胶囊是可点，不会互相误认。 */
-/* 置顶标记：6px 方片里放一颗单色 pin —— 和只读标签同一套「信息」语义。
-   不用 emoji：彩色字形跨平台不一致，也不跟 currentColor / 主题走。 */
-/* 置顶徽标：尺寸跟所在文字走（1em），不再固定 1.15rem —— 在 0.85rem 的卡片标题旁
-   会显得比字还小，在详情页大字标题旁又偏小。1em 让它在任何上下文里都与文字等高。 */
-.pin-badge {
+/* ===== 置顶标记（emoji）=====
+   2026-11-20 从「6px 方片 + 线稿图钉」改成 emoji 📌，并移到**标题最前面**。
+   原来是右上角一个方框：标题单行省略之后，它离标题越来越远，扫视时反而看不见。
+   放在标题行首，「这条被置顶」跟标题一起读到，注意力路径最短。
+   尺寸吃 1em 里的 0.95em —— emoji 自带一圈透明边距，按 1em 放会比字显小。
+   margin-right 0.32em 是标题字与图钉之间的呼吸，太近会挤成「📌标题」一坨。 */
+.pin-mark {
+    display: inline-block;
+    margin-right: 0.32em;
+    font-size: 0.95em;
+    line-height: 1;
+    /* 与标题首行基线对齐：emoji 的基线在底部，往下压一点才落在视觉中线上 */
+    vertical-align: -0.08em;
+    /* 不让它被标题的省略号截断时还占着宽度 —— 它本来就是标题的一部分 */
+    flex: none;
+}
+
+/* 导航栏那颗开关关掉时，置顶 emoji 一起隐藏。
+   置顶不会因此失去信息：卡片顶部的 accent 色带（.xxx-pin 的 --card-top-band）
+   仍然在，只是从「一个图钉」退成「一条颜色」。 */
+html[data-pin-hidden] .pin-mark {
+    display: none;
+}
+
+/* ===== 卡片右上角的语言 / 平台属性 =====
+   取代原来的 .project-status 胶囊（那个只有项目卡有、且文字就是语言）。
+   统一成「图标 + 可选文字」：项目卡带文字（C++20 / C++23 要靠字区分），
+   资源卡只出图标（用户要求「文字不要」），全称放 title / aria-label。
+   尺寸对齐旁边的小标签整高，两个方块共一条上下边线；间距交给父级 gap。 */
+.card-attr {
+    --attr-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.3em;
     flex: 0 0 auto;
-    /* 方框 1.2em：与文字完全同高时，字面里那圈留白会让方框看起来比字小；
-       图标 0.9em 填满，视觉尺寸才压得住标题。 */
-    width: 1.2em;
-    height: 1.2em;
-    margin-right: 0.35em;
-    border: 1px solid var(--primary);
-    border-radius: 0.22em;
-    background: var(--primary-dim);
+    min-width: var(--attr-box);
+    height: var(--attr-box);
+    padding: 0 0.45em;
+    border: 1px solid var(--chip-border);
+    border-radius: calc(var(--attr-box) * 0.3);
+    background: var(--chip-fill);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--chip-font);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* 纯图标（资源卡）：收成正方，左右不再留 .45em 的空白 */
+.card-attr:not(:has(.card-attr-text)) {
+    padding: 0;
+    width: var(--attr-box);
+}
+
+.card-attr svg {
+    width: 1.05em;
+    height: 1.05em;
+    display: block;
+    stroke-width: 1.85;
+    /* 语言图标是字母线稿、平台是轮廓，都只描边 */
+    fill: none;
+}
+
+.card-attr-text {
+    /* 文字跟着 chip 字号走；移动端靠父级 gap 收窄，不在这里分档 */
+    letter-spacing: 0.01em;
+}
+
+/* 语言与平台给一点色相差别，扫一眼能分出「这是语言」还是「这是平台」 */
+.card-attr--language {
+    border-color: var(--primary-dim);
     color: var(--primary-text);
-    /* 与标题首行基线对齐：压 0.18em 才落在汉字的视觉中线上 */
-    vertical-align: -0.18em;
-}
-.pin-badge svg {
-    /* 图标用的是裁紧的 viewBox（见 icons.ts 的 PIN_BADGE_VIEWBOX），墨迹几乎顶满，
-       所以尺寸从 0.9em 收到 0.82em —— 换算成实际钉子高度仍比原来大一半，
-       只是不再贴着方框边。 */
-    width: 0.82em;
-    height: 0.82em;
-    /* 视窗裁紧后同样的 stroke-width 会被放大：1.5 落到屏幕上约 1.2px，
-       与 1px 的方框描边同重，不至于变成一块实心。 */
-    stroke-width: 1.5;
 }
 
-/* 卡片右上角的置顶徽标：卡片标题现在只有一行，徽标从标题行里挪到标题右侧，
-   于是「标题 ……… [置顶] [分类]」在头部成一簇。
-   尺寸不再跟 em 走（跟到 1.05rem 的标题上只有 ~20px，和旁边 25px 的分类胶囊
-   差半头，读起来是「一个挂上去的角标」）：直接取小标签的整高，
-   两个方块共一条上下边线；间距统一交给父级 gap，徽标自己不再带右外边距。
-   --chip-font × 1.45 是小标签的行高，--chip-pad-y × 2 是上下内边距，+2px 是两条描边。 */
-:is(.blog-page-card-head, .nook-card-header, .blog-preview-card-head, .nook-preview-card-header) .pin-badge {
-    --pin-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px);
-    width: var(--pin-box);
-    height: var(--pin-box);
-    margin-right: 0;
-    border-radius: calc(var(--pin-box) * 0.3);
-    vertical-align: middle;
+.card-attr--platform {
+    color: var(--text-muted);
 }
 
-/* 徽标里的 pin 字形按方框走，不再吃标题的字号。
-   裁紧视窗之后，钉子高度 = svg 边长 × 0.82（视窗 17.8 里墨迹 15.8），
-   68% 落在方框高度的 55% 上下 —— 实测比改动前的 36% 大一半，
-   四周仍留得住一圈空白，贴着方框边反而像被裁掉了笔。 */
-:is(.blog-page-card-head, .nook-card-header, .blog-preview-card-head, .nook-preview-card-header) .pin-badge svg {
-    width: 68%;
-    height: 68%;
+/* 回退到首个标签时只出 tag 图标，再淡一档 —— 它不是真正的语言 / 平台 */
+.card-attr--tag {
+    color: var(--text-muted);
+    opacity: 0.8;
 }
 
 .tech-tag,

@@ -9,7 +9,14 @@ import {
   getGitLastModified,
   type NameCount,
 } from '../src/lib/build-utils';
-import { categoryIcon, icon, pinBadge, replaceIcons } from '../src/lib/icons';
+import {
+  cardAttrBadge,
+  cardAttribute,
+  categoryIcon,
+  icon,
+  pinBadge,
+  replaceIcons,
+} from '../src/lib/icons';
 import { chipCols } from '../src/lib/chip-width';
 import { marked } from 'marked';
 
@@ -49,6 +56,10 @@ interface ResourceData {
   /** 最后更新时间：frontmatter 的 updated，没写就等同创建时间（排序用） */
   updated: string;
   tags: string[];
+  /** 运行平台（Windows / Web …）。与 tags 分开：它决定卡片右上角那颗图标 */
+  platform: string;
+  /** 实现语言（C++ …）。多数资源没有，留空即按平台 → 首个标签回退 */
+  language: string;
   description: string;
   body: string;
   dirPath: string;
@@ -63,6 +74,8 @@ interface ResourceMeta extends Record<string, unknown> {
   date?: string;
   updated?: string;
   tags?: string[];
+  platform?: string;
+  language?: string;
   description?: string;
 }
 
@@ -161,6 +174,8 @@ function discoverResources(): ResourceData[] {
         date: resourceDate,
         updated: meta.updated || resourceDate,
         tags: Array.isArray(meta.tags) ? meta.tags : [],
+        platform: typeof meta.platform === 'string' ? meta.platform : '',
+        language: typeof meta.language === 'string' ? meta.language : '',
         description,
         body,
         dirPath,
@@ -225,15 +240,31 @@ function renderResources(resources: ResourceData[]): string {
       if (r.date) metaParts.push(escapeXml(r.date));
       const metaStr = metaParts.join(' · ');
       const pinMark = r.pin ? pinBadge() : '';
-      // 客户端搜索的匹配源：标题 + 摘要 + 分类 + 标签（仅元数据，不含正文）
-      const searchKey = [r.title, r.description, r.category, catName, ...r.tags]
+      /* 资源卡右上角：平台 / 语言只出图标（文字不要），都没有才回退首个标签。
+         分类胶囊在最右，两者并排 —— 一个说「什么类型」，一个说「跑在哪」。 */
+      const attr = cardAttribute({
+        language: r.language,
+        platform: r.platform,
+        tags: r.tags,
+        withLabel: false,
+      });
+      // 客户端搜索的匹配源：标题 + 摘要 + 分类 + 语言 / 平台 + 标签
+      const searchKey = [
+        r.title,
+        r.description,
+        r.category,
+        catName,
+        r.language,
+        r.platform,
+        ...r.tags,
+      ]
         .join(' ')
         .toLowerCase();
 
       return `<a href="${encodeURIComponent(r.id)}.html" class="nook-card fade-in-item${r.pin ? ' nook-card-pin' : ''}" data-card data-category="${escapeXml(r.category)}" data-date="${escapeXml(r.date)}" data-updated="${escapeXml(r.updated)}" data-search="${escapeXml(searchKey)}">
             <div class="nook-card-header">
-                <div class="nook-card-title">${escapeXml(r.title)}</div>
-                ${pinMark}
+                <div class="nook-card-title">${pinMark}${escapeXml(r.title)}</div>
+                ${attr ? cardAttrBadge(attr) : ''}
                 <span class="nook-card-category">${catIcon}<span class="chip-text">${catName}</span></span>
             </div>
             <div class="nook-card-desc">${escapeXml(r.description)}</div>
@@ -370,6 +401,11 @@ async function build(): Promise<void> {
     date: r.date,
     updated: r.updated,
     tags: r.tags,
+    /* platform / language 必须一起带上：首页的资源预览卡读的就是这份 JSON，
+       漏掉它们会让首页那边全部回退到「首个标签」，而列表页（构建期直出）却正确 ——
+       同一个资源在两处显示不同的右上角属性。 */
+    platform: r.platform,
+    language: r.language,
     description: r.description,
   }));
   writeFileSync(

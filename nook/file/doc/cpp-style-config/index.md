@@ -5,7 +5,8 @@ description: 《现代C++个人代码风格与工程规范》配套的 .clang-fo
 file: cpp-style-config.zip
 pin: false
 date: 2026-11-06
-tags: [C++, clang-format, clang-tidy, Doxygen]
+tags: [clang-format, clang-tidy, Doxygen]
+language: C++
 ---
 
 配套文章：[现代C++个人代码风格与工程规范](/blog/cpp-style-guide.html)
