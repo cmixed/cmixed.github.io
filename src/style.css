@@ -1466,10 +1466,29 @@ section {
 }
 
 /* ===== PROJECTS ===== */
+/* `min(100%, 280px)` 而不是裸 280px：`minmax` 的下界是**硬下界**，容器比它窄时
+   列宽仍然取下界、直接溢出容器。320px 视口下 section 内宽只有 258px，
+   裸 280px 会把网格撑到 292px（实测），文档 scrollWidth 多出 3px。
+   写成 min(100%, 280px) 之后：宽容器照旧按 280px 排多列，窄容器退化成 100%，
+   不依赖断点也不会在非常规宽度上翻车。资源小窝列表页早就用这个写法
+   （`minmax(min(100%, 250px), 1fr)`，见 nook/index.html），这里对齐它。 */
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap: 1.5rem;
+}
+
+/* grid item 的 `min-width` 默认是 `auto` —— 意思是「不许缩到内容的 min-content
+   以下」。卡片里有一行 `white-space: nowrap` 的技术标签（`.project-tech`
+   是 `flex-wrap: nowrap`），这几个 tag 的 min-content 累加约 253px，
+   加上卡片 padding/border 后整条轨道被撑到 292px。320px 视口下 section 内宽
+   只有 258px，于是一条本该贴满容器的单列轨道反而溢出 34px，文档 scrollWidth
+   从 320 变成 323（那 3px 的来历，2026-11-20 实测定位）。
+   显式 `min-width: 0` 把 auto 下界拿掉，`1fr` 才能真的收缩到容器宽度。
+   注意不能改用 `overflow: hidden` 来兜 —— 卡片的 `.card-popover` 是绝对定位在
+   卡片下缘之外的浮窗，裁切会把浮窗一起切掉（见 README「卡片」一节）。 */
+.projects-grid > * {
+    min-width: 0;
 }
 
 .project-card {
@@ -1711,9 +1730,12 @@ section {
 }
 
 /* ===== NOOK PREVIEW ===== */
+/* 同 .projects-grid：下界写成 min(100%, 280px)，容器再窄也不会撑出容器。
+   这里 ≤768px 本来就有 1fr 兜底，但那是断点式的 —— 断点之间（769～900px 的
+   窄桌面窗口、或者系统缩放）+ 侧栏展开时仍可能撞上，写成 min() 是彻底的办法。 */
 .nook-preview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap: 1rem;
 }
 
