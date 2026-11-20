@@ -3473,8 +3473,14 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
 .nook-detail-nav .logo:hover::after {
     transform: scaleX(1);
 }
-/* 当前页：与 hover 同一套视觉（亮色 + 加粗 + accent 下划线），不再用 !important */
-.blog-nav-active, .nook-nav-active, .nook-detail-nav-active { color: var(--text); font-weight: 600; }
+/* 当前页：亮色 + accent 下划线，**不加粗**。
+   早先是「与 hover 同一套视觉」+ `font-weight: 600`，但那会让这一颗变宽
+   —— 实测 1440px 下 BLOG 从 41.56px 涨到 42.44px、NOOK 从 45.28 涨到 46.28，
+   于是「左侧这一组的宽度」随所在页面浮动：主页 236.84、博客 237.72、小窝 237.84。
+   同一组导航在三个页面应该长得一样，宽度不能跟着状态变。
+   hover 本来就只有亮色 + 下划线（上面那条），现在当前态与它同一套，也不需要
+   靠字重来区分 —— 下划线是常驻的（`scaleX(1)`），和 hover 的临时展开一眼能分开。 */
+.blog-nav-active, .nook-nav-active, .nook-detail-nav-active { color: var(--text); }
 .blog-nav-active::after, .nook-nav-active::after, .nook-detail-nav-active::after { transform: scaleX(1); }
 .blog-nav-right, .nook-nav-right, .nook-detail-nav-right {
     display: flex; align-items: center; gap: 1rem;
@@ -3526,6 +3532,11 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
        还有 60px 上下的空隙。字号仍留一档小字，为文章页那串工具钮让位。 */
     .nav-left, .blog-nav-left, .nook-nav-left, .nook-detail-nav-left { gap: 1rem; }
     .nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right { gap: 0.4rem; }
+    /* 四个类一个都不能漏 —— 之前这里只写了三个子页的类，主页那颗叫 `.nav-title`，
+       于是 390px 下主页的 BLOG / NOOK 还停在 0.9rem（13.5px），子页已经收到
+       0.85rem（12.75px），同一组导航在不同页面宽度差 3.75px。
+       主页没有更紧的约束，跟着子页一起收即可。 */
+    .nav-title,
     .blog-nav-title, .nook-nav-title, .nook-detail-nav-title { font-size: 0.85rem; }
     /* 窄屏一行要塞下 logo + 两个文字入口 + 胶囊 + 汉堡 + 三颗工具钮（坞 / 置顶 / 主题）。
        393px 实测刚好卡满、一点余量都没有，所以这里把胶囊再收半档：

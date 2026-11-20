@@ -134,4 +134,29 @@ describe('导航栏胶囊分段控件', () => {
     expect(body).toContain('padding: 0');
     expect(css).toContain('    .nav-links::before {\n        content: none;\n    }');
   });
+
+  it('左组在三个页面宽度一致：字号规则四个类都要写，当前态不改字重', () => {
+    /* 曾经两个坑叠在一起，让「左侧这一组」的宽度随所在页面浮动：
+       ① ≤480px 的字号规则只列了三个子页的类，主页那颗叫 `.nav-title` 被漏掉 ——
+          390px 下主页 BLOG/NOOK 是 13.5px、子页是 12.75px，整组差 3.75px；
+       ② 当前页带 `font-weight: 600`，粗体更宽 —— 1440px 下 BLOG 41.56 → 42.44，
+          于是主页 236.84、博客 237.72、小窝 237.84，同一组导航在三个页面不一样长。
+       现在四个类共用一个字号、当前态只改颜色与下划线。 */
+    const narrow = css.slice(css.indexOf('@media (max-width: 480px)'));
+    const rule = narrow.slice(narrow.indexOf('.nav-title,'));
+    expect(rule.slice(0, 160)).toMatch(
+      /\.nav-title,\s*\n\s*\.blog-nav-title, \.nook-nav-title, \.nook-detail-nav-title \{ font-size: 0\.85rem; \}/
+    );
+
+    // 当前态不许再动字重（也不许动 letter-spacing —— 那同样会改宽度）
+    const active = css.slice(css.indexOf('.blog-nav-active, .nook-nav-active'));
+    const body = active.slice(0, active.indexOf('}'));
+    expect(body).not.toContain('font-weight');
+    expect(body).not.toContain('letter-spacing');
+    expect(body).toContain('color: var(--text)');
+    // 下划线是常驻的，与 hover 的临时展开区分开
+    expect(css).toContain(
+      '.blog-nav-active::after, .nook-nav-active::after, .nook-detail-nav-active::after { transform: scaleX(1); }'
+    );
+  });
 });
