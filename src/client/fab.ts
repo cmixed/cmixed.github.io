@@ -465,19 +465,33 @@
     borrow(tocToggle, '目录', 'fab-btn');
   }
 
-  /* 标签 / 分类筛选是列表页导航里的那颗 #filterToggle（博客叫「标签」、小窝叫
-     「分类」，两页的 title 各自写着）。同样借进坞：filter-panel.ts 早于 ui.js
-     执行并按 id 取到节点、绑好监听，之后移动 DOM 不影响；.active 与
-     data-filtered 小圆点都由它自己维护，坞内样式已经覆盖。
-     标签文案取按钮自己的 title，博客 / 小窝各自显示对的词。
+  /* 搜索与筛选是列表页导航里的两颗「找到内容」工具，坞把它们借过来。
+     顺序照抄导航里的书写顺序（搜索在前、筛选在后），换到坞里认的还是同一套。
+
+     搜索那颗（#searchToggle）：list.js 早于 ui.js 执行并按 id 绑定 ——
+     点它会把搜索面板展开、把焦点送进输入框（手机上导航变成两行）。
+     DOM 移动不丢监听器，所以坞里点它的行为与导航里那颗完全一致。
+     `data-active`（已有关键词）小圆点也由 search.ts 自己切。
+
+     桌面上原本这颗是隐藏的（搜索框常驻在导航里，用不着按钮），但坞里留着它
+     仍然有用：点一下直接把光标送进输入框，省掉「挪到右上角再点一下」。
+     显隐由 CSS 的 `.fab-group #searchToggle` 单独放开，见 style.css。
+
+     筛选那颗（#filterToggle）：博客叫「标签」、小窝叫「分类」，两页的 title
+     各自写着，所以标签文案取按钮自己的 title，不用分叉。
      ≤1279px 时 CSS 仍把 #filterToggle 隐藏（标签区在列表上方常显，开关没意义），
      那条规则进了坞照样生效 —— 手机上不会多出一颗无用的按钮。 */
+  const searchToggle = document.getElementById('searchToggle');
+  if (searchToggle) {
+    borrow(searchToggle, '搜索', 'fab-btn');
+  }
+
   const filterToggle = document.getElementById('filterToggle');
   if (filterToggle) {
     borrow(filterToggle, filterToggle.title || '筛选', 'fab-btn');
   }
 
-  /** 搬进坞：按 borrowed 的顺序插在帮助之前（缩进 → 目录 → 筛选 → 帮助） */
+  /** 搬进坞：按 borrowed 的顺序插在帮助之前（缩进 → 目录 → 搜索 → 筛选 → 帮助） */
   function moveToDock(): void {
     for (const item of borrowed) {
       item.el.classList.remove('fab-btn');

@@ -518,54 +518,6 @@ document.querySelectorAll('#skills, #projects, #blog-preview, #nook-preview').fo
   observer.observe(section);
 });
 
-/* Scroll progress bar
-   只写 transform、不碰布局；页面总高缓存起来，只在窗口 / 内容高度变化时重算。
-   不能每次 scroll 都读 scrollHeight：主页 5 个区块是 content-visibility: auto，
-   未进视口的区块只按估算高度占位，读 scrollHeight 会迫使浏览器先把布局算准；
-   滚动事件每秒几十上百次，这个读取就成了滚动时的固定成本。与 client/scrollbar.ts
-   同一条约定：滚动回调里只读 scrollTop、只写 transform。 */
-const scrollProgress = document.createElement('div');
-scrollProgress.className = 'scroll-progress';
-document.body.prepend(scrollProgress);
-
-let progressMax = 0;
-let progressQueued = false;
-let progressDirty = true;
-
-function measureProgress(): void {
-  progressMax = html.scrollHeight - html.clientHeight;
-  progressDirty = false;
-}
-
-function paintProgress(): void {
-  progressQueued = false;
-  if (progressDirty) measureProgress();
-  const progress = progressMax > 0 ? html.scrollTop / progressMax : 0;
-  scrollProgress.style.transform = `scaleX(${progress})`;
-}
-
-/* 一帧内的多次 scroll 合并成一次写入：事件频率不等于帧率。
-   resize / ResizeObserver 只标脏，把 scrollHeight 的读取也合并到这一帧，
-   不在 observer 回调里同步读布局。 */
-function queueProgress(measure = false): void {
-  if (measure) progressDirty = true;
-  if (progressQueued) return;
-  progressQueued = true;
-  requestAnimationFrame(paintProgress);
-}
-
-measureProgress();
-paintProgress();
-
-window.addEventListener('scroll', () => queueProgress(), { passive: true });
-window.addEventListener('resize', () => queueProgress(true), { passive: true });
-
-// 图片解码、异步插入的预览卡、区块展开都会改变总高；只观察 body 尺寸，
-// scrollHeight 的读取合并到下一帧，不在 observer 回调里同步读布局。
-if ('ResizeObserver' in window) {
-  new ResizeObserver(() => queueProgress(true)).observe(document.body);
-}
-
 /* ===== 页脚悬浮框（关于本站 / 更新日志） =====
    内容来自构建期生成的两份 JSON（见 scripts/site-meta.ts）：
    - site-about.json   README 渲染结果（gzip 约 14KB）

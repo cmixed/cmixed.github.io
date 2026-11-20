@@ -26,13 +26,6 @@
     <style>
         body { transition: background 0.3s, color 0.3s; min-height: 100vh; min-height: 100dvh; }
 
-        .scroll-progress {
-            position: fixed; top: 0; left: 0; height: 2px; width: 100%;
-            background: var(--primary); z-index: 200;
-            transform-origin: left; transform: scaleX(0);
-            will-change: transform; transition: transform 0.1s linear, background var(--transition-speed);
-        }
-
         /* 头部（标题 / 小字 / 排序）与筛选标签栏的尺寸、材质、间距都在 style.css 的
            「列表页头部」「小标签」两节里，博客与资源小窝共用同一份。 */
 
@@ -185,7 +178,6 @@
     </script>
 </head>
 <body>
-    <div class="scroll-progress" id="scrollProgress"></div>
     <nav class="nook-nav">
         <div class="nook-nav-left">
             <a href="../" class="logo">cmixed</a>
@@ -257,16 +249,6 @@
             document.getElementById('themeToggle').addEventListener('click', function() {
                 window.toggleTheme();
             });
-
-            var progressBar = document.getElementById('scrollProgress');
-            if (progressBar) {
-                window.addEventListener('scroll', function() {
-                    var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-                    var scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                    var progress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
-                    progressBar.style.transform = 'scaleX(' + progress + ')';
-                }, { passive: true });
-            }
 
             var cards = Array.from(document.querySelectorAll('.nook-card'));
             var categoryByCard = new Map();

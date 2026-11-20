@@ -805,20 +805,9 @@ html[data-has-cards] .pin-toggle {
     }
 }
 
-/* Scroll progress bar */
-.scroll-progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 2px;
-    width: 100%;
-    background: var(--primary);
-    z-index: 200;
-    transform-origin: left;
-    transform: scaleX(0);
-    will-change: transform;
-    transition: transform 0.1s linear, background var(--transition-speed);
-}
+/* 顶部那条「阅读进度」实心条已撤（2026-11-20）：右侧有整页浮层滚动条给出
+   位置感、导航右组有「当前读到哪一块」的滑块，第三处进度指示只是重复。
+   样式、main.ts 的 rAF 写入、小窝列表页的内联实现一起删掉。 */
 
 .status-bar {
     display: inline-flex;
@@ -3381,7 +3370,7 @@ html.modal-open .page-scrollbar-thumb {
 
 /* Print */
 @media print {
-    nav, .scroll-progress, .hamburger, .theme-toggle,
+    nav, .hamburger, .theme-toggle,
     .fab-group, .page-scrollbar, footer, .hero::before, .hero .typewriter, .cta-buttons {
         display: none !important;
     }
@@ -3597,8 +3586,15 @@ nav, .blog-nav, .nook-nav, .nook-detail-nav {
     font-size: 1rem;
 }
 .nav-search-cancel { display: none; }
-/* 桌面上搜索框常驻，放大镜只在手机出现。 */
+/* 导航里那颗放大镜：桌面上搜索框常驻，用不着按钮；手机上才露出（点开后导航
+   变成两行）。它现在被 fab.ts 借进了底部坞 —— 所以平时根本不在导航里，
+   这条只是「坞关掉、按钮回填原位」时的兜底。 */
 #searchToggle { display: none; }
+
+/* 坞内的搜索钮始终显示：桌面搜索框虽然常驻，但点这颗能把光标直接送进输入框，
+   省掉「挪到右上角再点一下」；手机上它是唯一的搜索入口。
+   特异性 (1 id + 1 class) 高于上面那条 (1 id)，不必写 !important。 */
+.fab-group #searchToggle { display: flex; }
 
 @media (max-width: 767px) {
     #searchToggle { display: flex; }

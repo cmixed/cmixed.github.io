@@ -41,15 +41,23 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain('if (runningStop) runningStop()');
     expect(fab).toContain('if (seq !== navSeq || passes >= 2) return');
     expect(fab).toContain('stop(false)');
-    // 缩进 / 目录 / 筛选都是「借」现成节点，不是另造一颗
+    // 缩进 / 目录 / 搜索 / 筛选都是「借」现成节点，不是另造一颗
     expect(fab).toContain("getElementById('indentToggle')");
     expect(fab).toContain("borrow(indentToggle, '首行缩进', 'fab-btn')");
     expect(fab).toContain("getElementById('tocToggle')");
+    expect(fab).toContain("getElementById('searchToggle')");
+    expect(fab).toContain("borrow(searchToggle, '搜索', 'fab-btn')");
     expect(fab).toContain("getElementById('filterToggle')");
     // 筛选的标签文案取按钮自己的 title（博客「标签」/ 小窝「分类」）
     expect(fab).toContain("borrow(filterToggle, filterToggle.title || '筛选', 'fab-btn')");
-    // 缩进排在目录前，与导航里的书写顺序一致
+    // 顺序照抄导航里的书写顺序：缩进 → 目录 → 搜索 → 筛选
     expect(fab.indexOf('borrow(indentToggle')).toBeLessThan(fab.indexOf('borrow(tocToggle'));
+    expect(fab.indexOf('borrow(tocToggle')).toBeLessThan(fab.indexOf('borrow(searchToggle'));
+    expect(fab.indexOf('borrow(searchToggle')).toBeLessThan(fab.indexOf('borrow(filterToggle'));
+    /* 坞内的搜索钮必须始终显示：导航里那条 `#searchToggle { display: none }` 是按
+       id 命中的，搬进坞照样生效，不放开的话这颗按钮在坞里会「有元素、看不见」。
+       桌面搜索框虽常驻，这颗仍有用 —— 点一下把光标直接送进输入框。 */
+    expect(css).toContain('.fab-group #searchToggle { display: flex; }');
     // 深浅模式不进坞：只取节点用于定位坞开关，不 borrow
     expect(fab).toContain("getElementById('themeToggle')");
     expect(fab).not.toContain('borrow(themeToggle');
