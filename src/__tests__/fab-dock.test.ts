@@ -15,7 +15,7 @@ const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const fab = readFileSync(join(ROOT, 'src', 'client', 'fab.ts'), 'utf-8');
 
 describe('底部居中导航坞', () => {
-  it('固定入口：主页 / 博客 / 小窝 / 回顶 / 回底 / 目录 / 深浅模式 / 帮助', () => {
+  it('固定入口：主页 / 博客 / 小窝 / 回顶 / 回底 / 首行缩进 / 目录 / 帮助', () => {
     for (const label of ['主页', '博客', '资源小窝']) {
       expect(fab, `缺少入口 ${label}`).toContain(`label: '${label}'`);
     }
@@ -32,9 +32,15 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain('if (runningStop) runningStop()');
     expect(fab).toContain('if (seq !== navSeq || passes >= 2) return');
     expect(fab).toContain('stop(false)');
-    // 目录 / 主题都是「借」现成节点，不是另造一颗
+    // 缩进 / 目录都是「借」现成节点，不是另造一颗
+    expect(fab).toContain("getElementById('indentToggle')");
+    expect(fab).toContain("borrow(indentToggle, '首行缩进', 'fab-btn')");
     expect(fab).toContain("getElementById('tocToggle')");
+    // 缩进排在目录前，与导航里的书写顺序一致
+    expect(fab.indexOf('borrow(indentToggle')).toBeLessThan(fab.indexOf('borrow(tocToggle'));
+    // 深浅模式不进坞：只取节点用于定位坞开关，不 borrow
     expect(fab).toContain("getElementById('themeToggle')");
+    expect(fab).not.toContain('borrow(themeToggle');
     // 搬进坞时统一摘 .fab-btn 挂 .fab-dock-btn（目录原先是 40px，会和导航的 26px 打架）
     expect(fab).toContain("item.el.classList.remove('fab-btn')");
     expect(fab).toContain("item.el.classList.add('fab-dock-btn')");
@@ -91,6 +97,7 @@ describe('底部居中导航坞', () => {
   });
 
   it('极窄屏收一档尺寸：文章页八颗不能顶出 320px', () => {
+    // 文章页 = 跨页 3 + 上下 2 + 缩进 + 目录 + 帮助 = 8 颗；
     // 38px × 8 + 间隙已超过 320，必须有 ≤360px 的更小一档
     const narrow = css.slice(css.lastIndexOf('@media (max-width: 360px)'));
     expect(narrow).toContain('.fab-dock-btn');
@@ -112,9 +119,21 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain('if (item.el.previousSibling === item.anchor) continue');
     // 开关驱动搬入 / 回填
     expect(fab).toMatch(/if \(on\) moveToDock\(\);\s*\n\s*else moveHome\(\);/);
-    // 目录与主题都走 borrow，保持「借」而不是各自 append
+    // 只有缩进与目录走 borrow；主题钮不入坞
+    expect(fab).toContain("borrow(indentToggle, '首行缩进', 'fab-btn')");
     expect(fab).toContain("borrow(tocToggle, '目录', 'fab-btn')");
-    expect(fab).toContain("borrow(themeToggle, '切换深浅模式', null)");
+    expect(fab).not.toContain('borrow(themeToggle');
+  });
+
+  it('深浅模式留在导航栏最右端，坞开关插在它前面', () => {
+    // 坞开关以主题钮为参照插到前面 → 主题钮仍是最右
+    expect(fab).toContain('navRight?.insertBefore(toggle, themeToggle)');
+    // 不依赖模板书写顺序：不在末尾时显式挪到末尾
+    expect(fab).toContain('navRight.lastElementChild !== themeToggle');
+    expect(fab).toContain('navRight.appendChild(themeToggle)');
+    // 主题钮不该被挂上坞内类名 / 气泡标签
+    expect(fab).not.toContain("themeToggle.classList.add('fab-dock-btn')");
+    expect(css).not.toContain('.fab-group .theme-toggle');
   });
 
   it('常驻显示，显隐交给导航栏开关并持久化', () => {
@@ -122,15 +141,12 @@ describe('底部居中导航坞', () => {
     expect(fab).not.toContain("classList.toggle('visible'");
     expect(fab).toContain("classList.toggle('is-off', !on)");
     expect(fab).toContain("toggleAttribute('inert', !on)");
-    // 开关占主题钮腾出的位置，aria-pressed 表状态，localStorage 记忆
+    // 开关占主题钮左侧的位置，aria-pressed 表状态，localStorage 记忆
     expect(fab).toContain('insertBefore(toggle, themeToggle)');
     expect(fab).toContain("setAttribute('aria-pressed', String(on))");
     expect(fab).toContain('localStorage.getItem(DOCK_KEY)');
     expect(fab).toContain("className = 'dock-toggle'");
     expect(css).toContain('.dock-toggle');
     expect(css).toContain('.dock-toggle[aria-pressed="false"]');
-    // 坞内主题钮必须放开 overflow，否则 hover 气泡被圆形钮裁掉
-    expect(css).toContain('.fab-group .theme-toggle');
-    expect(css).toContain('overflow: visible');
   });
 });

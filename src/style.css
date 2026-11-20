@@ -2954,8 +2954,10 @@ html.modal-open .page-scrollbar-thumb {
 
 /* --- Extra small (≤360px) --- */
 @media (max-width: 360px) {
-    .theme-toggle { width: 42px; height: 22px; }
-    .theme-toggle-slider { width: 16px; height: 16px; }
+    /* 主题钮是圆形钮（32px，触屏 36px），这里只把它收一档给导航让位。
+       曾是 `width: 42px; height: 22px` + `.theme-toggle-slider` —— 那是左右滑块
+       时代的尺寸，滑块早已改成原地交叉的圆钮，那两条只会把圆钮压成扁胶囊。 */
+    .theme-toggle { width: 30px; height: 30px; }
     .hero h1 { font-size: 2rem; }
     /* 长速览胶囊在 320px 下会把「关于」挤成两行：标题不折行，
        胶囊再收一档字号与内边距，给中间的横线留出空间。 */
@@ -5249,15 +5251,9 @@ footer.edge-bounce {
     transition: transform 180ms var(--spring-press);
 }
 
-/* 主题钮是从导航栏「搬」进坞的，身上还带着 .theme-toggle 的圆形实底样式：
-   overflow:hidden 会把 hover 气泡裁掉，实底/圆钮会破坏「一条玻璃分区」的观感。
-   坞内覆盖这三处，其余（焦点环、分隔线、hover 抬升）继续由 .fab-dock-btn 提供。 */
-.fab-group .theme-toggle {
-    overflow: visible;
-    border: 0;
-    background: transparent;
-    border-radius: 999px;
-}
+/* 缩进 / 目录是从导航栏「借」进坞的，身上可能还留着 .fab-btn 的方片外观；
+   坞内不再给它们单独写皮肤 —— .fab-dock-btn 的尺寸、分隔线、焦点环、hover 抬升
+   已经是全套，搬入时类名会切换。主题钮不进坞，所以这里没有 .theme-toggle 的覆盖。 */
 
 .fab-dock-btn:hover svg,
 .fab-dock-btn:focus-visible svg {

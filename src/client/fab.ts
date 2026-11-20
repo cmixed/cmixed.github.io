@@ -1,32 +1,36 @@
 /**
- * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 直达底部 / 目录 / 深浅模式 / 帮助。
+ * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 直达底部 / 首行缩进 / 目录 / 帮助。
  *
  * 它和顶部导航刻意错位：顶部管「本页锚点」（关于 / 项目 / 博客预览 / 联系），
- * 坞管「跨页入口 + 上下跳转 + 本页工具」。前五颗每页都一样（回顶 / 回底成对），
- * 目录只出现在博客文章页（那颗 #tocToggle 从这里搬进来），当前所在页高亮。
+ * 坞管「跨页入口 + 上下跳转 + 本页工具」。跨页三颗与上下两颗每页都一样（回顶 /
+ * 回底成对），首行缩进与目录只出现在博客文章页，当前所在页高亮。
  * 「回上级」不做 —— 层级概念和固定几颗冲突，面包屑已在导航里。
+ * 深浅模式**不在坞内**：它留在导航栏最右端（见下方注释）。
  *
  * 承载页面：主页、博客（列表 + 文章）、资源小窝（列表 + 详情）。由页面统一
  * `<script defer src="…/ui.js">` 引入；markup 由脚本注入，页面里不再各存一份 div。
- * 坞内按钮用独立 class .fab-dock-btn，不复用 .fab-btn —— 后者还挂在文章 / 列表页
- * 导航的「缩进 / 搜索 / 筛选」上，改它的尺寸会把导航一起改掉。
- * （目录原本也是 .fab-btn，搬进坞时摘掉换成 .fab-dock-btn，见下方注释。）
+ * 坞内按钮用独立 class .fab-dock-btn，不复用 .fab-btn —— 后者还挂在列表页导航的
+ * 「搜索 / 筛选」上，改它的尺寸会把导航一起改掉。
+ * （缩进与目录原本也是 .fab-btn，搬进坞时摘掉换成 .fab-dock-btn，见下方注释。）
  *
  * 路径按当前目录推算，不写死站点根：GitHub Pages 用户站点挂在根，但同样的产物
  * 放到项目路径下也能用。dir 只有 '/'、'/blog/'、'/nook/' 三种取值。
  *
  * 常驻显示，不再随滚动淡入：显隐交给导航栏右上角那颗开关，状态存 localStorage，
- * 默认开。开关按钮是在把主题钮接进坞时、插进它腾出的导航位置 —— 所以各页模板
- * 不用各写一份。
+ * 默认开。开关按钮插在主题钮之前 —— 各页模板不用各写一份。
  *
- * 主题钮与目录是「借」不是「另建」：每页导航栏里原本就有 #themeToggle（目录只在
- * 文章页有 #tocToggle），页面上散落的内联 click 绑定、theme.js 的圆形揭示圆心、
- * keys.js 的 aria-keyshortcuts 都认这些 id。移到坞里，监听器跟着节点走，一处都
- * 不用改；再补 .fab-dock-btn，尺寸 / 分隔线 / 焦点环就和邻座完全一致。
+ * 首行缩进与目录是「借」不是「另建」：文章页导航里原本就有 #indentToggle /
+ * #tocToggle，内联脚本按 id 找人（切 body.indent / body.toc-open）、自己也切
+ * .active。移到坞里，监听器跟着节点走，一处都不用改；再补 .fab-dock-btn，
+ * 尺寸 / 分隔线 / 焦点环就和邻座完全一致。
  *
- * 借来的钮必须能还：坞一关，它们回填导航栏原位（否则关掉坞就再没有入口点深浅
- * 模式）。搬走前在原位插一条注释锚点，回填时插到它后面；锚点一直留着，反复开关
- * 也不会越积越多。回填同时把类名还原（目录补回 .fab-btn）并把坞内气泡标签收起。
+ * 借来的钮必须能还：坞一关，它们回填导航栏原位（导航在 ≤480px 本来就把缩进
+ * 撤掉让位，回填后那条规则继续生效）。搬走前在原位插一条注释锚点，回填时插到
+ * 它后面；锚点一直留着，反复开关也不会越积越多。回填同时把类名还原（补回
+ * .fab-btn）并把坞内气泡标签收起。
+ *
+ * 深浅模式不进坞：它留在导航栏最右端，位置与样式一点没动 —— theme.js 的圆形
+ * 揭示圆心、keys.js 的 aria-keyshortcuts、各页内联绑定全都不受影响。
  *
  * 图标用内联 SVG 而不是字符：系统字体缺字时会把 U+2302（⌂）画成方框，
  * 和主题色只靠 currentColor 联系，深浅色切换不用另写一套。
@@ -320,10 +324,10 @@
   /* 回顶 / 回底成对：只有回顶的话，长文读到一半想直接看结尾就只能一路滑。 */
   group.appendChild(actionButton('直达底部', 'down', scrollToBottom));
 
-  /* 深浅模式：把导航栏里那颗现成的 #themeToggle 搬进坞，不另造按钮。
+  /* 深浅模式不再入坞：它留在导航栏、并且固定在最右。
      页面上散落的内联 click 绑定（列表 / 文章 / 404 页）、theme.js 的揭示圆心、
-     keys.js 的 aria-keyshortcuts 都按这个 id 找人；DOM 移动不会丢事件监听器，
-     所以一处都不用改。补 .fab-dock-btn 让它继承分隔线、焦点环与 hover 标签。 */
+     keys.js 的 aria-keyshortcuts 都按 #themeToggle 找人 —— 保持原位就一行都不用改。
+     这里只负责两件事：拿到它的父容器（坞开关要插在它前面），以及确保它在末尾。 */
   const themeToggle = document.getElementById('themeToggle');
   const navRight =
     themeToggle?.parentElement ??
@@ -331,15 +335,22 @@
       '.nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right'
     );
 
-  /* 先在原位插开关，再把主题钮搬走 —— 顺序反了 insertBefore 的参照节点
-     就已经不是 nav 的子节点，会抛 NotFoundError。 */
+  /* 坞开关插在主题钮之前 —— 主体钮因此天然仍在最右。
+     主题钮本来就在各页导航的最末，但别依赖模板的书写顺序：显式挪到末尾，
+     模板将来在前面加了按钮也不会把它挤到中间。已经在末尾时不动（避免无谓的节点移动）。 */
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.className = 'dock-toggle';
   toggle.id = 'dockToggle';
   toggle.innerHTML = svg('dock');
-  if (themeToggle) navRight?.insertBefore(toggle, themeToggle);
-  else navRight?.appendChild(toggle);
+  if (themeToggle) {
+    navRight?.insertBefore(toggle, themeToggle);
+    if (navRight && navRight.lastElementChild !== themeToggle) {
+      navRight.appendChild(themeToggle);
+    }
+  } else {
+    navRight?.appendChild(toggle);
+  }
 
   /* 帮助放坞最右：复用 keys.js 的快捷键面板（? / F1），点一下就开。
      fab.ts 在 ui.js 里先于 keys.ts 跑，但回调要等到点击时才执行，那时
@@ -351,8 +362,9 @@
   group.appendChild(helpBtn);
 
   /* ===== 借来的按钮：坞关掉时回填导航栏 =====
-     目录 / 深浅模式本来就活在导航栏里，坞只是借用。坞一关，它们必须回原位 ——
-     否则关掉坞就再没有入口点深浅模式（手机上没有第二条路）。
+     首行缩进 / 目录本来就活在文章页导航里，坞只是借用。坞一关，它们回原位 ——
+     导航栏在极窄屏（≤480px）本来就把缩进撤掉让位，回填后那条规则继续生效，
+     而坞开着的期间极窄屏也能切缩进（坞是独立胶囊，不跟导航抢宽度）。
      做法：搬走之前先在原位插一条注释锚点，回填时插到锚点之后；锚点一直留着，
      反复开关不会越积越多（一条 el 只对应一条锚点）。 */
   interface Borrowed {
@@ -361,7 +373,7 @@
     anchor: Comment;
     /** 坞内气泡标签，回填时收起 —— 它是绝对定位，留在导航钮里会飘在按钮上方 */
     label: HTMLElement;
-    /** 回填时要补回的类（目录原本是 .fab-btn）；主题钮的 .theme-toggle 从没摘过 */
+    /** 回填时要补回的类（两者原本都是 .fab-btn） */
     restoreClass: string | null;
   }
   const borrowed: Borrowed[] = [];
@@ -378,24 +390,24 @@
     borrowed.push({ el, anchor, label, restoreClass });
   }
 
-  /* 目录：文章页导航里那颗 #tocToggle 直接借过来，不另建。内联脚本给它的
-     click 绑定、syncTocHeight / syncTocFade 都按这个 id 找人，DOM 移动不丢；
-     它的 .active（目录面板开着）由内联脚本自己切，坞里补一条同色规则即可。
-     只有博客文章页有这个元素 —— 别的页坞里自然少一颗，顺序不受影响。
-     排在主题之前：目录属于「这篇内容怎么读」，和深浅模式不是一类。 */
+  /* 首行缩进与目录是文章页导航里的两颗内容开关，坞把它们借过来。
+     内联脚本按 id 找人（#indentToggle 切 body.indent、#tocToggle 切 body.toc-open），
+     DOM 移动不丢监听器；.active 也由内联脚本自己切，坞里补一条同色规则即可。
+     只有博客文章页有这两个元素 —— 别的页坞里自然少两颗，顺序不受影响。
+     顺序照抄导航里的书写顺序（缩进在前、目录在后），换到坞里认的还是同一套。 */
+  const indentToggle = document.getElementById('indentToggle');
+  if (indentToggle) {
+    indentToggle.setAttribute('aria-label', '首行缩进');
+    borrow(indentToggle, '首行缩进', 'fab-btn');
+  }
+
   const tocToggle = document.getElementById('tocToggle');
   if (tocToggle) {
     tocToggle.setAttribute('aria-label', '目录');
     borrow(tocToggle, '目录', 'fab-btn');
   }
 
-  /* 深浅模式：把导航栏里那颗现成的 #themeToggle 借过来。
-     页面上散落的内联 click 绑定（列表 / 文章 / 404 页）、theme.js 的揭示圆心、
-     keys.js 的 aria-keyshortcuts 都按这个 id 找人；DOM 移动不会丢事件监听器，
-     所以一处都不用改。补 .fab-dock-btn 让它继承分隔线、焦点环与 hover 标签。 */
-  if (themeToggle) borrow(themeToggle, '切换深浅模式', null);
-
-  /** 搬进坞：按 borrowed 的顺序插在帮助之前（目录 → 主题 → 帮助） */
+  /** 搬进坞：按 borrowed 的顺序插在帮助之前（缩进 → 目录 → 帮助） */
   function moveToDock(): void {
     for (const item of borrowed) {
       item.el.classList.remove('fab-btn');
