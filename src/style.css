@@ -4110,10 +4110,14 @@ html::after {
     vertical-align: -0.18em;
 }
 .pin-badge svg {
-    width: 0.9em;
-    height: 0.9em;
-    /* 15px 下 1.7px 只剩 1px，图钉的帽和身会糊成一条；补到 1.9 才和方框描边同重 */
-    stroke-width: 1.9;
+    /* 图标用的是裁紧的 viewBox（见 icons.ts 的 PIN_BADGE_VIEWBOX），墨迹几乎顶满，
+       所以尺寸从 0.9em 收到 0.82em —— 换算成实际钉子高度仍比原来大一半，
+       只是不再贴着方框边。 */
+    width: 0.82em;
+    height: 0.82em;
+    /* 视窗裁紧后同样的 stroke-width 会被放大：1.5 落到屏幕上约 1.2px，
+       与 1px 的方框描边同重，不至于变成一块实心。 */
+    stroke-width: 1.5;
 }
 
 /* 卡片右上角的置顶徽标：卡片标题现在只有一行，徽标从标题行里挪到标题右侧，
@@ -4131,10 +4135,13 @@ html::after {
     vertical-align: middle;
 }
 
-/* 徽标里的 pin 字形按方框走，不再吃标题的字号 */
+/* 徽标里的 pin 字形按方框走，不再吃标题的字号。
+   裁紧视窗之后，钉子高度 = svg 边长 × 0.82（视窗 17.8 里墨迹 15.8），
+   68% 落在方框高度的 55% 上下 —— 实测比改动前的 36% 大一半，
+   四周仍留得住一圈空白，贴着方框边反而像被裁掉了笔。 */
 :is(.blog-page-card-head, .nook-card-header, .blog-preview-card-head, .nook-preview-card-header) .pin-badge svg {
-    width: 55%;
-    height: 55%;
+    width: 68%;
+    height: 68%;
 }
 
 .tech-tag,

@@ -63,9 +63,13 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   website: 'website',
 };
 
-export function icon(name: IconName, className?: string): string {
+/* 置顶徽标专用视窗：pin 的墨迹在 24 格里是 x 7.4–16.6 / y 3.2–19，
+   四周留 1 个单位给描边，裁成这个框。见 pinBadge() 的说明。 */
+const PIN_BADGE_VIEWBOX = '6.4 2.2 11.2 17.8';
+
+export function icon(name: IconName, className?: string, viewBox = '0 0 24 24'): string {
   const cls = className ? ` class="${className}"` : '';
-  return `<svg${cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
+  return `<svg${cls} viewBox="${viewBox}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
 }
 
 /** 小窝分类图标；未知分类回落到「包裹」，不再出现 emoji 兜底。 */
@@ -73,9 +77,15 @@ export function categoryIcon(category: string, className?: string): string {
   return icon(CATEGORY_ICONS[category] ?? 'package', className);
 }
 
-/** 置顶徽标：6px 方片 + pin 图标，和只读标签同一套「信息」语义。 */
+/** 置顶徽标：方片 + pin 图标，和只读标签同一套「信息」语义。
+ *
+ *  徽标里的 pin 用**裁紧的 viewBox**，不用 24×24 的那份：图钉本体在 24 格里只占
+ *  x 7.4–16.6 / y 3.2–19，四周一大圈留白 —— 直接塞进 1em 级的方框里，实际画出来
+ *  只有方框的 36% 高，「钉子太小」就是这么来的。这里按墨迹外扩 1px 描边余量裁成
+ *  `6.4 2.2 11.2 17.8`，同一个 CSS 尺寸下钉子放大约 1.6 倍，四周还留得住呼吸。
+ *  路径本身仍是 ICONS.pin 那一份，几何只有一处来源。 */
 export function pinBadge(): string {
-  return `<span class="pin-badge" role="img" aria-label="置顶">${icon('pin')}</span>`;
+  return `<span class="pin-badge" role="img" aria-label="置顶">${icon('pin', undefined, PIN_BADGE_VIEWBOX)}</span>`;
 }
 
 const ICON_TOKEN = /\{\{icon:([a-z]+)(?::([a-z0-9-]+))?\}\}/g;

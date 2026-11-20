@@ -15,7 +15,7 @@ const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const fab = readFileSync(join(ROOT, 'src', 'client', 'fab.ts'), 'utf-8');
 
 describe('底部居中导航坞', () => {
-  it('固定入口：主页 / 博客 / 小窝 / 回顶 / 回底 / 首行缩进 / 目录 / 帮助', () => {
+  it('固定入口：主页 / 博客 / 小窝 / 回顶 / 回底 / 缩进 / 目录 / 筛选 / 帮助', () => {
     for (const label of ['主页', '博客', '资源小窝']) {
       expect(fab, `缺少入口 ${label}`).toContain(`label: '${label}'`);
     }
@@ -32,10 +32,13 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain('if (runningStop) runningStop()');
     expect(fab).toContain('if (seq !== navSeq || passes >= 2) return');
     expect(fab).toContain('stop(false)');
-    // 缩进 / 目录都是「借」现成节点，不是另造一颗
+    // 缩进 / 目录 / 筛选都是「借」现成节点，不是另造一颗
     expect(fab).toContain("getElementById('indentToggle')");
     expect(fab).toContain("borrow(indentToggle, '首行缩进', 'fab-btn')");
     expect(fab).toContain("getElementById('tocToggle')");
+    expect(fab).toContain("getElementById('filterToggle')");
+    // 筛选的标签文案取按钮自己的 title（博客「标签」/ 小窝「分类」）
+    expect(fab).toContain("borrow(filterToggle, filterToggle.title || '筛选', 'fab-btn')");
     // 缩进排在目录前，与导航里的书写顺序一致
     expect(fab.indexOf('borrow(indentToggle')).toBeLessThan(fab.indexOf('borrow(tocToggle'));
     // 深浅模式不进坞：只取节点用于定位坞开关，不 borrow

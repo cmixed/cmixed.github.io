@@ -1,10 +1,10 @@
 /**
- * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 直达底部 / 首行缩进 / 目录 / 帮助。
+ * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 直达底部 / 首行缩进 / 目录 / 筛选 / 帮助。
  *
  * 它和顶部导航刻意错位：顶部管「本页锚点」（关于 / 项目 / 博客预览 / 联系），
  * 坞管「跨页入口 + 上下跳转 + 本页工具」。跨页三颗与上下两颗每页都一样（回顶 /
- * 回底成对），首行缩进与目录只出现在博客文章页，当前所在页高亮。
- * 「回上级」不做 —— 层级概念和固定几颗冲突，面包屑已在导航里。
+ * 回底成对），首行缩进与目录只出现在博客文章页，筛选只出现在博客 / 小窝列表页，
+ * 当前所在页高亮。「回上级」不做 —— 层级概念和固定几颗冲突，面包屑已在导航里。
  * 深浅模式**不在坞内**：它留在导航栏最右端（见下方注释）。
  *
  * 承载页面：主页、博客（列表 + 文章）、资源小窝（列表 + 详情）。由页面统一
@@ -19,8 +19,9 @@
  * 常驻显示，不再随滚动淡入：显隐交给导航栏右上角那颗开关，状态存 localStorage，
  * 默认开。开关按钮插在主题钮之前 —— 各页模板不用各写一份。
  *
- * 首行缩进与目录是「借」不是「另建」：文章页导航里原本就有 #indentToggle /
- * #tocToggle，内联脚本按 id 找人（切 body.indent / body.toc-open）、自己也切
+ * 首行缩进、目录、筛选是「借」不是「另建」：文章页导航里原本就有
+ * #indentToggle / #tocToggle，列表页有 #filterToggle，内联脚本与 filter-panel.ts
+ * 都按 id 找人（切 body.indent / body.toc-open / html.filters-open）、自己也切
  * .active。移到坞里，监听器跟着节点走，一处都不用改；再补 .fab-dock-btn，
  * 尺寸 / 分隔线 / 焦点环就和邻座完全一致。
  *
@@ -407,7 +408,19 @@
     borrow(tocToggle, '目录', 'fab-btn');
   }
 
-  /** 搬进坞：按 borrowed 的顺序插在帮助之前（缩进 → 目录 → 帮助） */
+  /* 标签 / 分类筛选是列表页导航里的那颗 #filterToggle（博客叫「标签」、小窝叫
+     「分类」，两页的 title 各自写着）。同样借进坞：filter-panel.ts 早于 ui.js
+     执行并按 id 取到节点、绑好监听，之后移动 DOM 不影响；.active 与
+     data-filtered 小圆点都由它自己维护，坞内样式已经覆盖。
+     标签文案取按钮自己的 title，博客 / 小窝各自显示对的词。
+     ≤1279px 时 CSS 仍把 #filterToggle 隐藏（标签区在列表上方常显，开关没意义），
+     那条规则进了坞照样生效 —— 手机上不会多出一颗无用的按钮。 */
+  const filterToggle = document.getElementById('filterToggle');
+  if (filterToggle) {
+    borrow(filterToggle, filterToggle.title || '筛选', 'fab-btn');
+  }
+
+  /** 搬进坞：按 borrowed 的顺序插在帮助之前（缩进 → 目录 → 筛选 → 帮助） */
   function moveToDock(): void {
     for (const item of borrowed) {
       item.el.classList.remove('fab-btn');

@@ -37,6 +37,15 @@ describe('icon', () => {
     expect(badge).toContain('aria-label="置顶"');
     expect(badge).toContain('<svg');
   });
+
+  it('pinBadge 用裁紧的 viewBox，钉子不再缩在 24 格中间', () => {
+    const badge = pinBadge();
+    // 不再是 0 0 24 24 的整格；墨迹外扩 1 个单位给描边
+    expect(badge).toContain('viewBox="6.4 2.2 11.2 17.8"');
+    expect(badge).not.toContain('viewBox="0 0 24 24"');
+    // 路径仍与 ICONS.pin 同源（几何只有一处定义）
+    expect(badge).toContain('M8 3.2h8');
+  });
 });
 
 describe('replaceIcons', () => {
