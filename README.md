@@ -427,7 +427,9 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 
 坞**常驻显示**，不再随滚动淡入；显隐交给导航栏右上角那颗 `.dock-toggle`（占主题钮腾出的位置），状态存 `localStorage` 的 `dock` 键、默认开，关掉时整组加 `.is-off` 淡出 + `inert`，刷新后仍记得。
 
-「目录」同样不是另造一颗：fab.ts 把文章页导航里的 `#tocToggle` **移动**进坞（摘掉 `.fab-btn` 换 `.fab-dock-btn`，否则 40px 与导航的 26px 两套尺寸打架）。内联脚本的 click 绑定、`syncTocHeight` / `syncTocFade`、`.active`（目录面板开着）都按这个 id 与类名找人，移动后一处都不用改；坞内补一条 `.fab-dock-btn.active` 给同色底，但不画「当前页」那颗小圆点 —— 圆点是「你在这一页」，目录开着只是「这一层展开了」。窄屏（≤360px）文章页是八颗，`38px` 一档约 339px 会顶出 320px 屏幕，所以极窄屏收到 `32px`、间隙减半（约 278px）。
+「目录」同样不是另造一颗：fab.ts 把文章页导航里的 `#tocToggle` **借**进坞（摘掉 `.fab-btn` 换 `.fab-dock-btn`，否则 40px 与导航的 26px 两套尺寸打架）。内联脚本的 click 绑定、`syncTocHeight` / `syncTocFade`、`.active`（目录面板开着）都按这个 id 与类名找人，移动后一处都不用改；坞内补一条 `.fab-dock-btn.active` 给同色底，但不画「当前页」那颗小圆点 —— 圆点是「你在这一页」，目录开着只是「这一层展开了」。窄屏（≤360px）文章页是八颗，`38px` 一档约 339px 会顶出 320px 屏幕，所以极窄屏收到 `32px`、间隙减半（约 278px）。
+
+**借来的按钮要还**：坞一关，目录与深浅模式**回填导航栏原位**——否则关掉坞就再没有入口点深浅模式（手机上没有第二条路）。实现是搬走前在原位插一条注释锚点（`<!--dock-home-->`，不渲染、不改布局），回填时插到锚点之后，同时把类名还原（目录补回 `.fab-btn`，主题钮的 `.theme-toggle` 从没摘过、出坞即恢复圆形钮）并把坞内气泡标签收起（`.fab-dock-label[hidden] { display: none }`，它是绝对定位，留在 32px 的导航钮里会飘到按钮上方）。锚点一条元素只对应一条、反复开关不累积；坞初始就是关的时候元素从没离开原位（`previousSibling === anchor`），直接跳过。实测关坞后主题钮 36px、目录 26px 都在视口内且可点可开，320px 下导航不溢出。
 
 深浅模式不是另造一颗按钮：fab.ts 把导航栏里现成的 `#themeToggle` **移动**进坞。各页的内联 click 绑定、`theme.js` 的圆形揭示圆心、`keys.js` 的 `aria-keyshortcuts` 都按这个 id 找人，DOM 移动不会丢监听器，一处都不用改；坞内再加一条 `.fab-group .theme-toggle { overflow: visible }` 放开圆形钮的裁切，否则 hover 气泡会被裁掉。帮助复用 `keys.js` 的 `window.siteKeys.toggleHelp()`（`?` / `F1` 同一面板），坞在 `keys.ts` 之前加载但回调到点击时才执行，时序无害。
 
@@ -473,13 +475,13 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 
 块内滚动（弹窗正文、代码块横向、表格）保持**系统 thin 条**：`scrollbar-width: thin` + `scrollbar-color`（Firefox、Chrome 的覆盖式滚动条）+ `::-webkit-scrollbar`（Safari、经典滚动条），两条路径取同一个颜色。它们都在面板内部，轨道透明就够 —— 拇指内缩 2px 成圆角玻璃条，hover、拖动逐档提亮，看上去和整页那枚一样是浮着的。博客侧栏目录**故意排除在外**：它用上下两道渐隐提示「还有内容」，加回滚动条会把那个设计顶掉。
 
-**底部导航坞**是一条居中的横向 Liquid Glass 胶囊，收纳主页 / 博客 / 资源小窝 / 回到顶部四颗入口，由 `src/client/fab.ts`（和 cursor / scrollbar 一起构建成 `dist/ui.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。坞内按钮走独立的 `.fab-dock-btn`，**不复用 `.fab-btn`**：后者还挂在文章 / 列表页导航的「缩进 / 目录 / 搜索 / 筛选」上（26/32px 方片），共用一套 class 会把导航尺寸一起改掉，`src/__tests__/fab-dock.test.ts` 钉住这条边界。每颗按钮带 `.fab-dock-label` 文字标签，hover 与键盘聚焦时弹出，四颗之间用渐变分隔线分区。
+**底部导航坞**是一条居中的横向 Liquid Glass 胶囊，收纳跨页入口（主页 / 博客 / 资源小窝）、上下跳转（回到顶部 / 直达底部）、本页工具（目录 / 深浅模式 / 帮助），由 `src/client/fab.ts`（和 cursor / scrollbar 一起构建成 `dist/ui.js`）在主页、博客（列表 + 文章）、资源小窝（列表 + 详情）注入 —— markup 也在脚本里，页面不再各存一份 `div.fab-group`。坞内按钮走独立的 `.fab-dock-btn`，**不复用 `.fab-btn`**：后者还挂在文章 / 列表页导航的「缩进 / 目录 / 搜索 / 筛选」上（26/32px 方片），共用一套 class 会把导航尺寸一起改掉，`src/__tests__/fab-dock.test.ts` 钉住这条边界。每颗按钮带 `.fab-dock-label` 文字标签，hover 与键盘聚焦时弹出，按钮之间用渐变分隔线分区。
 
-和顶部导航**刻意错位**：顶部管本页锚点（关于 / 项目 / 博客 / 资源 / 联系），坞管跨页入口 + 回顶，两者不重复。原先的「回上级 / 直达底部」已撤 —— 前者是层级概念、与固定四颗冲突；后者的 `toBottom` / `settleAtBottom` / `html.fab-measuring` 虚拟化量高机制一并删除，不留死代码。
+和顶部导航**刻意错位**：顶部管本页锚点（关于 / 项目 / 博客 / 资源 / 联系），坞管跨页入口 + 上下跳转 + 本页工具，两者不重复。「回上级」不做 —— 层级概念与固定几颗冲突。「直达底部」曾经因为要维护 `toBottom` / `settleAtBottom` / `html.fab-measuring` 那套虚拟化量高机制而撤掉，现在改成每次现算 `scrollHeight - innerHeight` 再校准两次，机制简单得多，于是恢复成与回顶配对的一颗。
 
-居中靠 `left: 50%` + `transform: translateX(-50%)`，**显隐态的 transform 必须保留 -50%**（`.visible` 写 `translate(-50%, 0)`，只写 `translateY(0)` 会让坞跳到屏幕右边）。中心对齐实测六档：1440 / 1440 博客 / 1440 文章 / 1440 小窝 / 390 / 320，坞中心与视口中心误差 0px。
+居中靠 `left: 50%` + `transform: translateX(-50%)`，**两态的 transform 都必须保留 -50%**（常态 `translate(-50%, 0)`、`.is-off` 写 `translate(-50%, 8px)`；只写 `translateY` 会让坞跳到屏幕右边）。中心对齐实测：1440 / 1440 博客 / 1440 文章 / 1440 小窝 / 390 / 320，坞中心与视口中心误差 0px。
 
-**为什么仍要滚动淡入**：坞若常驻，1440×900 下它落在 y≈815–872，正好盖住首屏的简介第二段（841–867）与事实区横线（896）。所以保留「滚过一段才亮」，阈值跟着页面长度走（可滚距离的 15%，夹在 120～400px）—— 固定 400px 会让只能滚三四百像素的列表页永远不亮。已知限制：`/nook/` 列表页内容不足一屏（`scrollHeight = innerHeight = 900`），没有可滚距离，坞在该页不会出现；跨页去那里仍可通过顶部导航。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框，而且字体字符在不同平台上的字重 / 字形也不一致；现在导航 RSS / 主题 / 目录 / 缩进也统一到 `src/lib/icons.ts`。
+**为什么改成常驻**：早期是「滚过一段才淡入」，因为坞常驻会盖住首屏的简介第二段与事实区横线。现在显隐交给导航栏右上角的 `.dock-toggle`（`aria-pressed` 表状态，`localStorage['dock']` 记忆，默认开），用户想收起就自己收 —— 比「滚到某个位置才出现」更可预期，也顺手解决了 `/nook/` 列表页不足一屏、阈值永远达不到的问题。图标用内联 SVG：缺字体时 `U+2302`（⌂）会变成方框，而且字体字符在不同平台上的字重 / 字形也不一致；现在导航 RSS / 主题 / 目录 / 缩进也统一到 `src/lib/icons.ts`。
 
 胶囊的材质取 `--mica-chrome` + `--mica-nav-glass`，模糊只做在容器上：三颗按钮各自 `backdrop-filter` 会在接缝处叠出三块暗带，也会在漂移层背后每帧重模糊。按钮底透明，hover 时叠淡青 `background-image`；焦点环 `outline-offset: -2px` 向胶囊内收，否则会撞上分隔线。整条从下方 8px 淡入（滚过可滚距离的 15%，夹在 120～400px），显隐只切一个 `.visible` class。
 **正文排版只有一份**：README 是 Markdown，博客文章也是，所以原来写在 `blog/template/post.html` 内联样式里的 `.blog-article-content h1 … table` 整块搬进了 `src/style.css`、改名 `.md-body`，文章页容器同时挂 `md-body` 类（`body.indent` 首行缩进、TOC、mermaid、代码块语言角标这类文章页独有的东西仍留在模板里）。搬家前后逐页比对过：2 篇文章 × 2 主题 × 桌面 / 移动 × 3 个滚动位置，**像素级 0 差异**；之后调正文字号只改一处。
