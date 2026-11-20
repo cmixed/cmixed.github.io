@@ -48,6 +48,7 @@ npm run build
 | `npx vp test run` | 单元测试 |
 | `npm run build` | 全量构建（markdown 检查、图片优化、博客 / 小窝生成） |
 | `npx tsx scripts/quarter-summary.ts --ci` | 季度总结缺口检查 |
+| `pnpm brand-icons` | 重新生成语言 / 平台的品牌图标（`src/lib/brand-icons.ts`）。加语言 / 平台时改 `scripts/build-brand-icons.ts` 的 `SOURCES` 再跑。生成文件不要手改 |
 
 交付前依次跑通 `vp check` → `vp test run` → `npm run build`，并按上面的格式分提交（代码一条、`docs:` 一条）。
 

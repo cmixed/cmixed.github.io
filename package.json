@@ -29,11 +29,13 @@
     "test:watch": "vp test",
     "optimize-images": "tsx scripts/optimize-images.ts",
     "icons": "tsx scripts/build-site-icons.ts",
+    "brand-icons": "tsx scripts/build-brand-icons.ts",
     "spring": "tsx scripts/build-spring.ts",
     "og-image": "tsx scripts/og-image.ts",
     "quarter-summary": "tsx scripts/quarter-summary.ts"
   },
   "devDependencies": {
+    "@iconify-json/logos": "^1.2.20",
     "@mermaid-js/mermaid-cli": "^11.16.0",
     "@types/node": "^26.2.0",
     "esbuild": "^0.28.2",
@@ -42,6 +44,7 @@
     "mermaid": "^11.17.0",
     "puppeteer": "25.10.0",
     "sharp": "^0.35.3",
+    "simple-icons": "^16.38.0",
     "tsx": "^4.23.12",
     "typescript": "^6.0.3",
     "vite": "catalog:",

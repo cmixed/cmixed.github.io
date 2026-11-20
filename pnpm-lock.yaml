@@ -178,6 +178,9 @@ importers:
 
   .:
     devDependencies:
+      '@iconify-json/logos':
+        specifier: ^1.2.20
+        version: 1.2.20
       '@mermaid-js/mermaid-cli':
         specifier: ^11.16.0
         version: 11.17.0(puppeteer@25.10.0)(tailwindcss@4.3.3)
@@ -202,6 +205,9 @@ importers:
       sharp:
         specifier: ^0.35.3
         version: 0.35.4(@types/node@26.4.1)
+      simple-icons:
+        specifier: ^16.38.0
+        version: 16.38.0
       tsx:
         specifier: ^4.23.12
         version: 4.23.13
@@ -446,6 +452,9 @@ packages:
     engines: {node: '>=10'}
     peerDependencies:
       tailwindcss: ^3.0 || ^4.0
+
+  '@iconify-json/logos@1.2.20':
+    resolution: {integrity: sha512-HDSte2/+sgGNn9i/eYMiIRDbdigWxZe6EFauQGtxfRG/4sUtUBFgLIdxotKQysKNsFJlLYDFzPILOs3mh9viRQ==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -2208,6 +2217,10 @@ packages:
       '@types/node':
         optional: true
 
+  simple-icons@16.38.0:
+    resolution: {integrity: sha512-B0Wws90eL0Fm65aH35CA8kM+7/Zzgsaytt0DndBx7VFm3+o9HurVIVRQZ1hvqqYYIyNJq7ycn3kQm2v2FhiWSQ==}
+    engines: {node: '>=0.12.18'}
+
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
     engines: {node: '>=18'}
@@ -2568,6 +2581,10 @@ snapshots:
   '@headlessui/tailwindcss@0.2.2(tailwindcss@4.3.3)':
     dependencies:
       tailwindcss: 4.3.3
+
+  '@iconify-json/logos@1.2.20':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify/types@2.0.0': {}
 
@@ -4221,6 +4238,8 @@ snapshots:
       '@img/sharp-win32-ia32': 0.35.4
       '@img/sharp-win32-x64': 0.35.4
       '@types/node': 26.4.1
+
+  simple-icons@16.38.0: {}
 
   sirv@3.0.2:
     dependencies:
