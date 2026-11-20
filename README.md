@@ -410,7 +410,7 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 
 32px 位图 favicon（`site-wf-32x32.png` / `blog-32x32.png` / `nook-32x32.png`）已全部删除：首页、列表页、**文章模板（`blog/template/post.html`、`nook/template/detail.html`）**与各 404 的 `rel="icon"` 一律改指对应 `*.svg`。曾经文章模板漏改、还在引用已删除的 `*-32x32.png`，favicon 404 后浏览器回退旧缓存图标，标签页和列表页就不统一了 —— `src/__tests__/icon-links.test.ts` 现在钉死「引用必须指向存在的文件」。
 
-底部导航坞（`.fab-group`）四颗固定入口，**每页都一样**，当前所在页高亮：
+底部导航坞（`.fab-group`）六颗固定入口，**每页都一样**，当前所在页高亮。前三颗是跨页入口，后三颗是全站工具：
 
 | 入口 | 图标 | 主页 `/` 的 href | `/blog/` 的 href | `/nook/` 的 href |
 | --- | --- | --- | --- | --- |
@@ -418,6 +418,12 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 | 博客 | 折角稿纸（`blog`） | `blog/` | `./` | `../blog/` |
 | 资源小窝 | 等距收纳盒（`nook`） | `nook/` | `../nook/` | `./` |
 | 回到顶部 | 上箭头（`up`） | 按钮 | 按钮 | 按钮 |
+| 深浅模式 | 太阳 / 月亮（`theme`） | 按钮（原 `#themeToggle`） | 同 | 同 |
+| 帮助 | 圆圈问号（`help`） | 按钮 | 按钮 | 按钮 |
+
+坞**常驻显示**，不再随滚动淡入；显隐交给导航栏右上角那颗 `.dock-toggle`（占主题钮腾出的位置），状态存 `localStorage` 的 `dock` 键、默认开，关掉时整组加 `.is-off` 淡出 + `inert`，刷新后仍记得。
+
+深浅模式不是另造一颗按钮：fab.ts 把导航栏里现成的 `#themeToggle` **移动**进坞。各页的内联 click 绑定、`theme.js` 的圆形揭示圆心、`keys.js` 的 `aria-keyshortcuts` 都按这个 id 找人，DOM 移动不会丢监听器，一处都不用改；坞内再加一条 `.fab-group .theme-toggle { overflow: visible }` 放开圆形钮的裁切，否则 hover 气泡会被裁掉。帮助复用 `keys.js` 的 `window.siteKeys.toggleHelp()`（`?` / `F1` 同一面板），坞在 `keys.ts` 之前加载但回调到点击时才执行，时序无害。
 
 `dir = new URL('.', location.href).pathname` 只有 `/`、`/blog/`、`/nook/` 三种取值，href 按它推算而不是写死站点根 —— 产物挂到项目路径下也能用。当前页那颗加 `.is-current` + `aria-current="page"`，淡青底加一颗小圆点。
 
@@ -447,6 +453,8 @@ pnpm quarter-summary   # 打印各季度状态、指纹、统计与待补写素�
 - **实色面**：底色是 `--popover-surface`（浅 `#f3f9fa` / 暗 `#1a2b30`），不是导航那层玻璃。试过 0.96 的透光，2x 屏上仍能看出下面那张卡的粗体标题「印」上来；浮窗上没有任何需要「透」的信息，给实色才读得干净。
 
 配套的两件事：卡片自己不能 `overflow: hidden`（浮窗绝对定位在卡片下缘之外），圆角改由背景 / 边框自己画；`#projects` / `#blog-preview` / `#nook-preview` 三个区块不再 `content-visibility: auto` —— 它隐含 paint 裁切，最后一行的浮窗会被区块下缘整块切掉（之前预览卡只放得下标题，就是被这一条限住的）。下方放不下时由 `.popover-up` 翻到卡片上方；触屏不给（会盖住下一张卡）。
+
+**手机版没有 hover，浮窗被禁后内容看不全 —— 用一颗独立的「卡片预览」按钮补上**（`src/client/card-preview.ts`，和浮窗同组进 `ui.js`）。它只在 `@media (hover: none)` 且页面真的有卡片（`html[data-has-cards]`，由 rAF / load / MutationObserver 三处检测，首页 fetch 的预览卡也算）时出现，贴在导航坞上方居中，和坞同材质。点开进入预览模式：卡片加虚线框提示「点开不会跳走」，捕获阶段拦下卡片跳转，把该卡已有的 `.card-popover-body` **整份搬进一个 `<dialog class="site-modal">`** —— 标题、副标题、摘要全文、全部标签、元信息一条不缺，内容同源，不为它另拼 HTML。模态交给原生 dialog：背景滚动锁、焦点陷阱、Esc / 点遮罩关闭、关闭后焦点归位全由浏览器给，和 `#siteModal` / 快捷键面板同构；不手写一套。再点按钮（或弹窗关闭）退出模式，卡片链接立即恢复。卡片里的小窝「下载」按钮在捕获阶段被放过，预览模式下仍能点。文章页 / 详情页没有 `data-card`，按钮不出现。
 
 - **网格列数按内容密度定，不强行统一**：博客固定 2 列（元信息是「阅读 / 创建 / 更新 / 字数 / 图片」长句，再窄就换行）；资源小窝 `minmax(250px, 1fr)`，1120px 内容宽下 4 列（原来 320px 只有 3 列，卡大而空）；首页项目卡 `auto-fit minmax(280px)`，中屏 3 列、大屏 4 列。列数不同的是**密度**，相同的才是**语言**：卡片内边距 1.25rem、圆角 12px、顶部 accent 条、浮窗、标签量化，三处同一套。
 - **圆角半径提成 `--card-radius`**：卡片自己的 `border-radius`、`::before` 的 `calc(半径 - 1px)`、以及列表页内联样式里的 12px 都读它。改圆角只改一处，也不会再出现「卡是 12px、色带按 10px 转」的不匹配。置顶徽标的尺寸与位置见「首页博客预览与置顶」；分类、RSS、搜索等图标同走 `src/lib/icons.ts` 的 24×24 / `currentColor` / 1.7px 描边，尺寸由 `em` 或 token 给出，不在页面里各写一份。
