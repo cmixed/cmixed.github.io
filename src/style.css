@@ -550,6 +550,29 @@ body.nav-open::before {
     .theme-icon { transition: none; }
 }
 
+/* 导航坞开关（fab.ts 插在主题钮腾出的位置）：外观沿用主题圆钮的材质，
+   关态降透明度 + aria-pressed 供辅助技术读。两态共用一枚图标，不画第二套。 */
+.dock-toggle {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: var(--mica-raised);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text-dim);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color var(--transition-speed), color var(--transition-speed),
+        opacity var(--transition-speed);
+}
+.dock-toggle:hover { border-color: var(--primary); color: var(--primary-text); }
+.dock-toggle[aria-pressed="false"] { opacity: 0.55; }
+.dock-toggle svg { width: 18px; height: 18px; display: block; stroke-width: 1.9; }
+@media (hover: none) and (pointer: coarse) {
+    .dock-toggle { width: 36px; height: 36px; }
+}
+
 /* ===== HERO ===== */
 .hero {
     /* svh 取「工具栏展开」的最小视口：地址栏收放时 hero 高度不变，
@@ -5025,15 +5048,15 @@ footer.edge-bounce {
 
 /* ===== 右下角浮动操作 =====
    fab（ui.js）在主页、博客（列表 / 文章）、资源小窝（列表 / 详情）注入同一组按钮：
-   底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部。样式只写这一份。
-   首屏整组透明（滚过可滚距离的 15%，夹在 120～400px，才加 .visible）——
-   常驻会盖住首屏的简介第二段与事实区横线，必须滚过再浮出。 */
+   底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 深浅模式 / 帮助，样式只写这一份。
+   常驻显示 —— 显隐交给导航栏右上角的 .dock-toggle（状态存 localStorage），
+   关掉时整组加 .is-off 淡出 + inert，不再随滚动位置变化。 */
 .fab-group {
     position: fixed;
     left: 50%;
-    /* -50% 是居中，8px 是浮出前的下沉 —— 两者必须写在同一个 transform 里：
-       visible 态要同时保留 -50%，只写 translateY(0) 会让坞跳到屏幕右边。 */
-    transform: translate(-50%, 8px);
+    /* -50% 是居中，两态都要保留 —— 只写 translateY 会让坞跳到屏幕右边。
+       常态归零；.is-off 下沉 8px 淡出。 */
+    transform: translate(-50%, 0);
     bottom: 1.75rem;
     z-index: 50;
     display: flex;
@@ -5055,15 +5078,15 @@ footer.edge-bounce {
         inset 0 -1px 0 rgba(0, 0, 0, 0.10),
         var(--mica-elev-2),
         0 18px 48px -20px rgba(0, 0, 0, 0.55);
-    opacity: 0;
-    pointer-events: none;
+    opacity: 1;
     transition: opacity var(--transition-speed), transform var(--transition-speed);
 }
 
-.fab-group.visible {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translate(-50%, 0);
+/* 导航栏开关关掉时：淡出、下沉回原位、且不再吃点击（inert 由 JS 同步加）。 */
+.fab-group.is-off {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 8px);
 }
 
 .fab-btn {
@@ -5215,6 +5238,16 @@ footer.edge-bounce {
     transition: transform 180ms var(--spring-press);
 }
 
+/* 主题钮是从导航栏「搬」进坞的，身上还带着 .theme-toggle 的圆形实底样式：
+   overflow:hidden 会把 hover 气泡裁掉，实底/圆钮会破坏「一条玻璃分区」的观感。
+   坞内覆盖这三处，其余（焦点环、分隔线、hover 抬升）继续由 .fab-dock-btn 提供。 */
+.fab-group .theme-toggle {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    border-radius: 999px;
+}
+
 .fab-dock-btn:hover svg,
 .fab-dock-btn:focus-visible svg {
     transform: scale(1.12);
@@ -5257,9 +5290,76 @@ footer.edge-bounce {
     opacity: 1;
 }
 
+/* ===== 手机版卡片预览模式 =====
+   小屏没有 hover，五类卡片的浮窗在 @media (hover:none) 下被关掉（见上面），
+   被省略的标题 / 摘要 / 标签就没处看。这颗按钮给一个显式入口：默认隐藏，
+   只在「有卡片 + 无 hover」时出现；点开后卡片点击改为弹 <dialog> 看完整内容。
+   位置贴在导航坞上方居中，和坞同材质，不额外占屏幕横向空间。 */
+.card-preview-toggle {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: calc(1.75rem + 3.4rem);
+    transform: translateX(-50%);
+    z-index: 50;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    background: var(--mica-chrome);
+    -webkit-backdrop-filter: var(--mica-nav-glass);
+    backdrop-filter: var(--mica-nav-glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--mica-elev-2);
+    color: var(--text-dim);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    transition: color var(--transition-speed), border-color var(--transition-speed),
+        background var(--transition-speed);
+}
+
+/* 无 hover 且页面有卡片才露出：两个条件缺一不可。宽屏触屏（平板）也命中，
+   那里同样看不到浮窗，给出入口是对的；桌面有鼠标时不打扰。 */
+@media (hover: none) {
+    html[data-has-cards] .card-preview-toggle { display: flex; }
+}
+/* 小屏的坞 bottom 收到 1rem，按钮跟着上移，别压到坞上 */
+@media (hover: none) and (max-width: 600px) {
+    .card-preview-toggle { bottom: calc(1rem + 3.4rem); }
+}
+
+.card-preview-toggle svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+    stroke-width: 1.8;
+}
+
+.card-preview-toggle[aria-pressed="true"] {
+    color: var(--primary-text);
+    border-color: var(--primary);
+    background: var(--primary-dim);
+}
+
+/* 预览模式：给每张卡一圈虚线提示「现在是点开看，不会跳走」，
+   并把光标改成 help，桌面若强制进入也能看出状态。 */
+html.card-preview-mode [data-card] {
+    outline: 1px dashed var(--primary);
+    outline-offset: -3px;
+    cursor: help;
+}
+
+/* 弹窗正文直接复用 .card-popover-* 那套（标题 / 摘要 / 标签 / 元信息），
+   这里只把间距调到「整页阅读」而非「悬浮小卡」的密度。 */
+.card-preview-modal .site-modal-body .card-popover-desc { font-size: 0.9rem; }
+.card-preview-modal .site-modal-body .card-popover-tags { margin-top: 0.9rem; }
+
 @media (max-width: 600px) {
     .fab-group {
-        /* 居中靠 left:50%，这里只收底部留白；四颗 × 42px 在 320px 下仍放得下 */
+        /* 居中靠 left:50%，这里只收底部留白；六颗 × 38px + 间隙 ≈257px，320px 下放得下 */
         bottom: 1rem;
         padding: 0.35rem 0.4rem;
     }

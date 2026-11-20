@@ -1,10 +1,10 @@
 /**
- * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部。
+ * 底部居中的导航坞：主页 / 博客 / 资源小窝 / 回到顶部 / 深浅模式 / 帮助。
  *
  * 它和顶部导航刻意错位：顶部管「本页锚点」（关于 / 项目 / 博客预览 / 联系），
- * 坞管「跨页入口 + 回顶」，四颗在每页都一样，当前所在页高亮。
- * 原先的「回上级 / 直达底部」已撤 —— 前者是层级概念、和固定四颗冲突，
- * 后者的虚拟化精确量高机制随按钮一起删掉（见下方历史注释的移除说明）。
+ * 坞管「跨页入口 + 回顶 + 两个全站工具」，六颗在每页都一样，当前所在页高亮。
+ * 原先的「回上级 / 直达底部」已撤 —— 前者是层级概念、和固定几颗冲突，
+ * 后者的虚拟化精确量高机制随按钮一起删掉。
  *
  * 承载页面：主页、博客（列表 + 文章）、资源小窝（列表 + 详情）。由页面统一
  * `<script defer src="…/ui.js">` 引入；markup 由脚本注入，页面里不再各存一份 div。
@@ -14,9 +14,14 @@
  * 路径按当前目录推算，不写死站点根：GitHub Pages 用户站点挂在根，但同样的产物
  * 放到项目路径下也能用。dir 只有 '/'、'/blog/'、'/nook/' 三种取值。
  *
- * 首屏不亮：坞若常驻，1440×900 下它落在 y≈815–868，正好盖住刚调好的
- * 简介第二段（841–867）与事实区横线（896）。所以仍保留滚动淡入 ——
- * 这同时也是「工具坞浮现」而非「常驻应用坞」的交互语言。
+ * 常驻显示，不再随滚动淡入：显隐交给导航栏右上角那颗开关，状态存 localStorage，
+ * 默认开。开关按钮是在把主题钮接进坞时、插进它腾出的导航位置 —— 所以各页模板
+ * 不用各写一份。
+ *
+ * 主题钮是「移动」不是「另建」：每页导航栏里原本就有 #themeToggle，页面上散落的
+ * 内联 click 绑定、theme.js 的圆形揭示圆心、keys.js 的 aria-keyshortcuts 都认这个
+ * id。append 到坞里，监听器跟着节点走，一处都不用改；再给它补 .fab-dock-btn，
+ * 尺寸 / 分隔线 / 焦点环就和邻座完全一致。
  *
  * 图标用内联 SVG 而不是字符：系统字体缺字时会把 U+2302（⌂）画成方框，
  * 和主题色只靠 currentColor 联系，深浅色切换不用另写一套。
@@ -32,6 +37,12 @@
     blog: '<path d="M7.4 4.6h6.4l3.2 3.2v11.6H7.4Z"/><path d="M13.8 4.6v3.2h3.2"/><path d="M9.8 12.2h5.4M9.8 15.2h3.8"/>',
     nook: '<path d="M12 5 18.6 8.4v7.2L12 19l-6.6-3.4V8.4Z"/><path d="M5.4 8.4 12 11.8l6.6-3.4M12 11.8V19"/>',
     up: '<path d="M12 18.8V5.4"/><path d="m6.4 11 5.6-5.6 5.6 5.6"/>',
+    /* 帮助：圆圈 + 问号，和快捷键帮助面板（keys.js 的 F1 / ?）同一件事。
+       坞里最后一颗，用「?」比文字更省宽度，标签气泡补全称。 */
+    help: '<circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2-2.6 3.8"/><path d="M12 17.2h.01"/>',
+    /* 导航栏上的坞开关：一块屏幕 + 底部一条胶囊，指向「这条坞」。
+       开 / 关两态靠 aria-pressed 与按钮底色区分，不另画第二枚图标。 */
+    dock: '<rect x="3.2" y="4.6" width="17.6" height="14.8" rx="2.4"/><rect x="7.4" y="14.6" width="9.2" height="2.6" rx="1.3"/>',
   } as const;
 
   type IconName = keyof typeof ICONS;
@@ -253,39 +264,75 @@
     })
   );
 
+  /* 深浅模式：把导航栏里那颗现成的 #themeToggle 搬进坞，不另造按钮。
+     页面上散落的内联 click 绑定（列表 / 文章 / 404 页）、theme.js 的揭示圆心、
+     keys.js 的 aria-keyshortcuts 都按这个 id 找人；DOM 移动不会丢事件监听器，
+     所以一处都不用改。补 .fab-dock-btn 让它继承分隔线、焦点环与 hover 标签。 */
+  const themeToggle = document.getElementById('themeToggle');
+  const navRight =
+    themeToggle?.parentElement ??
+    document.querySelector<HTMLElement>(
+      '.nav-right, .blog-nav-right, .nook-nav-right, .nook-detail-nav-right'
+    );
+
+  /* 先在原位插开关，再把主题钮搬走 —— 顺序反了 insertBefore 的参照节点
+     就已经不是 nav 的子节点，会抛 NotFoundError。 */
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'dock-toggle';
+  toggle.id = 'dockToggle';
+  toggle.innerHTML = svg('dock');
+  if (themeToggle) navRight?.insertBefore(toggle, themeToggle);
+  else navRight?.appendChild(toggle);
+
+  if (themeToggle) {
+    themeToggle.classList.add('fab-dock-btn');
+    const label = document.createElement('span');
+    label.className = 'fab-dock-label';
+    label.textContent = '切换深浅模式';
+    themeToggle.appendChild(label);
+    group.appendChild(themeToggle);
+  }
+
+  /* 帮助放坞最右：复用 keys.js 的快捷键面板（? / F1），点一下就开。
+     fab.ts 在 ui.js 里先于 keys.ts 跑，但回调要等到点击时才执行，那时
+     window.siteKeys 已经挂上了。 */
+  group.appendChild(
+    actionButton('帮助', 'help', () => {
+      window.siteKeys?.toggleHelp();
+    })
+  );
+
   document.body.appendChild(group);
 
-  // 首屏不亮：坞若常驻会盖住简介与横线（见文件头），滚一段再淡入。
-  // 阈值跟着页面长度走：长文 400px 后才出现；列表页本身只能滚三四百像素，
-  // 固定的 400 会让按钮永远不亮，所以取「可滚距离的 15%，夹在 120～400px 之间」。
-  // 只切一次 class，动画交给 CSS 过渡，滚动事件里不写样式。
-  let showAfter = 400;
-  function measure(): void {
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    showAfter = Math.min(400, Math.max(120, scrollable * 0.15));
+  /* 导航栏右上角的坞开关：正好占主题钮腾出来的位置，各页模板不用改。
+     aria-pressed 表「坞当前显示」，状态存 localStorage，默认开 ——
+     常驻显示是这次的要求，用户想收起来就自己收，刷新后仍记得。 */
+  const DOCK_KEY = 'dock';
+
+  function applyDock(on: boolean): void {
+    group.classList.toggle('is-off', !on);
+    group.toggleAttribute('inert', !on);
+    toggle.setAttribute('aria-pressed', String(on));
+    const label = on ? '隐藏导航坞' : '显示导航坞';
+    toggle.setAttribute('aria-label', label);
+    toggle.title = label;
   }
 
-  let visible = false;
-  function sync(): void {
-    const next = window.scrollY > showAfter;
-    if (next === visible) return;
-    visible = next;
-    group.classList.toggle('visible', next);
+  let dockOn = true;
+  try {
+    dockOn = localStorage.getItem(DOCK_KEY) !== 'off';
+  } catch {
+    // 隐私模式下 localStorage 不可用，按默认显示处理
   }
-
-  measure();
-  sync();
-  window.addEventListener('scroll', sync, { passive: true });
-  window.addEventListener('resize', () => {
-    measure();
-    sync();
+  applyDock(dockOn);
+  toggle.addEventListener('click', () => {
+    dockOn = !dockOn;
+    applyDock(dockOn);
+    try {
+      localStorage.setItem(DOCK_KEY, dockOn ? 'on' : 'off');
+    } catch {
+      // 同上：写不进去不影响本次会话的开关
+    }
   });
-  // 图片 / 字体进来后页面会变长，阈值跟着重算（重算后要再比对一次，
-  // 否则页面变短时按钮会停在亮着的状态）
-  if ('ResizeObserver' in window) {
-    new ResizeObserver(() => {
-      measure();
-      sync();
-    }).observe(document.body);
-  }
 })();

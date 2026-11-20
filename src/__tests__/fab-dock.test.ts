@@ -7,20 +7,27 @@ import { describe, expect, it } from 'vite-plus/test';
  *
  * 关键约束一：.fab-btn 还挂在文章 / 列表页导航的「缩进 / 目录 / 搜索 / 筛选」上，
  * 坞内按钮必须用独立 class，否则改尺寸会把导航一起改掉。
- * 关键约束二：坞若常驻会盖住首屏的简介与事实区横线，必须保留滚动淡入。
+ * 关键约束二：坞常驻显示，显隐交给导航栏的 .dock-toggle（.is-off），不再滚动淡入。
+ * 关键约束三：主题钮是「移动」现成的 #themeToggle，帮助调 window.siteKeys.toggleHelp。
  */
 const ROOT = join(import.meta.dirname, '..', '..');
 const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const fab = readFileSync(join(ROOT, 'src', 'client', 'fab.ts'), 'utf-8');
 
 describe('底部居中导航坞', () => {
-  it('四颗固定入口：主页 / 博客 / 资源小窝 / 回到顶部', () => {
+  it('六颗固定入口：主页 / 博客 / 资源小窝 / 回到顶部 / 深浅模式 / 帮助', () => {
     for (const label of ['主页', '博客', '资源小窝']) {
       expect(fab, `缺少入口 ${label}`).toContain(`label: '${label}'`);
     }
-    // 回顶是按钮不是链接，走 actionButton 的 label 参数
+    // 回顶 / 帮助是按钮不是链接，走 actionButton 的 label 参数
     expect(fab).toContain("actionButton('回到顶部', 'up'");
-    // 回上级 / 直达底部已撤，配套的虚拟化量高机制也一起删掉
+    expect(fab).toContain("actionButton('帮助', 'help'");
+    // 主题钮是移动现成的 #themeToggle，不是另造一颗
+    expect(fab).toContain("getElementById('themeToggle')");
+    expect(fab).toContain("themeToggle.classList.add('fab-dock-btn')");
+    // 帮助复用快捷键面板
+    expect(fab).toContain('window.siteKeys?.toggleHelp()');
+    // 回上级 / 直达底部的旧机制已彻底删掉
     expect(fab).not.toContain('toBottom');
     expect(fab).not.toContain('settleAtBottom');
     expect(fab).not.toContain('fab-measuring');
@@ -30,15 +37,12 @@ describe('底部居中导航坞', () => {
     expect(css).toContain('.fab-dock-btn.is-current');
   });
 
-  it('坞居中显示，且保留显隐态里的 -50%', () => {
-    const group = css.slice(css.indexOf('.fab-group {'), css.indexOf('.fab-group.visible'));
+  it('坞居中显示，两态都保留 -50%', () => {
+    const group = css.slice(css.indexOf('.fab-group {'), css.indexOf('.fab-group.is-off'));
     expect(group).toContain('left: 50%');
-    expect(group).toContain('translate(-50%, 8px)');
-    const visible = css.slice(
-      css.indexOf('.fab-group.visible'),
-      css.indexOf('.fab-group.visible') + 200
-    );
-    expect(visible).toContain('translate(-50%, 0)');
+    expect(group).toContain('translate(-50%, 0)');
+    const off = css.slice(css.indexOf('.fab-group.is-off'), css.indexOf('.fab-group.is-off') + 200);
+    expect(off).toContain('translate(-50%, 8px)');
     // 质感三层：受光顶边 / 内侧暗线 / 贴地阴影
     expect(group).toContain('inset 0 1px 0');
     expect(group).toContain('inset 0 -1px 0');
@@ -73,8 +77,20 @@ describe('底部居中导航坞', () => {
     expect(css).toMatch(/\.fab-dock-btn:focus-visible\s*\{[^}]*outline-offset: -2px/);
   });
 
-  it('首屏不显示，滚过阈值才淡入', () => {
-    expect(fab).toContain("group.classList.toggle('visible', next)");
-    expect(css).toContain('.fab-group.visible');
+  it('常驻显示，显隐交给导航栏开关并持久化', () => {
+    expect(fab).not.toContain('showAfter');
+    expect(fab).not.toContain("classList.toggle('visible'");
+    expect(fab).toContain("classList.toggle('is-off', !on)");
+    expect(fab).toContain("toggleAttribute('inert', !on)");
+    // 开关占主题钮腾出的位置，aria-pressed 表状态，localStorage 记忆
+    expect(fab).toContain('insertBefore(toggle, themeToggle)');
+    expect(fab).toContain("setAttribute('aria-pressed', String(on))");
+    expect(fab).toContain('localStorage.getItem(DOCK_KEY)');
+    expect(fab).toContain("className = 'dock-toggle'");
+    expect(css).toContain('.dock-toggle');
+    expect(css).toContain('.dock-toggle[aria-pressed="false"]');
+    // 坞内主题钮必须放开 overflow，否则 hover 气泡被圆形钮裁掉
+    expect(css).toContain('.fab-group .theme-toggle');
+    expect(css).toContain('overflow: visible');
   });
 });

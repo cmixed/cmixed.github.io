@@ -28,6 +28,7 @@ type SourceScript =
   | 'sort'
   | 'filter-panel'
   | 'card-popover'
+  | 'card-preview'
   | 'fab'
   | 'scrollbar'
   | 'keys'
@@ -38,7 +39,16 @@ type SourceScript =
 const BUNDLES = {
   theme: ['theme'],
   cursor: ['cursor'],
-  ui: ['cursor', 'fab', 'scrollbar', 'card-popover', 'keys', 'caret', 'focus-scroll'],
+  ui: [
+    'cursor',
+    'fab',
+    'scrollbar',
+    'card-popover',
+    'card-preview',
+    'keys',
+    'caret',
+    'focus-scroll',
+  ],
   list: ['search', 'sort', 'filter-panel'],
 } as const satisfies Record<string, readonly SourceScript[]>;
 
