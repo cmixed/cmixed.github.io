@@ -191,6 +191,9 @@ describe('底部居中导航坞', () => {
       expect(inIcons, `${name} 在 icons.ts 里找不到`).toBeTruthy();
       expect(inFab, `${name} 两份副本不一致 —— 改一处必须同步另一处`).toBe(inIcons);
     }
+    // 筛选是借进坞的，tag 走 Lucide 原始几何 —— 只在坞内把容器缩到 18px，
+    // 墨迹才与按 14.8 网格画的邻座齐平；不改 path（卡片属性还要用原尺寸）
+    expect(css).toMatch(/\.fab-group #filterToggle svg \{[^}]*width: 18px/m);
     // 卡片预览的 eye 是第三份硬编码（client-scripts 字符串拼接、不能复用 icons.ts）
     expect(preview).toContain('stroke-width="1.7"');
     expect(preview).toContain(

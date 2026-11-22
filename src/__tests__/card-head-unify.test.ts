@@ -68,7 +68,11 @@ describe('卡片头部结构统一', () => {
     expect(css).not.toMatch(/^\.nook-preview-card-category\b/m);
     // 详情页仍有带文字的分类，它的 svg 尺寸规则要留着
     expect(css).toContain('.nook-detail-category svg');
-    // 分类方块与语言徽标共用 --attr-box 尺寸
-    expect(css).toContain('.card-attr--category svg');
+    // 分类方块与语言徽标共用 --attr-box 尺寸；图标尺寸也由通用规则统一给出，
+    // 不再单列 .card-attr--category svg（只匹配真实规则，别命中注释里的同名词）
+    expect(css).not.toMatch(/^\.card-attr--category svg\s*\{/m);
+    const strokeRule = css.match(/\.card-attr svg:not\(\.card-attr-glyph\) \{([^}]+)\}/)?.[1] ?? '';
+    expect(strokeRule).toContain('width: 1.25em');
+    expect(strokeRule).toContain('stroke-width: 1.7');
   });
 });

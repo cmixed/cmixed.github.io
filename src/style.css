@@ -4476,12 +4476,14 @@ html[data-pin-hidden] .pin-mark {
     width: var(--attr-box);
 }
 
-/* 回退到标签 / 分类时用的界面图标（描边）。尺寸与线宽和品牌 glyph、全站图标库
-   对齐：1.15em、1.7px。注意选择器要盖住 .card-attr--category svg —— 后者特异性
-   更低，写在这里的 1.05em 会赢，这正是以前分类图标比语言图标小一圈的原因。 */
+/* 回退到标签 / 分类时用的界面图标（描边）。线宽与全站图标库对齐：1.7px。
+   尺寸给到 1.25em（不是品牌 glyph 的 1.15em）：描边 path 自带留白，实测墨迹
+   10~12.4px，品牌 glyph 是 13.3~14.9px —— 放大一档后描边墨迹 10.9~13.5px，
+   两者落在同一区间。注意选择器要盖住 .card-attr--category svg —— 后者特异性
+   更低，写在这里的尺寸会赢，这正是以前分类图标比语言图标小一圈的原因。 */
 .card-attr svg:not(.card-attr-glyph) {
-    width: 1.15em;
-    height: 1.15em;
+    width: 1.25em;
+    height: 1.25em;
     display: block;
     stroke-width: 1.7;
     fill: none;
@@ -5622,6 +5624,16 @@ footer.edge-bounce {
     fill: none;
     /* 图标单独放大，按钮盒子不动 —— 直接 scale 按钮会连带移动分隔线和标签 */
     transition: transform 180ms var(--spring-press);
+}
+
+/* 筛选那颗是「借」进坞的（见 fab.ts），图标仍走 icons.ts 的 Lucide 原始几何：
+   内容占 18.2/24，在 21px 容器里墨迹 15.9px，比邻座按 14.8 网格画的图标
+   （12.9px）大一圈。缩到 18px 容器 → 墨迹 13.6px，与整排齐平。
+   只调这个场景、不改 tag 的 path —— 它在卡片属性里按 14.9px 渲染，
+   改 path 会把那边一起缩小。 */
+.fab-group #filterToggle svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* 缩进 / 目录是从导航栏「借」进坞的，身上可能还留着 .fab-btn 的方片外观；
