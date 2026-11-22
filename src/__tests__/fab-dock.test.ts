@@ -32,6 +32,15 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain("actionButton('回到顶部', 'up'");
     expect(fab).toContain("actionButton('直达底部', 'down'");
     expect(fab).toContain("actionButton('帮助', 'help'");
+    // 两枚跳转图标是「终点线 + 指向它的箭头」，且严格上下镜像
+    const up = fab.match(/\n\s*up: '([^']+)'/)?.[1] ?? '';
+    const down = fab.match(/\n\s*down: '([^']+)'/)?.[1] ?? '';
+    expect(up).toContain('M5.6 4.6h12.8'); // 线在上方
+    expect(down).toContain('M5.6 19.4h12.8'); // 线在下方
+    expect(up).toContain('M12 19.4V8.4'); // 杆从底部升到尖（尖 y=8.4，距线 3.8）
+    expect(down).toContain('M12 4.6v11'); // 杆从顶部降到尖（尖 y=15.6，距线 3.8）
+    expect(up).toContain('5.1-5.1 5.1 5.1'); // 两翼向上收尖
+    expect(down).toContain('5.1 5.1 5.1-5.1'); // 两翼向下收尖
     // 回底要现算目标高度：页面还会变长（图片 / 预览卡），必须校准
     expect(fab).toContain('scrollHeight - window.innerHeight');
     expect(fab).toContain('function scrollToBottom');
