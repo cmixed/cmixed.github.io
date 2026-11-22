@@ -47,8 +47,8 @@
     btn.setAttribute('aria-label', '开启卡片预览');
     btn.title = '卡片预览';
     btn.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
-      '<path d="M2.6 12S6.1 5.8 12 5.8 21.4 12 21.4 12 17.9 18.2 12 18.2 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.7"/></svg>' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+      '<path d="M4.6 12S7.7 6.4 12 6.4 19.4 12 19.4 12 16.3 17.6 12 17.6 4.6 12 4.6 12Z"/><circle cx="12" cy="12" r="2.4"/></svg>' +
       '<span class="fab-dock-label">卡片预览</span>';
     btn.addEventListener('click', () => setMode(!active));
     const dock = document.querySelector<HTMLElement>('.fab-group');

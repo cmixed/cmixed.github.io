@@ -16,6 +16,8 @@ import { describe, expect, it } from 'vite-plus/test';
 const ROOT = join(import.meta.dirname, '..', '..');
 const css = readFileSync(join(ROOT, 'src', 'style.css'), 'utf-8');
 const fab = readFileSync(join(ROOT, 'src', 'client', 'fab.ts'), 'utf-8');
+const icons = readFileSync(join(ROOT, 'src', 'lib', 'icons.ts'), 'utf-8');
+const preview = readFileSync(join(ROOT, 'src', 'client', 'card-preview.ts'), 'utf-8');
 
 describe('底部居中导航坞', () => {
   it('跨页三颗 + 本页工具：主页 / 个人博客 / 资源小窝 / 回顶 / 回底 / 缩进 / 目录 / 筛选 / 帮助', () => {
@@ -35,12 +37,12 @@ describe('底部居中导航坞', () => {
     // 两枚跳转图标是「终点线 + 指向它的箭头」，且严格上下镜像
     const up = fab.match(/\n\s*up: '([^']+)'/)?.[1] ?? '';
     const down = fab.match(/\n\s*down: '([^']+)'/)?.[1] ?? '';
-    expect(up).toContain('M5.6 4.6h12.8'); // 线在上方
-    expect(down).toContain('M5.6 19.4h12.8'); // 线在下方
+    expect(up).toContain('M4.6 4.6h14.8'); // 线在上方，长边占满统一网格
+    expect(down).toContain('M4.6 19.4h14.8'); // 线在下方，长边占满统一网格
     expect(up).toContain('M12 19.4V8.4'); // 杆从底部升到尖（尖 y=8.4，距线 3.8）
     expect(down).toContain('M12 4.6v11'); // 杆从顶部降到尖（尖 y=15.6，距线 3.8）
-    expect(up).toContain('5.1-5.1 5.1 5.1'); // 两翼向上收尖
-    expect(down).toContain('5.1 5.1 5.1-5.1'); // 两翼向下收尖
+    expect(up).toContain('m6.4 14 5.6-5.6 5.6 5.6'); // 两翼向上收尖
+    expect(down).toContain('m6.4 10 5.6 5.6 5.6-5.6'); // 两翼向下收尖
     // 回底要现算目标高度：页面还会变长（图片 / 预览卡），必须校准
     expect(fab).toContain('scrollHeight - window.innerHeight');
     expect(fab).toContain('function scrollToBottom');
@@ -175,5 +177,25 @@ describe('底部居中导航坞', () => {
     expect(fab).toContain("className = 'dock-toggle'");
     expect(css).toContain('.dock-toggle');
     expect(css).toContain('.dock-toggle[aria-pressed="false"]');
+  });
+
+  it('图标语言统一：线宽一致，四枚跨文件副本逐字相同', () => {
+    // 客户端脚本是字符串拼接产物、不能 import，所以只能靠测试阻止两份漂移
+    expect(fab).toContain('stroke-width="1.7"');
+    expect(icons).toContain('stroke-width="1.7"');
+    expect(fab).not.toContain('stroke-width="1.8"');
+    for (const name of ['home', 'blog', 'nook', 'pin']) {
+      const inFab = fab.match(new RegExp(`\\n\\s*${name}: '([^']+)'`))?.[1];
+      const inIcons = icons.match(new RegExp(`\\n\\s*${name}: '([^']+)'`))?.[1];
+      expect(inFab, `${name} 在 fab.ts 里找不到`).toBeTruthy();
+      expect(inIcons, `${name} 在 icons.ts 里找不到`).toBeTruthy();
+      expect(inFab, `${name} 两份副本不一致 —— 改一处必须同步另一处`).toBe(inIcons);
+    }
+    // 卡片预览的 eye 是第三份硬编码（client-scripts 字符串拼接、不能复用 icons.ts）
+    expect(preview).toContain('stroke-width="1.7"');
+    expect(preview).toContain(
+      'M4.6 12S7.7 6.4 12 6.4 19.4 12 19.4 12 16.3 17.6 12 17.6 4.6 12 4.6 12Z'
+    );
+    expect(preview).not.toContain('M2.6 12S');
   });
 });

@@ -41,35 +41,35 @@
  * 源码用 TS 写（受 tsc 检查），构建时由 scripts/client-scripts.ts 编译成 dist/ui.js。
  */
 (() => {
+  /* 站内图标的统一语言（与 src/lib/icons.ts 同一规格）：24×24 画布、内容落在
+     4.6~19.4 的方框内、1.7px 描边、圆头圆角、currentColor。扁 / 窄形状（眼睛、
+     图钉）保留自然比例，只把长边收进这个方框 —— 强行拉满会把图钉画成铲子。
+     home / blog / nook / pin 在 icons.ts 各有一份逐字相同的副本（构建是 esbuild
+     transform 字符串拼接、不能 import），由 fab-dock.test.ts 钉住不许漂移。 */
   const ICONS = {
-    /* 跨页三颗 + 上下跳转一颗，都是站内同一套线形图标：24×24、1.8px 描边、
-       圆头、currentColor。几何与 src/lib/icons.ts 里的 blog / nook 同源 ——
-       折角稿纸、等距收纳盒，与两处 favicon 同构，「点它回那个栏目」由图形说明。 */
-    home: '<path d="M4.4 11.3 12 5.1l7.6 6.2"/><path d="M6.7 9.9v9.2h10.6V9.9"/><path d="M10.2 19.1v-3.2a1.8 1.8 0 0 1 3.6 0v3.2"/>',
-    blog: '<path d="M7.4 4.6h6.4l3.2 3.2v11.6H7.4Z"/><path d="M13.8 4.6v3.2h3.2"/><path d="M9.8 12.2h5.4M9.8 15.2h3.8"/>',
-    nook: '<path d="M12 5 18.6 8.4v7.2L12 19l-6.6-3.4V8.4Z"/><path d="M5.4 8.4 12 11.8l6.6-3.4M12 11.8V19"/>',
-    /* 到顶 / 到底：一条「终点线」+ 指向它的箭头。纯箭头只说方向，横线把
-       「到顶 / 到底」这个边界说清楚 —— 线在上就是顶，线在下就是底。
-       两枚严格镜像（y → 24 - y）：线 y=4.6 / 19.4，尖 y=8.4 / 15.6，
-       间距都是 3.8px，并排时读得出是一对。 */
-    up: '<path d="M5.6 4.6h12.8"/><path d="M12 19.4V8.4"/><path d="m6.9 13.5 5.1-5.1 5.1 5.1"/>',
-    down: '<path d="M5.6 19.4h12.8"/><path d="M12 4.6v11"/><path d="m6.9 10.5 5.1 5.1 5.1-5.1"/>',
+    home: '<path d="M4.6 11.8 12 4.6l7.4 7.2"/><path d="M6.9 10.4v9h10.2v-9"/><path d="M10.4 19.4v-3.4a1.6 1.6 0 0 1 3.2 0v3.4"/>',
+    blog: '<path d="M4.6 4.6h9.2l5.6 5.6v9.2H4.6Z"/><path d="M13.8 4.6v5.6h5.6"/><path d="M8.4 13.4h7.2M8.4 16.6h5"/>',
+    nook: '<path d="M12 4.6 19.4 8.6v6.8L12 19.4 4.6 15.4V8.6Z"/><path d="M4.6 8.6 12 12.6l7.4-4M12 12.6v6.8"/>',
+    /* 到顶 / 到底：横线是终点，箭头指向它。两枚严格镜像（y → 24 - y）——
+       线 y=4.6 / 19.4，尖 y=8.4 / 15.6，间距都是 3.8px。 */
+    up: '<path d="M4.6 4.6h14.8"/><path d="M12 19.4V8.4"/><path d="m6.4 14 5.6-5.6 5.6 5.6"/>',
+    down: '<path d="M4.6 19.4h14.8"/><path d="M12 4.6v11"/><path d="m6.4 10 5.6 5.6 5.6-5.6"/>',
     /* 帮助：圆圈 + 问号，和快捷键帮助面板（keys.js 的 F1 / ?）同一件事。
        坞里最后一颗，用「?」比文字更省宽度，标签气泡补全称。 */
-    help: '<circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2-2.6 3.8"/><path d="M12 17.2h.01"/>',
+    help: '<circle cx="12" cy="12" r="7.4"/><path d="M9.5 9.6a2.6 2.6 0 0 1 5 1c0 1.7-2.5 1.9-2.5 3.5"/><path d="M12 17.4h.01"/>',
     /* 导航栏上的坞开关：一块屏幕 + 底部一条胶囊，指向「这条坞」。
        开 / 关两态靠 aria-pressed 与按钮底色区分，不另画第二枚图标。 */
-    dock: '<rect x="3.2" y="4.6" width="17.6" height="14.8" rx="2.4"/><rect x="7.4" y="14.6" width="9.2" height="2.6" rx="1.3"/>',
+    dock: '<rect x="4.6" y="4.6" width="14.8" height="14.8" rx="2.2"/><rect x="8.4" y="15.2" width="7.2" height="2.4" rx="1.2"/>',
     /* 置顶开关：线稿图钉（帽 + 身 + 针）。卡片上是 📌，导航里仍用线稿 ——
        按钮与旁边的坞开关、主题钮并列，emoji 的彩度会从这里跳出来。 */
-    pin: '<path d="M8 3.2h8"/><path d="M9.8 3.2v5.2l-2.4 2.8v2.4h9.2v-2.4L14.2 8.4V3.2"/><path d="M12 13.6v5.4"/>',
+    pin: '<path d="M7.8 4.6h8.4"/><path d="M9.6 4.6v5l-2.8 3.2v2.4h10.4v-2.4L14.4 9.6v-5"/><path d="M12 15.2v4.2"/>',
   } as const;
 
   type IconName = keyof typeof ICONS;
 
   function svg(name: IconName): string {
     return (
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
       `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`
     );
   }

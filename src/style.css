@@ -4442,10 +4442,10 @@ html[data-pin-hidden] .pin-mark {
     display: none;
 }
 
-/* ===== 卡片右上角的语言 / 平台属性 =====
-   图标来源分两类（见 src/lib/icons.ts 的文件头）：
-   - 语言 / 平台 = 官方品牌标识（实心，`.card-attr-glyph`）；
-   - 回退到首个标签 = 站内界面图标（描边，`.tag`）。
+/* ===== 卡片右上角的语言 / 平台 / 分类 / 标签属性 =====
+   图标形状分两类（见 src/lib/icons.ts 的文件头）：品牌标识实心，界面图标描边。
+   但**颜色、边框、底色、尺寸、圆角四样全站统一** —— 不再按 kind 分亮度，
+   四种属性在卡片右上角读起来是同一枚方块，区别只在图形本身与 title。
    尺寸与旁边的小标签整高对齐，两个方块共一条上下边线；间距交给父级 gap。 */
 .card-attr {
     --attr-box: calc(var(--chip-font) * 1.45 + var(--chip-pad-y) * 2 + 2px);
@@ -4460,7 +4460,9 @@ html[data-pin-hidden] .pin-mark {
     border: 1px solid var(--chip-border);
     border-radius: calc(var(--attr-box) * 0.3);
     background: var(--chip-fill);
-    color: var(--text-dim);
+    /* 四种 kind（语言 / 平台 / 标签 / 分类）共用这一档颜色与边框 —— 曾经按 kind
+       分三档亮度，同一行里语言是亮绿、其余是灰，读起来像有些卡片「没有标签」。 */
+    color: var(--text-muted);
     font-family: var(--font-mono);
     font-size: var(--chip-font);
     font-weight: 500;
@@ -4474,33 +4476,25 @@ html[data-pin-hidden] .pin-mark {
     width: var(--attr-box);
 }
 
-/* 回退到标签时用的界面图标（描边） */
+/* 回退到标签 / 分类时用的界面图标（描边）。尺寸与线宽和品牌 glyph、全站图标库
+   对齐：1.15em、1.7px。注意选择器要盖住 .card-attr--category svg —— 后者特异性
+   更低，写在这里的 1.05em 会赢，这正是以前分类图标比语言图标小一圈的原因。 */
 .card-attr svg:not(.card-attr-glyph) {
-    width: 1.05em;
-    height: 1.05em;
+    width: 1.15em;
+    height: 1.15em;
     display: block;
-    stroke-width: 1.85;
+    stroke-width: 1.7;
     fill: none;
 }
 
-/* 资源卡右上角的**分类**：与语言 / 平台属性共用这一个方块。
-   原来是另一个类（.nook-card-category），走小标签那套 --mica-chip 材质、
-   还带「网站 / 工具 / 代码」的文字 —— 并排放在语言徽标旁边时，两块颜色不同、
-   形状不同，卡片右上角读起来是散的。现在它退成纯图标，材质与尺寸直接继承
-   .card-attr 的纯图标形态（正方、--chip-fill 底、同一档圆角）。
-   全称走 title / aria-label，读屏与 hover 都拿得到。
-   详情页的分类仍是带文字的小标签（那里空间够，且只有一个）。 */
-.card-attr--category svg {
-    /* 分类走的是站内线稿图标（1em 填 25.6px 方框偏小），补到与语言图标同一档 */
-    width: 1.15em;
-    height: 1.15em;
-    stroke-width: 1.8;
-}
+/* 资源卡的分类与语言 / 平台共用这一个方块：正方、--chip-fill 底、同一档圆角，
+   连图标尺寸也走上面那条统一规则（不再单独写 .card-attr--category svg）。
+   全称走 title / aria-label；详情页的分类仍是带文字的小标签。 */
 
 /* 品牌标识：实心填充。这里**不能**被上面那条 fill: none 命中，
    否则 Python 的蛇、C++ 的圆环会整块消失，只剩一个空框。
-   尺寸给到 1.15em：品牌 glyph 的墨迹通常比同高的线稿更"缩"（自带留白），
-   同样 1.05em 会比旁边的描边图标显小一圈。 */
+   尺寸与描边图标同为 1.15em —— 品牌 glyph 自带留白，若再按视觉密度调大
+   就会比旁边的图标显大一档，破坏「同一行方块长得一样」的读感。 */
 .card-attr-glyph {
     width: 1.15em;
     height: 1.15em;
@@ -4517,22 +4511,6 @@ html[data-pin-hidden] .pin-mark {
     /* 版本号是「补充说明」，比图标轻一档，不喧宾夺主 */
     font-weight: 500;
     opacity: 0.85;
-}
-
-/* 语言与平台给一点色相差别，扫一眼能分出「这是语言」还是「这是平台」 */
-.card-attr--language {
-    border-color: var(--primary-dim);
-    color: var(--primary-text);
-}
-
-.card-attr--platform {
-    color: var(--text-muted);
-}
-
-/* 回退到首个标签时只出 tag 图标，再淡一档 —— 它不是真正的语言 / 平台 */
-.card-attr--tag {
-    color: var(--text-muted);
-    opacity: 0.8;
 }
 
 .tech-tag,
